@@ -60,8 +60,8 @@ if [ "$color_prompt" = yes ]; then
 fi
 
 # Don't use the git status on Windows because it is SLOOOOW.
-if [ "$OSTYPE" = "cygwin" ]; then
-	gitprompt='\__git_ps1 "(%s)"'
+if [ "$OSTYPE" != "cygwin" ]; then
+	gitprompt='__git_ps1 (%s)'
 fi
 
 PS1="\n[\A] ${debian_chroot:+($debian_chroot)}$orange\u@\h$normal:$blue\w$normal$($gitprompt)\$ "
