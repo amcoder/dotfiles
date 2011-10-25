@@ -52,13 +52,20 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
-
-# PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
+# Determine the colors for the prompt
 if [ "$color_prompt" = yes ]; then
-    PS1='\n[\A] ${debian_chroot:+($debian_chroot)}\[\033[38;05;208m\]\u@\h\[\033[00m\]:\[\033[38;05;103m\]\w\[\033[00m\]$(__git_ps1 "(%s)")\$ '
-else
-    PS1='\n[\A] ${debian_chroot:+($debian_chroot)}\u@\h:\w$(__git_ps1 "(%s)")\$ '
+	orange='\[\033[38;05;208m\]'
+	blue='\[\033[38;05;103m\]'
+	normal='\[\033[00m\]'
 fi
+
+# Don't use the git status on Windows because it is SLOOOOW.
+if [ "$OSTYPE" = "cygwin" ]; then
+	gitprompt='\__git_ps1 "(%s)"'
+fi
+
+PS1="\n[\A] ${debian_chroot:+($debian_chroot)}$orange\u@\h$normal:$blue\w$normal$($gitprompt)\$ "
+
 unset color_prompt force_color_prompt
 
 # If this is an xterm set the title to user@host:dir
