@@ -10,13 +10,13 @@ set autoread
 
 set number
 
-set tabstop=4
-set shiftwidth=4
-set softtabstop=4
-set noexpandtab
-set smarttab
-set ai "Auto Indent
-set si " Smart Indent
+"set tabstop=4
+"set shiftwidth=4
+"set softtabstop=4
+"set noexpandtab
+"set smarttab
+"set ai "Auto Indent
+"set si " Smart Indent
 set nowrap
 
 set hlsearch
