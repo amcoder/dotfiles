@@ -14,6 +14,11 @@ HISTCONTROL=ignoreboth
 # Set the editor to vi
 export EDITOR=vi
 
+# Set up color output on mac
+if [ `uname` = "Darwin" ]; then
+    export CLICOLOR=1
+fi
+
 # append to the history file, don't overwrite it
 shopt -s histappend
 
@@ -109,6 +114,8 @@ fi
 if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
+
+. .config/.git-completion.bash
 
 # Show some special statuses in git directories.
 export GIT_PS1_SHOWDIRTYSTATE=true
