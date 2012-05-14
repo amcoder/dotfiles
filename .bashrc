@@ -17,6 +17,7 @@ export EDITOR=vi
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then
     export CLICOLOR=1
+	alias lsrebuild='/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -kill -r -domain local -domain system -domain user'
 fi
 
 # append to the history file, don't overwrite it
@@ -116,7 +117,7 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
-. .config/.git-completion.bash
+. ~/.config/.git-completion.bash
 
 # Show some special statuses in git directories.
 export GIT_PS1_SHOWDIRTYSTATE=true
