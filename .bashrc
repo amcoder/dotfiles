@@ -14,9 +14,13 @@ HISTCONTROL=ignoreboth
 # Set the editor to vi
 export EDITOR=vi
 
+# Add personal bin to PATH
+export PATH=~/bin:$PATH
+
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then
-    export CLICOLOR=1
+	export GREP_OPTIONS='--color=auto'
+	export CLICOLOR=1
 	alias lsrebuild='/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -kill -r -domain local -domain system -domain user'
 fi
 
@@ -116,6 +120,7 @@ fi
 if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
+
 
 . ~/.config/.git-completion.bash
 
