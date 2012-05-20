@@ -77,7 +77,7 @@ if has("gui_running")
 
 	" Set window size
 	if !exists("g:vimrcloaded")
-		winsize 130 60
+		winsize 130 40
 		let g:vimrcloaded = 1
 	endif
 end
