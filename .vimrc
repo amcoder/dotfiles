@@ -61,6 +61,7 @@ set cursorcolumn
 syntax enable
 let g:solarized_contract="normal"
 let g:solarized_menu=0
+let g:solarized_italic=0
 set background=dark
 colorscheme solarized
 
@@ -71,6 +72,14 @@ if has("gui_running")
 	set guioptions-=T
 	" Don't use popup dialogs
 	set guioptions+=c
+	" Turn off menus
+	set guioptions-=m
+
+	" Set window size
+	if !exists("g:vimrcloaded")
+		winsize 130 60
+		let g:vimrcloaded = 1
+	endif
 end
 
 :noh
