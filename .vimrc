@@ -1,15 +1,24 @@
+" vi mode is lame
 set nocompatible
 
-set history=700
-
+" Turn on filetype handling
 syntax on
 filetype plugin on
 filetype indent on
 
+" 700 history items
+set history=700
+
+" automatically reload changed files
 set autoread
 
-set number
+" Turn on wildmenu completion
+set wildmenu
 
+" show relative line numbers
+set relativenumber
+
+" tabs and indenting options
 set tabstop=4
 "set shiftwidth=4
 "set softtabstop=4
@@ -17,15 +26,51 @@ set tabstop=4
 "set smarttab
 "set ai "Auto Indent
 "set si " Smart Indent
+
+" Turn off word wrap
 set nowrap
 
+" Highlight searches
 set hlsearch
+" Turn on incremenetal search
 set incsearch
 
+" Alow unsaved buffers to go into background
 set hidden
 
+" Set the status line to always display
+set laststatus=2
+" Set the status line:
+"	buffer number, file, type, options, line, column, byte value
+set statusline=[#%n]\ %f\ %y\ %m\ %r\ %=\ Line:%l/%L[%p%%]\ Col:%v\ [%b][0x%B]
+
+" Visual bell
+set vb
+
+" Always keep some lines at the top/bottom of the screen
+set scrolloff=2
+
+" Get fid of the separator characters
+set fillchars=""
+
+" highlight cursor line/column
+set cursorline
+set cursorcolumn
+
+" Set style
 syntax enable
+let g:solarized_contract="normal"
+let g:solarized_menu=0
 set background=dark
-"let g:solarized_termcolors=256
-"colorscheme solarized
-colorscheme BusyBee
+colorscheme solarized
+
+" gui options
+if has("gui_running")
+	set guifont=Monaco:h14
+	" Turn off toolbar
+	set guioptions-=T
+	" Don't use popup dialogs
+	set guioptions+=c
+end
+
+:noh
