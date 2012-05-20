@@ -67,7 +67,11 @@ colorscheme solarized
 
 " gui options
 if has("gui_running")
-	set guifont=Monaco:h14
+	if has("mac")
+		set guifont=Monaco:h14
+	elseif has("win32")
+		set guifont=Consolas:h12
+	endif
 	" Turn off toolbar
 	set guioptions-=T
 	" Don't use popup dialogs
@@ -85,6 +89,6 @@ if has("gui_running")
 		winsize 130 40
 		let g:vimrcloaded = 1
 	endif
-end
+endif
 
 :noh
