@@ -74,6 +74,11 @@ if has("gui_running")
 	set guioptions+=c
 	" Turn off menus
 	set guioptions-=m
+	"Turn off scrollbars
+	set guioptions-=r
+	set guioptions-=R
+	set guioptions-=l
+	set guioptions-=L
 
 	" Set window size
 	if !exists("g:vimrcloaded")
