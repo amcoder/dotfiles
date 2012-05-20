@@ -24,4 +24,8 @@ fi
 if [ -z "$SSH_AUTH_SOCK" -a -x /usr/bin/ssh-pageant ]; then
 	eval $(/usr/bin/ssh-pageant -q)
 fi
+
+[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
+[[ -r $rvm_path/scripts/completion ]] && . $rvm_path/scripts/completion
+
 trap logout HUP
