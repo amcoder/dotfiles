@@ -22,6 +22,7 @@ if [ `uname` = "Darwin" ]; then
 	export GREP_OPTIONS='--color=auto'
 	export CLICOLOR=1
 	alias lsrebuild='/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -kill -r -domain local -domain system -domain user'
+	export LS_COLORS='exfxcxdxbxegedabagacad'
 fi
 
 # append to the history file, don't overwrite it
