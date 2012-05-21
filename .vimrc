@@ -21,11 +21,15 @@ set wildmenu
 " show relative line numbers
 set relativenumber
 
+" turn on virtual area
+set virtualedit=block
+
 " tabs and indenting options
-set tabstop=4
-"set shiftwidth=4
-"set softtabstop=4
-"set noexpandtab
+set tabstop=2
+set shiftwidth=2
+set softtabstop=2
+set expandtab
+set autoindent
 "set smarttab
 "set ai "Auto Indent
 "set si " Smart Indent
