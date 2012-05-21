@@ -1,6 +1,9 @@
 " vi mode is lame
 set nocompatible
 
+" Enable pathogen
+call pathogen#infect()
+
 " Turn on filetype handling
 syntax on
 filetype plugin on
