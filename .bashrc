@@ -106,7 +106,20 @@ alias ll='ls -l'
 alias la='ls -A'
 alias lla='la -al'
 alias l='ls -CF'
-alias rv='vim --remote-silent'
+
+
+if [[ `uname` == CYGWIN* ]]; then
+  function rv
+  {
+    if [ "$#" -eq "0" ]; then
+      command gvim
+    else
+      command gvim --remote-silent $(cygpath -w "$@")
+    fi
+  }
+else
+  alias rv='vim --remote-silent'
+fi
 
 # Alias definitions.
 # You may want to put all your additions into a separate file like
