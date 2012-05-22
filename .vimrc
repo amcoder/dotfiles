@@ -77,8 +77,8 @@ if has("win32") || has("win64")
   set directory=$TEMP//
   set backupdir=$TEMP//
 else
-  set directory=~/tmp//,/var/tmp//,/tmp//
-  set backupdir=~/tmp//,~//
+  set directory=~/tmp/vimtmp//,~/tmp//,/var/tmp//,/tmp//
+  set backupdir=~/tmp/vimtmp//,~/tmp//,~//
 endif
 
 " gui options
