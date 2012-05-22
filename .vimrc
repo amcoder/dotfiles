@@ -72,11 +72,20 @@ let g:solarized_italic=0
 set background=dark
 colorscheme solarized
 
+" Get rid of the backup and swap files in the folder
+if has("win32") || has("win64")
+  set directory=$TEMP//
+  set backupdir=$TEMP//
+else
+  set directory=~/tmp//,/var/tmp//,/tmp//
+  set backupdir=~/tmp//,~//
+endif
+
 " gui options
 if has("gui_running")
 	if has("mac")
 		set guifont=Monaco:h14
-	elseif has("win32")
+	elseif has("win32") || has("win64")
 		set guifont=Consolas:h12
 	endif
 	" Turn off toolbar
