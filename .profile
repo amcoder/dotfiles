@@ -10,22 +10,28 @@
 
 # if running bash
 if [ -n "$BASH_VERSION" ]; then
-    # include .bashrc if it exists
-    if [ -f "$HOME/.bashrc" ]; then
-	. "$HOME/.bashrc"
-    fi
+  # include .bashrc if it exists
+  if [ -f "$HOME/.bashrc" ]; then
+    . "$HOME/.bashrc"
+  fi
 fi
 
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ] ; then
-    PATH="$HOME/bin:$PATH"
+  PATH="$HOME/bin:$PATH"
 fi
 
+#Set PATH to include the rvm binary
+if [ -d $HOME/.rvm/bin ]; then
+  PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+fi
+
+# start pageant ssh-agent on cygwin
 if [ -z "$SSH_AUTH_SOCK" -a -x /usr/bin/ssh-pageant ]; then
-	eval $(/usr/bin/ssh-pageant -q)
+  eval $(/usr/bin/ssh-pageant -q)
 fi
 
+# Load rvm
 [[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
-[[ -r $rvm_path/scripts/completion ]] && . $rvm_path/scripts/completion
 
 trap logout HUP
