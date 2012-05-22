@@ -26,6 +26,12 @@ if [ -d $HOME/.rvm/bin ]; then
   PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
 fi
 
+# Set the editor to vi
+export EDITOR=vi
+
+# Fix for some ssh servers
+export LC_CTYPE="en_US.UTF-8"
+
 # start pageant ssh-agent on cygwin
 if [ -z "$SSH_AUTH_SOCK" -a -x /usr/bin/ssh-pageant ]; then
   eval $(/usr/bin/ssh-pageant -q)
