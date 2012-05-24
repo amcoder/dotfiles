@@ -99,14 +99,18 @@ alias la='ls -A'
 alias lla='la -al'
 alias l='ls -CF'
 
-# rv aliases
+
+
+# rv alias
+vim_binary=(`type -P mvim` || `type -P gvim` || `type -P vim`)
+echo $vim_binary
 if [[ `uname` == CYGWIN* ]]; then
   function rv
   {
     if [ "$#" -eq "0" ]; then
-      command gvim
+      gvim &
     else
-      command gvim --remote-silent $(cygpath -w "$@")
+      gvim --remote-silent $(cygpath -w "$@") &
     fi
   }
 elif [[ `uname` == Darwin* ]]; then
@@ -114,6 +118,7 @@ elif [[ `uname` == Darwin* ]]; then
 else
   alias rv='vim --remote-silent'
 fi
+
 
 # Alias to rebuild launch services to fix messed up icon/file handler associations
 if [ -x /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister ]; then
