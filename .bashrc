@@ -102,8 +102,8 @@ alias l='ls -CF'
 
 
 # rv alias
-vim_binary=(`type -P mvim` || `type -P gvim` || `type -P vim`)
-echo $vim_binary
+#vim_binary=(`type -P mvim` || `type -P gvim` || `type -P vim`)
+#echo $vim_binary
 if [[ `uname` == CYGWIN* ]]; then
   function rv
   {
