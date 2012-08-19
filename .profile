@@ -32,6 +32,16 @@ export EDITOR=vi
 # Fix for some ssh servers
 export LC_CTYPE="en_US.UTF-8"
 
+# Set up nova client
+export OS_USERNAME=amcoder
+export NOVA_RAX_AUTH=1
+export OS_PASSWORD=***REMOVED***
+export OS_AUTH_URL=https://identity.api.rackspacecloud.com/v2.0/
+export NOVA_VERSION=2
+export NOVA_SERVICE_NAME=cloudServersOpenStack
+export OS_REGION_NAME=ORD
+export OS_TENANT_NAME=629265
+
 # start pageant ssh-agent on cygwin
 if [ -z "$SSH_AUTH_SOCK" -a -x /usr/bin/ssh-pageant ]; then
   eval $(/usr/bin/ssh-pageant -q)
