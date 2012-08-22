@@ -18,8 +18,10 @@ set autoread
 " Turn on wildmenu completion
 set wildmenu
 
-" show relative line numbers
-set relativenumber
+if exists('+relativenumber')
+  " show relative line numbers
+  set relativenumber
+endif
 
 " turn on virtual area
 set virtualedit=block
