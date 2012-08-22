@@ -21,6 +21,8 @@ set wildmenu
 if exists('+relativenumber')
   " show relative line numbers
   set relativenumber
+else
+  set number
 endif
 
 " turn on virtual area
