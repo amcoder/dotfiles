@@ -111,5 +111,8 @@ if has("gui_running")
 	endif
 endif
 
+" Ignore the following files when completing files
+set wildignore+=*.o,*.obj,.git,.svn,tmp/cache/**
+
 " Get rid of any saved highlighting
 :noh
