@@ -111,4 +111,8 @@ if has("gui_running")
 	endif
 endif
 
+" Map \t to fuzzy find files
+map <leader>t :FuzzyFinderTextMate<CR>
+
+" Get rid of any saved highlighting
 :noh
