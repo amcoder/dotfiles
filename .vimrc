@@ -114,5 +114,9 @@ endif
 " Ignore the following files when completing files
 set wildignore+=*.o,*.obj,.git,.svn,tmp/cache/**
 
+" Highlight long lines
+highlight OverLength ctermbg=red ctermfg=white guibg=#592929
+match OverLength /\%>80v.\+/
+
 " Get rid of any saved highlighting
 :noh
