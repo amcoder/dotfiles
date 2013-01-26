@@ -9,6 +9,9 @@ syntax on
 filetype plugin on
 filetype indent on
 
+" matching methods
+runtime macros/matchit.vim
+
 " 700 history items
 set history=700
 
@@ -53,7 +56,7 @@ set hidden
 set laststatus=2
 " Set the status line:
 "	buffer number, file, type, options, line, column, byte value
-set statusline=[#%n]\ %f\ %y\ %m\ %r\ %=\ Line:%l/%L[%p%%]\ Col:%v\ [%b][0x%B]
+set statusline=[#%n]\ %f\ %y\ %m\ %r\ %{fugitive#statusline()}\ %=\ Line:%l/%L[%p%%]\ Col:%v\ [%b][0x%B]
 
 " Visual bell
 set vb
