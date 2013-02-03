@@ -93,7 +93,7 @@ if has("gui_running")
 	if has("mac")
 		set guifont=Monaco:h14
 	elseif has("win32") || has("win64")
-		set guifont=Consolas:h12
+		set guifont=Consolas:h11
 	endif
 	" Turn off toolbar
 	set guioptions-=T
