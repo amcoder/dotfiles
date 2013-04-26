@@ -147,6 +147,12 @@ map <leader>ga :CtrlP app/assets<CR>
 map <leader>gs :CtrlP app/assets/stylesheets<CR>
 map <leader>gj :CtrlP app/assets/javascripts<CR>
 
+" TComment mappings
+map <leader>// :TComment<CR>
+map <leader>/i :TCommentInline<CR>
+map <leader>/r :TCommentRight<CR>
+map <leader>/b :TCommentBlock<CR>
+
 " Save files using sudo
 cmap w!! w !sudo tee % >/dev/null
 
