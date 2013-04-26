@@ -148,10 +148,10 @@ map <leader>gs :CtrlP app/assets/stylesheets<CR>
 map <leader>gj :CtrlP app/assets/javascripts<CR>
 
 " TComment mappings
-map <leader>// :TComment<CR>
-map <leader>/i :TCommentInline<CR>
-map <leader>/r :TCommentRight<CR>
-map <leader>/b :TCommentBlock<CR>
+map <leader>cc :TComment<CR>
+map <leader>ci :TCommentInline<CR>
+map <leader>cr :TCommentRight<CR>
+map <leader>cb :TCommentBlock<CR>
 
 " Save files using sudo
 cmap w!! w !sudo tee % >/dev/null
