@@ -121,5 +121,34 @@ set wildignore+=*.o,*.obj,.git,.svn,tmp/cache/**
 highlight OverLength ctermbg=red ctermfg=white guibg=#592929
 match OverLength /\%>80v.\+/
 
+" remap the leader key
+let mapleader = " "
+
+" make Y like D and C
+nnoremap Y y$
+
+" Stop the arrow key bad habit!
+map <Left> :echo 'Use h!'<CR>
+map <Right> :echo 'Use l!'<CR>
+map <Up> :echo 'Use k!'<CR>
+map <Down> :echo 'Use j!'<CR>
+
+" Turn off search highlighting
+nmap <silent> <leader>n :silent :noh<CR>
+
+" CtrlP Mappings
+map <leader><leader> :CtrlP<CR>
+map <leader>b :CtrlPBuffer<CR>
+map <leader>gv :CtrlP app/views<CR>
+map <leader>gc :CtrlP app/controllers<CR>
+map <leader>gm :CtrlP app/models<CR>
+map <leader>gh :CtrlP app/helpers<CR>
+map <leader>ga :CtrlP app/assets<CR>
+map <leader>gs :CtrlP app/assets/stylesheets<CR>
+map <leader>gj :CtrlP app/assets/javascripts<CR>
+
+" Save files using sudo
+cmap w!! w !sudo tee % >/dev/null
+
 " Get rid of any saved highlighting
 :noh
