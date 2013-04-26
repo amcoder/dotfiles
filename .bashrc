@@ -142,7 +142,7 @@ fi
 [[ -r $rvm_path/scripts/completion ]] && . $rvm_path/scripts/completion
 
 # Enable git completon
-[[ -r $HOME/.config/.git-completion.bash ]] && . $HOME/.config/.git-completion.bash
+[[ -r $HOME/.git-completion.bash ]] && . $HOME/.git-completion.bash
 
 # Show some special statuses in git directories.
 export GIT_PS1_SHOWDIRTYSTATE=true
