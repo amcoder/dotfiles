@@ -7,6 +7,7 @@
 # the default umask is set in /etc/profile; for setting the umask
 # for ssh logins, install and configure the libpam-umask package.
 #umask 022
+echo "Loading .profile"
 
 # if running bash
 if [ -n "$BASH_VERSION" ]; then
@@ -28,7 +29,7 @@ fi
 
 #Set PATH to include the rvm binary
 if [ -d $HOME/.rvm/bin ]; then
-  PATH=$PATH:$HOME/.rvm/bin # Add RVM to PATH for scripting
+  PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
 fi
 
 # Set the editor to vi
