@@ -13,6 +13,7 @@ local return_code='%(?..%{$fg[red]%}%? ↵ %{$reset_color%})'
 local git_branch='$(git_prompt_status)%{$reset_color%}$(git_prompt_info)%{$reset_color%} '
 local jobs='%(1j.%{$fg_bold[green]%}(%j jobs) %{$reset_color%}.)'
 local time='%{$fg_bold[green]%}[%T]%{$reset_color%}'
+local vi='$(vi_mode_prompt_info) '
 
 ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg[green]%}"
 ZSH_THEME_GIT_PROMPT_SUFFIX="%{$reset_color%}"
@@ -28,4 +29,4 @@ ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[cyan]%} ✭"
 
 PROMPT="
 ${user}:${pwd}$ "
-RPROMPT="${return_code}${git_branch}${rvm}${jobs}${time}"
+RPROMPT="${vi}${return_code}${git_branch}${rvm}${jobs}${time}"
