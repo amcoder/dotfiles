@@ -71,6 +71,10 @@ set fillchars=""
 set cursorline
 set cursorcolumn
 
+" fix new split location
+set splitbelow
+set splitright
+
 " Set style
 syntax enable
 let g:solarized_contract="normal"
