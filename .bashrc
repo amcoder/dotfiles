@@ -42,6 +42,7 @@ if [ "$color_prompt" = yes ]; then
   orange='\[\033[38;05;208m\]'
   blue='\[\033[38;05;103m\]'
   normal='\[\033[00m\]'
+  red='\[\033[31m\]'
 fi
 
 # Don't use the git status on Windows because it is SLOOOOW.
@@ -49,8 +50,10 @@ if [ "$OSTYPE" != "cygwin" ]; then
   gitprompt='$(__git_ps1 "(%s)")'
 fi
 
+exitcode='$(ret=$?; if [[ $ret != 0 ]]; then echo -e "${ret}\033[31m✖ "; fi)'
+
 # Set the prompt to [time] user@host:path$
-PS1="\n[\A] $orange\u@\h$normal:$blue\w$normal$gitprompt\$ "
+PS1="\n$exitcode$normal[\A] $orange\u@\h$normal:$blue\w$normal$gitprompt\$ "
 
 unset color_prompt
 
