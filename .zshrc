@@ -79,6 +79,10 @@ alias ll='ls -l'
 alias la='ls -A'
 alias lla='la -al'
 alias l='ls -CF'
+alias staging='nocorrect staging'
+alias production='nocorrect production'
+compdef _heroku staging
+compdef _heroku production
 
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then
