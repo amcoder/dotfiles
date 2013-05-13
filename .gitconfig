@@ -20,6 +20,6 @@
 [mergetool "vimdiff3"]
 	cmd = vim -f -d -c \"wincmd J\" \"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
 [merge]
-	tool = mvimdiff3
-[push]
-	default = simple
+  tool = mvimdiff3
+[include]
+  path=~/.gitconfig.local
