@@ -36,7 +36,7 @@ ZSH_THEME="amcoder"
 # Uncomment following line if you want to disable marking untracked files under
 # VCS as dirty. This makes repository status check for large repositories much,
 # much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
+#DISABLE_UNTRACKED_FILES_DIRTY="true"
 
 # enable agent forwarding
 zstyle :omz:plugins:ssh-agent agent-forwarding on
@@ -79,6 +79,10 @@ alias ll='ls -l'
 alias la='ls -A'
 alias lla='la -al'
 alias l='ls -CF'
+alias staging='nocorrect staging'
+alias production='nocorrect production'
+compdef _heroku staging
+compdef _heroku production
 
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then

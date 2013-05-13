@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ "$1" != "staging" ]; then
+  echo "This command only supports staging right now."
+  exit
+fi
+
+heroku pgbackups:restore \
+  DATABASE `heroku pgbackups:url --remote production` \
+  --remote staging
+

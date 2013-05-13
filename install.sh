@@ -19,7 +19,7 @@ echo "Ensuring security of files"
 chmod 700 $scriptdir/.ssh
 chmod 600 $scriptdir/.ssh/*
 
-for file in .*
+for file in .* bin
 do
   if exclude $file; then
     echo "Skipping $file"
