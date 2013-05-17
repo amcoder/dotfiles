@@ -75,6 +75,10 @@ set cursorcolumn
 set splitbelow
 set splitright
 
+" Set listchars
+set listchars=tab:→\ ,trail:·,eol:$,extends:»
+
+
 " Set style
 syntax enable
 let g:solarized_contract="normal"
@@ -156,6 +160,9 @@ map <leader>cc :TComment<CR>
 map <leader>ci :TCommentInline<CR>
 map <leader>cr :TCommentRight<CR>
 map <leader>cb :TCommentBlock<CR>
+
+" listchars mappings
+map <silent><leader>l :set list!<CR>
 
 " Save files using sudo
 cmap w!! w !sudo tee % >/dev/null
