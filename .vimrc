@@ -122,6 +122,10 @@ if has("gui_running")
 	endif
 endif
 
+" Configure CtrlP
+let g:ctrlp_match_window_reversed = 0
+let g:ctrlp_max_height = 25
+
 " Ignore the following files when completing files
 set wildignore+=*.o,*.obj,.git,.svn,tmp/cache/**
 
