@@ -76,7 +76,9 @@ set splitbelow
 set splitright
 
 " Set listchars
-set listchars=tab:→\ ,trail:·,eol:$,extends:»
+if !has("win32")
+  set listchars=tab:→\ ,trail:·,eol:$,extends:»
+endif
 
 
 " Set style
