@@ -31,6 +31,10 @@ if [ -d $HOME/.rvm/bin ]; then
   PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
 fi
 
+#Set PATH to include the node binaries
+if [ -d /usr/local/share/npm/bin ]; then
+  PATH=/usr/local/share/npm/bin:$PATH # Add node to PATH for scripting
+
 # Set the editor to vi
 export EDITOR=vi
 

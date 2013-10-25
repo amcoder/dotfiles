@@ -51,6 +51,11 @@ if [ -d "$HOME/bin" ] ; then
   PATH="$HOME/bin:$PATH"
 fi
 
+#Set PATH to include the node binaries
+if [ -d /usr/local/share/npm/bin ]; then
+  PATH=/usr/local/share/npm/bin:$PATH # Add node binaries to PATH for scripting
+fi
+
 #Set PATH to include the rvm binary
 if [ -d $HOME/.rvm/bin ]; then
   PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
