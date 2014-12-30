@@ -61,6 +61,11 @@ if [ -d $HOME/.rvm/bin ]; then
   PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
 fi
 
+# Add cabal to the path
+if [ -d $HOME/.cabal/bin ]; then
+  PATH=$HOME/.cabal/bin:$PATH
+fi
+
 export PATH
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
@@ -73,7 +78,7 @@ plugins=($plugins debian)
 # mac plugins
 plugins=($plugins brew)
 # Development plugins
-plugins=($plugins git bundler colorize capistrano gem heroku pow rails3 rvm)
+plugins=($plugins git bundler colorize capistrano gem heroku pow rails rvm)
 
 source $ZSH/oh-my-zsh.sh
 

@@ -58,3 +58,9 @@
 [submodule ".vim/bundle/vim-ios"]
 	path = .vim/bundle/vim-ios
 	url = https://github.com/eraserhd/vim-ios.git
+[submodule ".vim/bundle/vim-ruby-xmpfilter"]
+	path = .vim/bundle/vim-ruby-xmpfilter
+	url = https://github.com/t9md/vim-ruby-xmpfilter
+[submodule ".vim/bundle/rust.vim"]
+	path = .vim/bundle/rust.vim
+	url = https://github.com/wting/rust.vim.git

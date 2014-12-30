@@ -37,6 +37,7 @@ set shiftwidth=2
 set softtabstop=2
 set expandtab
 set autoindent
+set textwidth=80
 "set smarttab
 "set ai "Auto Indent
 "set si " Smart Indent
@@ -78,6 +79,7 @@ set splitright
 " Set listchars
 set listchars=tab:→\ ,trail:·,eol:$,extends:»
 
+set mouse=a
 
 " Set style
 syntax enable
@@ -129,9 +131,19 @@ let g:ctrlp_max_height = 25
 " Ignore the following files when completing files
 set wildignore+=*.o,*.obj,.git,.svn,tmp/cache/**
 
-" Highlight long lines
-highlight OverLength ctermbg=red ctermfg=white guibg=#592929
-match OverLength /\%>80v.\+/
+highlight ColorColumn ctermbg=52 ctermfg=white guibg=#592929
+set colorcolumn=+1,+2,+3
+
+" Change cursor shape between insert and normal mode in iTerm2.app
+if $TERM_PROGRAM =~ "iTerm"
+  if exists('$TMUX')
+    let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=1\x7\<Esc>\\"
+    let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=0\x7\<Esc>\\"
+  else
+    let &t_SI = "\<Esc>]50;CursorShape=1\x7" " Vertical bar in insert mode
+    let &t_EI = "\<Esc>]50;CursorShape=0\x7" " Block in normal mode
+  endif
+endif
 
 " remap the leader key
 let mapleader = " "
@@ -168,8 +180,21 @@ map <leader>cb :TCommentBlock<CR>
 " listchars mappings
 map <silent><leader>l :set list!<CR>
 
+" xmpfilter mappings
+let g:xmpfilter_cmd = "xmpfilter -a --no-warning"
+autocmd FileType ruby nmap <buffer> <leader>m <Plug>(xmpfilter-mark)
+autocmd FileType ruby xmap <buffer> <leader>m <Plug>(xmpfilter-mark)
+
+autocmd FileType ruby nmap <buffer> <leader>a <Plug>(xmpfilter-run)
+autocmd FileType ruby xmap <buffer> <leader>a <Plug>(xmpfilter-run)
+
 " Save files using sudo
 cmap w!! w !sudo tee % >/dev/null
+
+" indent settings overrides per language
+autocmd FileType c setlocal sw=4 tabstop=4
+autocmd FileType ruby setlocal tw=80
+autocmd FileType sh setlocal tw=80
 
 " Get rid of any saved highlighting
 :noh

@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+echo "Generating markers"
+mapcrafter_markers -c ~/.mapcrafter
+
+echo "Generating map"
+mapcrafter -c ~/.mapcrafter -j 4
