@@ -41,6 +41,9 @@ DISABLE_CORRECTION="true"
 # enable agent forwarding
 zstyle :omz:plugins:ssh-agent agent-forwarding on
 
+# Pass unmatched extended globs to the command
+unsetopt nomatch
+
 # set PATH so it local bin if it exists
 if [ -d "/usr/local/bin" ] ; then
   PATH="/usr/local/bin:$PATH"
@@ -58,12 +61,17 @@ fi
 
 #Set PATH to include the rvm binary
 if [ -d $HOME/.rvm/bin ]; then
-  PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
+  PATH="$PATH:$HOME/.rvm/bin"
 fi
 
 # Add cabal to the path
 if [ -d $HOME/.cabal/bin ]; then
   PATH=$HOME/.cabal/bin:$PATH
+fi
+
+# Add nand2tetris to path
+if [ -d $HOME/Projects/nand2tetris/tools ]; then
+  PATH=$HOME/Projects/nand2tetris/tools:$PATH
 fi
 
 export PATH
