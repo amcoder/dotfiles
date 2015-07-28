@@ -182,6 +182,9 @@ map <leader>cb :TCommentBlock<CR>
 " listchars mappings
 map <silent><leader>l :set list!<CR>
 
+" run rspec
+map <leader>rr :!rspec --color %<CR>
+
 " xmpfilter mappings
 let g:xmpfilter_cmd = "xmpfilter -a --no-warning"
 autocmd FileType ruby nmap <buffer> <leader>m <Plug>(xmpfilter-mark)
