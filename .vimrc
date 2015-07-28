@@ -31,6 +31,8 @@ endif
 " turn on virtual area
 set virtualedit=block
 
+set backspace=indent,eol,start
+
 " tabs and indenting options
 set tabstop=2
 set shiftwidth=2
