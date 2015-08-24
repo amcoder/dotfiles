@@ -123,5 +123,7 @@ export EDITOR=vi
 # Fix for some ssh servers
 export LC_CTYPE="en_US.UTF-8"
 
-source /usr/local/opt/chruby/share/chruby/chruby.sh
-source /usr/local/opt/chruby/share/chruby/auto.sh
+if [ -d /usr/local/opt/chruby ]; then
+  source /usr/local/opt/chruby/share/chruby/chruby.sh
+  source /usr/local/opt/chruby/share/chruby/auto.sh
+fi
