@@ -134,7 +134,7 @@ let g:ctrlp_match_window_reversed = 0
 let g:ctrlp_max_height = 25
 
 " Ignore the following files when completing files
-set wildignore+=*.o,*.obj,.git,.svn,tmp/cache/**
+set wildignore+=*.o,*.obj,.git,.svn,tmp/cache/**,tmp,node_modules,bower_components
 
 highlight ColorColumn ctermbg=52 ctermfg=white guibg=#592929
 set colorcolumn=+1,+2,+3
