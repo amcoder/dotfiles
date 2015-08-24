@@ -27,8 +27,8 @@ do
       rm ~/$file
     else
       echo "  ~/$file exists. backing up to ~/$file.backup"
-      rm -rf ~/$file
       mv ~/$file ~/$file.backup
+      rm -rf ~/$file
     fi
   fi
   ln -s $scriptdir/$file ~/$file
