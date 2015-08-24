@@ -82,6 +82,9 @@ set splitright
 set listchars=tab:→\ ,trail:·,eol:$,extends:»
 
 set mouse=a
+if has("mouse_sgr")
+  set ttymouse=sgr
+endif
 
 " Set style
 syntax enable
