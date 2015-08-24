@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 ignorefiles=". .. .DS_Store .git .gitignore .gitmodules"
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
