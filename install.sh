@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
-ignorefiles=". .. .DS_Store .git .gitignore .gitmodules"
+ignorefiles=". .. .DS_Store .git .gitignore .gitmodules .ssh"
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $scriptdir
-
 
 exclude() {
   for f in $ignorefiles
@@ -14,10 +13,6 @@ exclude() {
   done
   return 1
 }
-
-echo "Ensuring security of files"
-chmod 700 $scriptdir/.ssh
-chmod 600 $scriptdir/.ssh/*
 
 for file in .* bin
 do
