@@ -6,7 +6,7 @@
 	email = amcoder@gmail.com
 [core]
 	autocrlf = false
-	excludesfile = /Users/amcoder/.gitignore_global
+	excludesfile = ~/.gitignore_global
 [color]
 	ui = auto
 [difftool "sourcetree"]
