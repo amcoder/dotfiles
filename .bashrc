@@ -33,8 +33,7 @@ fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-    xterm-color) color_prompt=yes;;
-    xterm-256color) color_prompt=yes;;
+    xterm-color|xterm-256color) color_prompt=yes;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
@@ -105,7 +104,9 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
 fi
 
 # Git tab completion
-source ~/.git-completion.bash
+if [ "$OSTYPE" != "cygwin" ]; then
+	source ~/.git-completion.bash
+fi
 # Show branch in status line
 #PS1='[\W$(__git_ps1 " (%s)")]\$ '
 #export PROMPT_COMMAND='echo -ne "\033]0;${PWD/#$HOME/~}\007"'

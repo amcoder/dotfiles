@@ -1,5 +1,10 @@
+[gui]
+	recentrepo = C:/Users/Miller/Dropbox/Projects/njeni.us
+	recentrepo = C:/Users/Miller/qwerty
 [user]
 	name = Andrew Miller
 	email = amcoder@gmail.com
+[core]
+	autocrlf = false
 [color]
 	ui = auto
