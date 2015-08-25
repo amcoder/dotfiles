@@ -44,7 +44,6 @@ export LC_CTYPE="en_US.UTF-8"
 # Set up nova client
 export OS_USERNAME=amcoder
 export NOVA_RAX_AUTH=1
-export OS_PASSWORD=***REMOVED***
 export OS_AUTH_URL=https://identity.api.rackspacecloud.com/v2.0/
 export NOVA_VERSION=2
 export NOVA_SERVICE_NAME=cloudServersOpenStack
