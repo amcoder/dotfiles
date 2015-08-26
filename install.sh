@@ -24,14 +24,9 @@ do
   fi
   echo "Setting up $file"
   if [ -e ~/$file ]; then
-    if [ -L ~/$file ]; then
-      echo "  ~/$file is symlinked. deleting"
-      rm ~/$file
-    else
-      echo "  ~/$file exists. backing up to ~/$file.backup"
-      mv ~/$file ~/$file.backup
-      rm -rf ~/$file
-    fi
+    echo "  ~/$file exists. backing up to ~/$file.backup"
+    mv ~/$file ~/$file.backup
+    rm -rf ~/$file
   fi
   ln -s $scriptdir/$file ~/$file
 done
