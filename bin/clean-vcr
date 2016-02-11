@@ -1,0 +1,2 @@
+git checkout -- spec/vcr
+git clean -df -- spec/vcr

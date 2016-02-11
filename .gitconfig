@@ -26,7 +26,8 @@
 [alias]
 	check = diff 4b825dc642cb6eb9a060e54bf8d69288fbee4904 --check
 	lg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short
-	lgg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short --graph
+  lgg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short --graph
+  fap = fetch --all --prune
 [mergetool]
 	keepBackup = false
 [push]
