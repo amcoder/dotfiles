@@ -61,9 +61,9 @@
 [submodule ".vim/bundle/vim-ruby-xmpfilter"]
 	path = .vim/bundle/vim-ruby-xmpfilter
 	url = https://github.com/t9md/vim-ruby-xmpfilter
-[submodule ".vim/bundle/rust.vim"]
-	path = .vim/bundle/rust.vim
-	url = https://github.com/wting/rust.vim.git
 [submodule ".vim/bundle/vim-mustache-handlebars"]
 	path = .vim/bundle/vim-mustache-handlebars
 	url = https://github.com/mustache/vim-mustache-handlebars.git
+[submodule ".vim/bundle/rust.vim"]
+	path = .vim/bundle/rust.vim
+	url = git@github.com:rust-lang/rust.vim.git
