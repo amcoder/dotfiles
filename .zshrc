@@ -102,6 +102,9 @@ alias production='nocorrect production'
 compdef _heroku staging
 compdef _heroku production
 
+unalias ag
+unalias rg
+
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then
   export LS_COLORS='exfxcxdxbxegedabagacad'
