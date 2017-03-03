@@ -74,6 +74,10 @@ if [ -d $HOME/Projects/nand2tetris/tools ]; then
   PATH=$HOME/Projects/nand2tetris/tools:$PATH
 fi
 
+if [ -d $HOME/.cargo/bin ]; then
+  PATH=$HOME/.cargo/bin:$PATH
+fi
+
 export PATH
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)

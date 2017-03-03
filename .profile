@@ -60,3 +60,5 @@ fi
 
 trap logout HUP
 
+
+export PATH="$HOME/.cargo/bin:$PATH"

@@ -204,5 +204,8 @@ autocmd FileType c setlocal sw=4 tabstop=4
 autocmd FileType ruby setlocal tw=80
 autocmd FileType sh setlocal tw=80
 
+" Rust
+let g:rustfmt_autosave = 1
+
 " Get rid of any saved highlighting
 :noh
