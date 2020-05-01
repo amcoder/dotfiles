@@ -34,6 +34,7 @@ fi
 #Set PATH to include the node binaries
 if [ -d /usr/local/share/npm/bin ]; then
   PATH=/usr/local/share/npm/bin:$PATH # Add node to PATH for scripting
+fi
 
 # Set the editor to vi
 export EDITOR=vi
@@ -60,5 +61,5 @@ fi
 
 trap logout HUP
 
-
 export PATH="$HOME/.cargo/bin:$PATH"
+
