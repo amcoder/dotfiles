@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+let textsize=$(gsettings get org.gnome.desktop.interface text-scaling-factor)
+
+case "$1" in
+  up)
+    gsettings set org.gnome.desktop.interface text-scaling-factor $(( $textsize+0.1 ))
+    ;;
+  down)
+    gsettings set org.gnome.desktop.interface text-scaling-factor $(( $(gsettings get org.gnome.desktop.interface text-scaling-factor)-0.1 ))
+    ;;
+  reset)
+    gsettings reset org.gnome.desktop.interface text-scaling-factor
+    ;;
+  *)
+    echo $"Usage: $0 {up|down|reset}"
+    exit 1
+esac
+    
