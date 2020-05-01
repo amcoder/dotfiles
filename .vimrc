@@ -88,11 +88,11 @@ endif
 
 " Set style
 syntax enable
-let g:solarized_contract="normal"
-let g:solarized_menu=0
-let g:solarized_italic=0
 set background=dark
-colorscheme solarized
+let g:nord_underline = 1
+let g:nord_italic = 1
+let g:nord_italic_comments = 1
+colorscheme nord
 
 " Get rid of the backup and swap files in the folder
 if has("win32") || has("win64")
