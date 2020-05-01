@@ -1,34 +1,23 @@
-[gui]
-	recentrepo = C:/Users/Miller/Dropbox/Projects/njeni.us
-	recentrepo = C:/Users/Miller/qwerty
 [user]
 	name = Andy Miller
 	email = amcoder@gmail.com
 [core]
 	autocrlf = false
 	excludesfile = ~/.gitignore_global
+[push]
+	default = simple
 [color]
 	ui = auto
-[difftool "sourcetree"]
-	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
-	path = 
-[mergetool "sourcetree"]
-	cmd = /Applications/SourceTree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
-	trustExitCode = true
-[mergetool "mvimdiff3"]
-	cmd = mvim -f -d -c \"wincmd J\" \"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
+[mergetool]
+	keepBackup = false
 [mergetool "vimdiff3"]
 	cmd = vim -f -d -c \"wincmd J\" \"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
 [merge]
-  tool = mvimdiff3
-[include]
-  path=~/.gitconfig.local
+  tool = vimdiff3
 [alias]
 	check = diff 4b825dc642cb6eb9a060e54bf8d69288fbee4904 --check
 	lg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short
   lgg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short --graph
   fap = fetch --all --prune
-[mergetool]
-	keepBackup = false
-[push]
-	default = simple
+[include]
+  path=~/.gitconfig.local
