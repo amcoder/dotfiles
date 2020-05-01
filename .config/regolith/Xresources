@@ -1,0 +1,10 @@
+gnome.gtk.theme: Cahuella-NoBorder
+gnome.wallpaper: /home/andy/Pictures/cold_mountain.png
+
+i3-wm.bar.separator: "|"
+i3-wm.bar.mode: hide
+i3-wm.bar.trayoutput: none
+
+rofi.theme: /home/andy/.config/regolith/styles/rofi.rasi
+
+i3-wm.i3xrocks.config: /home/andy/.config/regolith/i3xrocks/config
