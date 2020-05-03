@@ -63,7 +63,7 @@ fi
 
 #Set PATH to include the node binaries
 if [ -d /usr/local/share/npm/bin ]; then
-  PATH=/usr/local/share/npm/bin:$PATH # Add node binaries to PATH for scripting
+  PATH=/usr/local/share/npm/bin:$PATH
 fi
 
 #Set PATH to include the rvm binary
@@ -76,13 +76,12 @@ if [ -d $HOME/.cabal/bin ]; then
   PATH=$HOME/.cabal/bin:$PATH
 fi
 
-# Add nand2tetris to path
-if [ -d $HOME/Projects/nand2tetris/tools ]; then
-  PATH=$HOME/Projects/nand2tetris/tools:$PATH
-fi
-
 if [ -d $HOME/.cargo/bin ]; then
   PATH=$HOME/.cargo/bin:$PATH
+fi
+
+if [ -d $HOME/.jenv/bin ]; then
+  PATH=$HOME/.jenv/bin:$PATH
 fi
 
 export PATH
@@ -91,13 +90,23 @@ export PATH
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # basic zsh plugins
-plugins=(vi-mode history-substring-search battery ssh-agent)
+plugins=(vi-mode history-substring-search ssh-agent colored-man-pages)
+
 # linux plugins
-plugins=($plugins debian)
+if [ "`uname -a`" =~ "Debian" ]; then
+  plugins=($plugins debian)
+fi
+if [ "`uname -a`" =~ "Ubuntu" ]; then
+  plugins=($plugins ubuntu)
+fi
+
 # mac plugins
-plugins=($plugins brew)
+if [ `uname` = "Darwin" ]; then
+  plugins=($plugins brew)
+fi
+
 # Development plugins
-plugins=($plugins git bundler colorize capistrano gem heroku pow rails rvm)
+plugins=($plugins git jenv docker docker-compose dotnet gradle)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -108,10 +117,6 @@ alias ll='ls -l'
 alias la='ls -A'
 alias lla='la -al'
 alias l='ls -CF'
-alias staging='nocorrect staging'
-alias production='nocorrect production'
-compdef _heroku staging
-compdef _heroku production
 
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then
@@ -135,9 +140,8 @@ if [ -d /usr/local/opt/chruby ]; then
   source /usr/local/opt/chruby/share/chruby/auto.sh
 fi
 
-if [ -f ~/.zshrc.local ]; then
-  source ~/.zshrc.local
-fi
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Keypad
 # 0 . Enter
@@ -163,5 +167,7 @@ bindkey -s "^[Oj" "*"
 bindkey -s "^[Oo" "/"
 bindkey -s "^[OX" "="
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+if [ -f ~/.zshrc.local ]; then
+  source ~/.zshrc.local
+fi
+
