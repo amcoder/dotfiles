@@ -1,5 +1,5 @@
 gnome.gtk.theme: Cahuella-NoBorder
-gnome.wallpaper: /home/andy/Pictures/cold_mountain.png
+gnome.wallpaper: /usr/share/backgrounds/nord-dark.png
 
 i3-wm.bar.separator: "|"
 i3-wm.bar.mode: hide
