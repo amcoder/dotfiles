@@ -106,7 +106,10 @@ if [ `uname` = "Darwin" ]; then
 fi
 
 # Development plugins
-plugins=($plugins git jenv docker docker-compose dotnet gradle)
+plugins=($plugins git docker docker-compose dotnet gradle)
+if [ -d $HOME/.jenv/bin ]; then
+  plugins=($plugins jenv)
+fi
 
 source $ZSH/oh-my-zsh.sh
 
