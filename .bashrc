@@ -1,4 +1,3 @@
-
 # ~/.bashrc: executed by bash(1) for non-login shells.
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
@@ -66,14 +65,6 @@ case "$TERM" in
     ;;
 esac
 
-# Alias definitions.
-# You may want to put all your additions into a separate file like
-# ~/.bash_aliases, instead of adding them here directly.
-# See /usr/share/doc/bash-doc/examples in the bash-doc package.
-if [ -f ~/.bash_aliases ]; then
-  . ~/.bash_aliases
-fi
-
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then
   export GREP_OPTIONS='--color=auto'
@@ -97,37 +88,8 @@ if [ -x /usr/bin/dircolors ]; then
   export LS_COLORS
 fi
 
-# Aliases for ls
-alias ls='ls -F'
-alias ll='ls -l'
-alias la='ls -A'
-alias lla='la -al'
-alias l='ls -CF'
-
-
-
-# rv alias
-#vim_binary=(`type -P mvim` || `type -P gvim` || `type -P vim`)
-#echo $vim_binary
-if [[ `uname` == CYGWIN* ]]; then
-  function rv
-  {
-    if [ "$#" -eq "0" ]; then
-      gvim &
-    else
-      gvim --remote-silent $(cygpath -w "$@") &
-    fi
-  }
-elif [[ `uname` == Darwin* ]]; then
-  alias rv='mvim --remote-silent'
-else
-  alias rv='vim --remote-silent'
-fi
-
-
-# Alias to rebuild launch services to fix messed up icon/file handler associations
-if [ -x /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister ]; then
-  alias lsrebuild='/System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister -kill -r -domain local -domain system -domain user'
+if [ -f ~/.aliases ]; then
+  . ~/.aliases
 fi
 
 # enable programmable completion features (you don't need to enable
@@ -142,9 +104,6 @@ if [ -f /usr/local/etc/bash_completion ]; then
   . /usr/local/etc/bash_completion
 fi
 
-# Enable rvm completion
-[[ -r $rvm_path/scripts/completion ]] && . $rvm_path/scripts/completion
-
 # Enable git completon
 [[ -r $HOME/.git-completion.bash ]] && . $HOME/.git-completion.bash
 
@@ -154,10 +113,3 @@ export GIT_PS1_SHOWSTASHSTATE=true
 export GIT_PS1_SHOWUNTRACKEDFILES=true
 export GIT_PS1_SHOWUPSTREAM=auto
 
-# Add cabal binaries
-export PATH=~/.cabal/bin:$PATH
-
-### Added by the Heroku Toolbelt
-export PATH="/usr/local/heroku/bin:$PATH"
-
-export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting

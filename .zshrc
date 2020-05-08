@@ -1,3 +1,11 @@
+# This is loaded after .zshenv and .zlogin for interactive shells
+# Load order:
+# - .zshenv
+# - .zprofile (login only)
+# - .zshrc (interactive only)
+# - .zlogin (login only)
+# - .zlogout (logout only)
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -15,76 +23,17 @@ ZSH_CUSTOM=$HOME/.oh-my-zsh.custom
 # time that oh-my-zsh is loaded.
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-
 # Set to this to use case-sensitive completion
-# CASE_SENSITIVE="true"
-
-# Comment this out to disable bi-weekly auto-update checks
-# DISABLE_AUTO_UPDATE="true"
-
-# Uncomment to change how often before auto-updates occur? (in days)
-# export UPDATE_ZSH_DAYS=13
-
-# Uncomment following line if you want to disable colors in ls
-# DISABLE_LS_COLORS="true"
-
-# Uncomment following line if you want to disable autosetting terminal title.
-# DISABLE_AUTO_TITLE="true"
+CASE_SENSITIVE="true"
 
 # Uncomment following line if you want to disable command autocorrection
 DISABLE_CORRECTION="true"
-
-# Uncomment following line if you want red dots to be displayed while waiting for completion
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment following line if you want to disable marking untracked files under
-# VCS as dirty. This makes repository status check for large repositories much,
-# much faster.
-#DISABLE_UNTRACKED_FILES_DIRTY="true"
 
 # enable agent forwarding
 zstyle :omz:plugins:ssh-agent agent-forwarding on
 
 # Pass unmatched extended globs to the command
 unsetopt nomatch
-
-# set PATH so it local bin if it exists
-if [ -d "/usr/local/bin" ] ; then
-  PATH="/usr/local/bin:$PATH"
-fi
-
-# set PATH so it includes user's private bin if it exists
-if [ -d "$HOME/bin" ] ; then
-  PATH="$HOME/bin:$PATH"
-fi
-
-#Set PATH to include the node binaries
-if [ -d /usr/local/share/npm/bin ]; then
-  PATH=/usr/local/share/npm/bin:$PATH
-fi
-
-#Set PATH to include the rvm binary
-if [ -d $HOME/.rvm/bin ]; then
-  PATH="$PATH:$HOME/.rvm/bin"
-fi
-
-# Add cabal to the path
-if [ -d $HOME/.cabal/bin ]; then
-  PATH=$HOME/.cabal/bin:$PATH
-fi
-
-if [ -d $HOME/.cargo/bin ]; then
-  PATH=$HOME/.cargo/bin:$PATH
-fi
-
-if [ -d $HOME/.jenv/bin ]; then
-  PATH=$HOME/.jenv/bin:$PATH
-fi
-
-export PATH
 
 # Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
@@ -113,34 +62,15 @@ fi
 
 source $ZSH/oh-my-zsh.sh
 
-# Customize to your needs...
-
-# Aliases
-alias ll='ls -l'
-alias la='ls -A'
-alias lla='la -al'
-alias l='ls -CF'
-
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then
   export LS_COLORS='exfxcxdxbxegedabagacad'
   export LSCOLORS=$LS_COLORS
 fi
 
-# enable color support of ls and also add handy aliases on GNU machones
+# enable color support of ls and also add handy aliases on GNU machines
 if [ -x /usr/bin/dircolors ]; then
   test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-fi
-
-# Set the editor to vi
-export EDITOR=vi
-
-# Fix for some ssh servers
-export LC_CTYPE="en_US.UTF-8"
-
-if [ -d /usr/local/opt/chruby ]; then
-  source /usr/local/opt/chruby/share/chruby/chruby.sh
-  source /usr/local/opt/chruby/share/chruby/auto.sh
 fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
@@ -169,6 +99,15 @@ bindkey -s "^[Om" "-"
 bindkey -s "^[Oj" "*"
 bindkey -s "^[Oo" "/"
 bindkey -s "^[OX" "="
+
+if [ -f ~/.aliases ]; then
+  . ~/.aliases
+fi
+
+if [ -d /usr/local/opt/chruby ]; then
+  source /usr/local/opt/chruby/share/chruby/chruby.sh
+  source /usr/local/opt/chruby/share/chruby/auto.sh
+fi
 
 if [ -f ~/.zshrc.local ]; then
   source ~/.zshrc.local
