@@ -1,0 +1,38 @@
+set surround
+set hlsearch
+set incsearch
+set ideajoin
+
+let mapleader = " "
+
+" Turn off search highlighting
+nmap <silent> <leader>n :noh<CR>
+
+map <leader><leader> :action GotoFile<CR>
+
+" Conflict bindings
+map <leader>e :action RecentFiles<CR>
+
+map <leader>b :action GotoDeclaration<CR>
+
+map <leader>x :action $Cut<CR>
+map <leader>c :action $Copy<CR>
+map <leader>v :action $Paste<CR>
+
+" map <leader>h :action TypeHierarchy<CR>
+" map <leader>i :action ImplementMethods<CR>
+" map <leader>o :action OverrideMethods<CR>
+" map <leader>p :action ParameterInfo<CR>
+" map <leader>q :action QuickJavadoc<CR>
+" map <leader>u :action GotoSuperMethod<CR>
+
+map <leader>rc :action ChooseRunConfiguration<CR>
+map <leader>rr :action Run<CR>
+map <leader>rf :action RerunFailedTests<CR>
+map <leader>dc :action ChooseDebugConfiguration<CR>
+map <leader>dr :action Debug<CR>
+
+set clipboard+=ideaput
+
+" Get rid of any saved highlighting
+:noh
