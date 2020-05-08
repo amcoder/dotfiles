@@ -23,14 +23,12 @@ do
     continue
   fi
   echo "Setting up $file"
-  if [ -e ~/$file ]; then
-    if [ ! -L ~/$file ]; then
-      backup="$file.backup.$(date +%s)"
-      echo "  ~/$file exists. backing up to ~/$backup"
-      mv ~/$file ~/$backup
-    fi
-    rm -rf ~/$file
+  if [ -e ~/$file ] && [ ! -L ~/$file ]; then
+    backup="$file.backup.$(date +%s)"
+    echo "  ~/$file exists. backing up to ~/$backup"
+    mv ~/$file ~/$backup
   fi
+  rm -rf ~/$file
   ln -s $scriptdir/$file ~/$file
 done
 
