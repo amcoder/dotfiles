@@ -1,9 +1,9 @@
 # Aliases for ls
-alias ls='ls -F'
-alias ll='ls -l'
+# alias ls='ls -F'
+# alias ll='ls -l'
 alias la='ls -A'
-alias lla='la -al'
-alias l='ls -CF'
+alias lla='ls -lAh'
+# alias l='ls -CF'
 
 # Alias to rebuild launch services to fix messed up icon/file handler associations
 if [ -x /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister ]; then
