@@ -79,3 +79,12 @@
 [submodule ".oh-my-zsh.custom/themes/powerlevel10k"]
 	path = .oh-my-zsh.custom/themes/powerlevel10k
 	url = https://github.com/romkatv/powerlevel10k.git
+[submodule ".vim/bundle/vim-dispatch"]
+	path = .vim/bundle/vim-dispatch
+	url = git@github.com:tpope/vim-dispatch.git
+[submodule ".vim/bundle/omnisharp-vim"]
+	path = .vim/bundle/omnisharp-vim
+	url = git@github.com:OmniSharp/omnisharp-vim.git
+[submodule ".vim/bundle/vim-autoread"]
+	path = .vim/bundle/vim-autoread
+	url = https://github.com/djoshea/vim-autoread
