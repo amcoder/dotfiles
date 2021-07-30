@@ -89,10 +89,8 @@ endif
 " Set style
 syntax enable
 set background=dark
-let g:nord_underline = 1
-let g:nord_italic = 1
-let g:nord_italic_comments = 1
-colorscheme nord
+let g:afterglow_inherit_background=1
+colorscheme afterglow
 
 " Get rid of the backup and swap files in the folder
 if has("win32") || has("win64")
