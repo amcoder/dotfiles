@@ -91,3 +91,15 @@
 [submodule ".vim/bundle/vim-afterglow"]
 	path = .vim/bundle/vim-afterglow
 	url = git@github.com:danilo-augusto/vim-afterglow.git
+[submodule ".vim/bundle/ale"]
+	path = .vim/bundle/ale
+	url = https://github.com/dense-analysis/ale.git
+[submodule ".vim/bundle/vim-prettier"]
+	path = .vim/bundle/vim-prettier
+	url = https://github.com/prettier/vim-prettier.git
+[submodule ".vim/bundle/vim-jsx-pretty"]
+	path = .vim/bundle/vim-jsx-pretty
+	url = https://github.com/MaxMEllon/vim-jsx-pretty
+[submodule ".vim/bundle/vim-javascript"]
+	path = .vim/bundle/vim-javascript
+	url = https://github.com/pangloss/vim-javascript

@@ -205,5 +205,23 @@ autocmd FileType sh setlocal tw=80
 " Rust
 let g:rustfmt_autosave = 1
 
+" ale
+let g:ale_linters = {
+\   'javascript': ['eslint'],
+\   'python': ['pycodestyle'],
+\   'rust': ['analyzer']
+\}
+let g:ale_fixers = {
+\   '*': ['remove_trailing_lines', 'trim_whitespace'],
+\   'javascript': ['prettier', 'eslint'],
+\   'json': ['prettier'],
+\   'python': ['autopep8'],
+\   'rust': ['rustfmt']
+\}
+let g:ale_fix_on_save = 1
+
+" Prettier
+let g:prettier#autoformat = 0
+
 " Get rid of any saved highlighting
 :noh
