@@ -3,8 +3,6 @@ gnome.wallpaper: /usr/share/backgrounds/nord-dark.png
 
 i3-wm.bar.separator: "|"
 i3-wm.bar.mode: hide
-i3-wm.bar.trayoutput: none
+i3-wm.bar.trayoutput: primary
 
-rofi.theme: /home/andy/.config/regolith/styles/rofi.rasi
-
-i3-wm.i3xrocks.config: /home/andy/.config/regolith/i3xrocks/config
+rofi.font: Source Code Pro Medium 30
