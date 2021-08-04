@@ -288,7 +288,7 @@ mode "Resize Mode" {
 bindsym $mod+r mode "Resize Mode"
 
 ## Screenshot Mode // Area to Clipboard // <Super> p ##
-bindsym $mod+p exec gnome-screenshot --clipboard --area
+bindsym $mod+p exec --no-startup-id maim --select | xclip -selection clipboard -t image/png
 ## Screenshot Mode // Enter Screenshot Mode // <Super><Shift> p ##
 set $screenshot_clipboard "Screenshot to clipboard: [s]creen, [w]indow, [a]rea, [c]lipboard, [f]ile, [i]nteractive"
 set $screenshot_file "Screenshot to file: [s]creen, [w]indow, [a]rea, [c]lipboard, [f]ile, [i]nteractive"
@@ -299,11 +299,11 @@ mode $screenshot_clipboard {
   bindsym f mode $screenshot_file
 
   ## Screenshot Mode // Screen // s ##
-  bindsym s exec gnome-screenshot --clipboard, mode "default"
+  bindsym s exec --no-startup-id maim | xclip -selection clipboard -t image/png, mode "default"
   ## Screenshot Mode // Window // w ##
-  bindsym w exec gnome-screenshot --clipboard --window, mode "default"
+  bindsym w exec --no-startup-id maim --window $(xdotool getactivewindow) | xclip -selection clipboard -t image/png, mode "default"
   ## Screenshot Mode // Area // a ##
-  bindsym --release a exec gnome-screenshot --clipboard --area, mode "default"
+  bindsym a exec --no-startup-id maim --select | xclip -selection clipboard -t image/png, mode "default"
   ## Screenshot Mode // Interactive // i ##
   bindsym i exec gnome-screenshot --interactive, mode "default"
 
@@ -314,9 +314,9 @@ mode $screenshot_file {
   bindsym c mode $screenshot_clipboard
   bindsym f nop
 
-  bindsym s exec gnome-screenshot, mode "default"
-  bindsym w exec gnome-screenshot --window, mode "default"
-  bindsym --release a exec gnome-screenshot --area, mode "default"
+  bindsym s exec --no-startup-id maim "/home/$USER/Pictures/$(date)", mode "default"
+  bindsym w exec --no-startup-id maim --window $(xdotool getactivewindow) "/home/$USER/Pictures/$(date)", mode "default"
+  bindsym a exec --no-startup-id maim --select "/home/$USER/Pictures/$(date)", mode "default"
   bindsym i exec gnome-screenshot --interactive, mode "default"
 
   # back to normal
