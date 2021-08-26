@@ -20,8 +20,8 @@ if [ -d "$HOME/.local/bin" ] ; then
   PATH="$HOME/.local/bin:$PATH"
 fi
 
-if [ -d $HOME/.cargo/bin ]; then
-  PATH=$HOME/.cargo/bin:$PATH
+if [ -d $HOME/.cargo ]; then
+  . "$HOME/.cargo/env"
 fi
 
 if [ -d $HOME/.jenv/bin ]; then
