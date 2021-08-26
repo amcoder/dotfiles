@@ -64,8 +64,8 @@ source $ZSH/oh-my-zsh.sh
 
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then
-  export LS_COLORS='exfxcxdxbxegedabagacad'
-  export LSCOLORS=$LS_COLORS
+  # export LS_COLORS='exfxcxdxbxegedabagacad'
+  # export LSCOLORS=$LS_COLORS
 fi
 
 # enable color support of ls and also add handy aliases on GNU machines
