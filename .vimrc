@@ -163,6 +163,18 @@ let mapleader = " "
 " make Y like D and C
 nnoremap Y y$
 
+" Needed for tmux and vim to play nice
+map <Esc>[A <Up>
+map <Esc>[B <Down>
+map <Esc>[C <Right>
+map <Esc>[D <Left>
+
+" Console movement
+cmap <Esc>[A <Up>
+cmap <Esc>[B <Down>
+cmap <Esc>[C <Right>
+cmap <Esc>[D <Left>
+
 " Stop the arrow key bad habit!
 map <Left> :echo 'Use h!'<CR>
 map <Right> :echo 'Use l!'<CR>
