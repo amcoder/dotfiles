@@ -28,6 +28,10 @@ if [ -d $HOME/.jenv/bin ]; then
   PATH=$HOME/.jenv/bin:$PATH
 fi
 
+if [ -d /usr/local/go/bin ]; then
+  PATH=$PATH:/usr/local/go/bin
+fi
+
 export PATH
 
 # Set the editor to vi
