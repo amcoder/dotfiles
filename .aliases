@@ -1,9 +1,15 @@
 # Aliases for ls
-# alias ls='ls -F'
-# alias ll='ls -l'
-alias la='ls -A'
-alias lla='ls -lAh'
-# alias l='ls -CF'
+if [ -f /usr/bin/exa ]; then
+  alias ls='exa --icons --classify'
+  alias ll='exa --icons --classify --long --group --header --links '
+  alias lla='exa --icons --classify --long --group --header --links --all'
+else
+  # alias ls='ls -F'
+  # alias ll='ls -l'
+  alias la='ls -A'
+  alias lla='ls -lAh'
+  # alias l='ls -CF'
+fi
 
 # Alias to rebuild launch services to fix messed up icon/file handler associations
 if [ -x /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister ]; then
