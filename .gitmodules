@@ -103,3 +103,6 @@
 [submodule ".vim/bundle/vim-javascript"]
 	path = .vim/bundle/vim-javascript
 	url = https://github.com/pangloss/vim-javascript
+[submodule ".vim/bundle/vim-nand2tetris-syntax"]
+	path = .vim/bundle/vim-nand2tetris-syntax
+	url = https://github.com/sevko/vim-nand2tetris-syntax
