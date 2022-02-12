@@ -244,7 +244,7 @@ bindsym $mod+Shift+Escape mode $session
 ## Configuration Mode // Control Center // <Super> c ##
 bindsym $mod+c exec gnome-control-center
 ## Configuration Mode // Enter Config Mode // <Super><Shift> c ##
-set $control_center "Control Center: [w]ifi, [b]luetooth, [d]isplay, [n]etwork, [p]ower, [s]ound"
+set $control_center "Control Center: [w]ifi, [b]luetooth, [d]isplay, [n]etwork, [p]ower, [s]ound, [t]weaks"
 mode $control_center {
   ## Configuration Mode // Wifi // w ##
   bindsym w exec gnome-control-center wifi, mode "default"
@@ -258,6 +258,8 @@ mode $control_center {
   bindsym p exec gnome-control-center power, mode "default"
   ## Configuration Mode // Sound // s ##
   bindsym s exec gnome-control-center sound, mode "default"
+  ## Configuration Mode // Tweaks // t ##
+  bindsym t exec gnome-tweaks, mode "default"
 
   bindsym Escape mode "default"
 }
