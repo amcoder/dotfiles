@@ -32,6 +32,10 @@ if [ -d /usr/local/go/bin ]; then
   PATH=$PATH:/usr/local/go/bin
 fi
 
+if [ -d /opt/homebrew/bin ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+fi
+
 export PATH
 
 # Set the editor to vi
