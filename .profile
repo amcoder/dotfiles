@@ -36,6 +36,10 @@ if [ -d /opt/homebrew/bin ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
+if [ -d $HOME/go/bin ]; then
+  PATH=$PATH:$HOME/go/bin
+fi
+
 export PATH
 
 # Set the editor to vi
@@ -53,4 +57,3 @@ if [ -n "$BASH_VERSION" ]; then
     . "$HOME/.bashrc"
   fi
 fi
-
