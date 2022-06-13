@@ -1,0 +1,45 @@
+###############################################################################
+# Session Management
+###############################################################################
+
+## Session // Exit App // <><Shift> q ##
+set_from_resource $i3-wm.binding.exit_app i3-wm.binding.exit_app Shift+q
+bindsym $mod+$i3-wm.binding.exit_app [con_id="__focused__"] kill
+
+## Session // Terminate App // <><Alt> q ##
+set_from_resource $i3-wm.binding.kill_app i3-wm.binding.kill_app q
+bindsym $mod+$alt+$i3-wm.binding.kill_app [con_id="__focused__"] exec --no-startup-id kill -9 $(xdotool getwindowfocus getwindowpid)
+
+set_from_resource $i3-wm.program.refresh_ui i3-wm.program.refresh_ui /usr/bin/regolith-look refresh
+set_from_resource $i3-wm.program.logout i3-wm.program.logout /usr/bin/gnome-session-quit --logout
+set_from_resource $i3-wm.program.reboot i3-wm.program.reboot /usr/bin/gnome-session-quit --reboot
+set_from_resource $i3-wm.program.shutdown i3-wm.program.shutdown /usr/bin/gnome-session-quit --power-off
+set_from_resource $i3-wm.program.lock i3-wm.program.lock dbus-send --type=method_call --dest=org.gnome.ScreenSaver /org/gnome/ScreenSaver org.gnome.ScreenSaver.Lock
+set_from_resource $i3-wm.program.sleep i3-wm.program.sleep systemctl suspend
+
+## Session Mode // Lock // <><Esc> ##
+bindsym $mod+Escape exec $i3-wm.program.lock
+## Session Mode // Enter Session Mode // <><Shift><Esc> ##
+set $session "Session Mode: [l]ock, log[o]ut, [s]uspend, [r]eboot, [p]ower off, [i]3 restart, i3 [c]onfig, re[f]resh"
+mode $session {
+  ## Session Mode // Restart i3 // i ##
+  bindsym i restart, mode "default"
+  ## Session Mode // Reload i3 Config // c ##
+  bindsym c reload, mode "default"
+  ## Session Mode // Refresh Session // f ##
+  bindsym f exec --no-startup-id $i3-wm.program.refresh_ui, mode "default"
+
+  ## Session Mode // Logout // o ##
+  bindsym o exec $i3-wm.program.logout, mode "default"
+  ## Session Mode // Reboot // r ##
+  bindsym r exec $i3-wm.program.reboot, mode "default"
+  ## Session Mode // Power Down // p ##
+  bindsym p exec $i3-wm.program.shutdown, mode "default"
+  ## Session Mode // Lock // l ##
+  bindsym l exec $i3-wm.program.lock, mode "default"
+  ## Session Mode // Suspend // s ##
+  bindsym s exec $i3-wm.program.sleep, mode "default"
+
+  bindsym Escape mode "default"
+}
+bindsym $mod+Shift+Escape mode $session

@@ -1,0 +1,36 @@
+## Screenshot Mode // Area to Clipboard // <> p ##
+bindsym $mod+p exec --no-startup-id maim --select | xclip -selection clipboard -t image/png
+## Screenshot Mode // Enter Screenshot Mode // <><Shift> p ##
+set $screenshot_clipboard "Screenshot to clipboard: [s]creen, [w]indow, [a]rea, [c]lipboard, [f]ile, [i]nteractive"
+set $screenshot_file "Screenshot to file: [s]creen, [w]indow, [a]rea, [c]lipboard, [f]ile, [i]nteractive"
+mode $screenshot_clipboard {
+  ## Screenshot Mode // Clipboard // c ##
+  bindsym c nop
+  ## Screenshot Mode // File // f ##
+  bindsym f mode $screenshot_file
+
+  ## Screenshot Mode // Screen // s ##
+  bindsym s exec --no-startup-id maim | xclip -selection clipboard -t image/png, mode "default"
+  ## Screenshot Mode // Window // w ##
+  bindsym w exec --no-startup-id maim --window $(xdotool getactivewindow) | xclip -selection clipboard -t image/png, mode "default"
+  ## Screenshot Mode // Area // a ##
+  bindsym a exec --no-startup-id maim --select | xclip -selection clipboard -t image/png, mode "default"
+  ## Screenshot Mode // Interactive // i ##
+  bindsym i exec gnome-screenshot --interactive, mode "default"
+
+  # back to normal
+  bindsym Escape mode "default"
+}
+mode $screenshot_file {
+  bindsym c mode $screenshot_clipboard
+  bindsym f nop
+
+  bindsym s exec --no-startup-id maim "/home/$USER/Pictures/$(date)", mode "default"
+  bindsym w exec --no-startup-id maim --window $(xdotool getactivewindow) "/home/$USER/Pictures/$(date)", mode "default"
+  bindsym a exec --no-startup-id maim --select "/home/$USER/Pictures/$(date)", mode "default"
+  bindsym i exec gnome-screenshot --interactive, mode "default"
+
+  # back to normal
+  bindsym Escape mode "default"
+}
+bindsym $mod+Shift+p mode $screenshot_clipboard
