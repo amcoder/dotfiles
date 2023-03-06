@@ -4,6 +4,8 @@
 [core]
 	autocrlf = false
 	excludesfile = ~/.gitignore_global
+	fsmonitor = true
+	untrackedcache = true
 [push]
 	default = simple
 [color]
