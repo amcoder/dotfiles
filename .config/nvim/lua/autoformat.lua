@@ -54,7 +54,7 @@ return {
               return
             end
 
-            vim.cmd("EslintFixAll")
+            if vim.fn.exists(':EslintFixAll') > 0 then vim.cmd("EslintFixAll") end
             vim.lsp.buf.format {
               async = false,
               filter = function(c)
