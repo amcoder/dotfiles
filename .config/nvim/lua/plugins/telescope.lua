@@ -24,6 +24,10 @@ return {
             end,
           }
         },
+        path_display = {
+          'truncate'
+        },
+        dynamic_preview_title = true,
       },
     },
     config = function(_, opts)
