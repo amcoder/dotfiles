@@ -109,6 +109,8 @@ vim.keymap.set('n', 'Y', 'y$', { noremap = true, silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+vim.keymap.set('n', '<C-z>', '<C-a>', { noremap = true })
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
@@ -176,8 +178,8 @@ vim.keymap.set('n', '<leader>gs', ":G<cr>", { desc = '[G]it [S]tatus', silent = 
 vim.keymap.set('n', '<leader>gb', ":Git blame<cr>", { desc = '[G]it [B]lame', silent = true })
 vim.keymap.set('v', '<leader>gb', ":'<,'>Git blame<cr>", { desc = '[G]it [B]lame', silent = true })
 vim.keymap.set('n', '<leader>gd', ":Git diffsplit<cr>", { desc = '[G]it [B]lame', silent = true })
-vim.keymap.set('n', '<leader>gh', ":GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
-vim.keymap.set('v', '<leader>gh', ":'<,'>GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
+vim.keymap.set('n', '<leader>gl', ":GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
+vim.keymap.set('v', '<leader>gl', ":'<,'>GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
 
 -- [[ Configure undotree ]]
 vim.cmd([[ let g:undotree_SetFocusWhenToggle = 1 ]])

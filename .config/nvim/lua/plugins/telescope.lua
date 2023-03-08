@@ -1,3 +1,22 @@
+local send_to_qflist = function(prompt_bufnr)
+  local picker = require("telescope.actions.state").get_current_picker(prompt_bufnr)
+
+  if next(picker:get_multi_selection()) ~= nil then
+    require('telescope.actions').send_selected_to_qflist(prompt_bufnr)
+  else
+    require('telescope.actions').send_to_qflist(prompt_bufnr)
+  end
+  require('telescope.actions').open_qflist(prompt_bufnr)
+end
+
+local open_with_trouble = function(prompt_bufnr, _mode)
+  require('trouble.providers.telescope').open_with_trouble(prompt_bufnr, _mode)
+end
+
+local cycle_layout = function(prompt_bufnr, _mode)
+  require('telescope.actions.layout').cycle_layout_next(prompt_bufnr, _mode)
+end
+
 return {
   -- Fuzzy Finder (files, lsp, etc)
   {
@@ -14,21 +33,52 @@ return {
           i = {
                 ['<C-u>'] = false,
                 ['<C-d>'] = false,
-                ["<c-t>"] = function(prompt_bufnr, _mode)
-              require('trouble.providers.telescope').open_with_trouble(prompt_bufnr, _mode)
-            end,
+                ["<c-q>"] = send_to_qflist,
+                ["<c-t>"] = open_with_trouble,
+                ["<c-]>"] = cycle_layout,
           },
           n = {
-                ["<c-t>"] = function(prompt_bufnr, _mode)
-              require('trouble.providers.telescope').open_with_trouble(prompt_bufnr, _mode)
-            end,
+                ["<M-q>"] = false,
+                ["<c-q>"] = send_to_qflist,
+                ["<c-t>"] = open_with_trouble,
+                ["<c-]>"] = cycle_layout,
           }
         },
         path_display = {
           'truncate'
         },
         dynamic_preview_title = true,
+        vimgrep_arguments = {
+          "rg",
+          "--color=never",
+          "--no-heading",
+          "--with-filename",
+          "--line-number",
+          "--column",
+          "--smart-case",
+          "--hidden",
+          "-g",
+          "!.git",
+        },
+        -- wrap_results = true,
       },
+      pickers = {
+        find_files = {
+          find_command = { 'rg', '--files', '--hidden', '-g', '!.git' },
+        },
+        lsp_references = {
+          fname_width = false
+        },
+        quickfix = {
+          fname_width = false
+        },
+        loclist = {
+          fname_width = false
+        },
+        jumplist = {
+          fname_width = false
+        },
+      }
     },
     config = function(_, opts)
       local telescope = require('telescope')

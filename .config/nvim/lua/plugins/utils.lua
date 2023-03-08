@@ -4,6 +4,12 @@ return {
     'tpope/vim-sleuth',
     event = 'BufEnter',
   },
+  {
+    'tpope/vim-repeat',
+  },
+  {
+    'tpope/vim-surround',
+  },
 
   {
     'mbbill/undotree',
@@ -31,4 +37,7 @@ return {
 
   -- Nice select and input pupups
   { 'stevearc/dressing.nvim', event = 'VeryLazy' },
+
+  -- Highlight word under cursor
+  { 'RRethy/vim-illuminate',  event = 'VeryLazy' },
 }

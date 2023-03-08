@@ -28,7 +28,7 @@ return {
             init_selection = '<c-space>',
             node_incremental = '<c-space>',
             scope_incremental = '<c-s>',
-            node_decremental = '<M-space>',
+            node_decremental = vim.fn.has('macunix') and ' ' or '<M-Space>',
           },
         },
         textobjects = {
