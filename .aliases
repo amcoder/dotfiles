@@ -11,7 +11,8 @@ else
   # alias l='ls -CF'
 fi
 
-alias tmna='tmux new-session -A -s'
+# tmux
+tms() { tmux new-session -As ${1:-default} }
 
 # Alias to rebuild launch services to fix messed up icon/file handler associations
 if [ -x /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister ]; then
