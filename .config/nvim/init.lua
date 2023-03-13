@@ -111,6 +111,11 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 
 vim.keymap.set('n', '<C-z>', '<C-a>', { noremap = true })
 
+vim.keymap.set('n', ']b', ':bnext<cr>', { desc = 'Next [B]uffer' })
+vim.keymap.set('n', '[b', ':bprev<cr>', { desc = 'Previous [B]uffer' })
+vim.keymap.set('n', ']B', ':blast<cr>', { desc = 'Last [B]uffer' })
+vim.keymap.set('n', '[B', ':bfirst<cr>', { desc = 'First [B]uffer' })
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
@@ -177,7 +182,7 @@ vim.keymap.set('n', '<leader>tg', ":Neotree git_status<cr>", { desc = 'Neo[t]ree
 vim.keymap.set('n', '<leader>gs', ":G<cr>", { desc = '[G]it [S]tatus', silent = true })
 vim.keymap.set('n', '<leader>gb', ":Git blame<cr>", { desc = '[G]it [B]lame', silent = true })
 vim.keymap.set('v', '<leader>gb', ":'<,'>Git blame<cr>", { desc = '[G]it [B]lame', silent = true })
-vim.keymap.set('n', '<leader>gd', ":Git diffsplit<cr>", { desc = '[G]it [B]lame', silent = true })
+vim.keymap.set('n', '<leader>gd', ":Gvdiffsplit<cr>", { desc = '[G]it [D]iff', silent = true })
 vim.keymap.set('n', '<leader>gl', ":GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
 vim.keymap.set('v', '<leader>gl', ":'<,'>GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
 

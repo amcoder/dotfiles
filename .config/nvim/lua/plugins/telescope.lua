@@ -66,6 +66,10 @@ return {
         find_files = {
           find_command = { 'rg', '--files', '--hidden', '-g', '!.git' },
         },
+        buffers = {
+          sort_mru = true,
+          ignore_current_buffer = true,
+        },
         lsp_references = {
           fname_width = false
         },
