@@ -1,4 +1,3 @@
-regolith.look.path: /usr/share/regolith-look/nord
 regolith.wallpaper.file: /usr/share/backgrounds/nord_dark.png
 
 gtk.font_name: Ubuntu Regular 12
@@ -6,6 +5,7 @@ gtk.font_name: Ubuntu Regular 12
 i3-wm.window.border.size: 1
 i3-wm.floatingwindow.border.size: 1
 i3-wm.hide.edge.borders: smart
+i3-wm.bar.trayoutput: primary
 
 i3-wm.bar.mode: hide
 
@@ -28,3 +28,5 @@ i3-wm.workspace.16.name: 16:<span> </span><span font_desc='RobotoMono Nerd Font 
 i3-wm.workspace.17.name: 17:<span> </span><span font_desc='RobotoMono Nerd Font 12'>17 </span><span foreground='#B48EAD'></span><span> </span>
 i3-wm.workspace.18.name: 18:<span> </span><span font_desc='RobotoMono Nerd Font 12'>18 </span><span foreground='#E5E9F0'></span><span> </span>
 i3-wm.workspace.19.name: 19:<span> </span><span font_desc='RobotoMono Nerd Font 12'>19 </span><span foreground='#5E81AC'></span><span> </span>
+!regolith.look.path: /usr/share/regolith-look/nord
+regolith.look.path: /usr/share/regolith-look/nord

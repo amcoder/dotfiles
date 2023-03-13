@@ -1,5 +1,6 @@
 # Cause Settings app to float above tiled windows
 for_window [class="Gnome-control-center"] floating enable
+for_window [class="regolith-control-center"] floating enable
 for_window [class="Evolution-alarm-notify"] floating enable
 for_window [class="1Password"] floating enable
 for_window [class="Pavucontrol"] floating enable
