@@ -64,6 +64,9 @@ source $ZSH/oh-my-zsh.sh
 
 fpath+=${ZDOTDIR:-~}/.oh-my-zsh.custom/completions
 
+zle -N edit-command-line
+bindkey -M vicmd v edit-command-line
+
 # Set up color output on mac
 if [ `uname` = "Darwin" ]; then
   # export LS_COLORS='exfxcxdxbxegedabagacad'
