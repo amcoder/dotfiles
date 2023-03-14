@@ -14,6 +14,10 @@ return {
   {
     'mbbill/undotree',
     cmd = { 'UndotreeShow', 'UndotreeHide', 'UndotreeFocus', 'UndotreeToggle' },
+    config = function()
+      vim.cmd([[ let g:undotree_SetFocusWhenToggle = 1 ]])
+      vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle, { desc = '[U]ndotree' })
+    end,
   },
 
   -- Useful plugin to show you pending keybinds.

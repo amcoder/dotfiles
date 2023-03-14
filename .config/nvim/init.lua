@@ -109,12 +109,27 @@ vim.keymap.set('n', 'Y', 'y$', { noremap = true, silent = true })
 vim.keymap.set('n', 'k', "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
 
+-- Remap C-a because tmux
 vim.keymap.set('n', '<C-z>', '<C-a>', { noremap = true })
+
+-- System clipboard support
+vim.keymap.set({ 'n', 'v' }, '<leader>y', [["+y]])
+vim.keymap.set({ 'n', 'v' }, '<leader>Y', [["+y$]])
+vim.keymap.set({ 'n', 'v' }, '<leader>d', [["+d]])
+vim.keymap.set({ 'n', 'v' }, '<leader>D', [["+D]])
+vim.keymap.set({ 'n', 'v' }, '<leader>p', [["+p]])
+vim.keymap.set({ 'n', 'v' }, '<leader>P', [["+P]])
 
 vim.keymap.set('n', ']b', ':bnext<cr>', { desc = 'Next [B]uffer' })
 vim.keymap.set('n', '[b', ':bprev<cr>', { desc = 'Previous [B]uffer' })
 vim.keymap.set('n', ']B', ':blast<cr>', { desc = 'Last [B]uffer' })
 vim.keymap.set('n', '[B', ':bfirst<cr>', { desc = 'First [B]uffer' })
+
+-- Diagnostic keymaps
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic message" })
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Go to next diagnostic message" })
+vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = "Open floating diagnostic message" })
+vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = "Open diagnostics list" })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
@@ -126,72 +141,3 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = highlight_group,
   pattern = '*',
 })
-
--- See `:help telescope.builtin`
-vim.keymap.set('n', '<leader>?', function()
-  require('telescope.builtin').oldfiles({ cwd_only = true })
-end, { desc = '[?] Find recently opened files' })
-vim.keymap.set('n', '<leader><space>', require('telescope.builtin').find_files, { desc = '[ ] Search Files' })
-vim.keymap.set('n', '<leader>b', require('telescope.builtin').buffers, { desc = 'Search [B]uffers' })
-vim.keymap.set('n', '<leader>/', function()
-  -- You can pass additional configuration to telescope to change theme, layout, etc.
-  require('telescope.builtin').current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-    winblend = 10,
-    previewer = false,
-  })
-end, { desc = '[/] Fuzzily search in current buffer' })
-
-vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
-vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
-vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
-vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
-vim.keymap.set('n', '<leader>st', require('telescope.builtin').treesitter, { desc = '[S]earch [T]reesitter' })
-vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
-
--- [[ Trouble ]]
-vim.keymap.set("n", "<leader>xx", "<cmd>TroubleToggle<cr>", { silent = true, noremap = true, desc = '[T]rouble' })
-vim.keymap.set("n", "<leader>xw", "<cmd>TroubleToggle workspace_diagnostics<cr>",
-  { silent = true, noremap = true, desc = 'Trouble [W]orkspace Diagnostics' })
-vim.keymap.set("n", "<leader>xd", "<cmd>TroubleToggle document_diagnostics<cr>",
-  { silent = true, noremap = true, desc = 'Trouble [D]ocument Diagnostics' })
-vim.keymap.set("n", "<leader>xl", "<cmd>TroubleToggle loclist<cr>",
-  { silent = true, noremap = true, desc = 'Trouble [L]ocation List' })
-vim.keymap.set("n", "<leader>xq", "<cmd>TroubleToggle quickfix<cr>",
-  { silent = true, noremap = true, desc = 'Trouble LSP [Q]uickfix List' })
-vim.keymap.set("n", "<leader>xr", "<cmd>TroubleToggle lsp_references<cr>",
-  { silent = true, noremap = true, desc = 'Trouble LSP [R]eferences' })
-vim.keymap.set("n", "<leader>xt", "<cmd>TroubleToggle telescope<cr>",
-  { silent = true, noremap = true, desc = 'Trouble [T]elescope' })
-vim.keymap.set("n", "]c", function() require("trouble").next({ skip_groups = true, jump = true }); end,
-  { silent = true, noremap = true, desc = 'Trouble Next' })
-vim.keymap.set("n", "[c", function() require("trouble").previous({ skip_groups = true, jump = true }); end,
-  { silent = true, noremap = true, desc = 'Trouble Previous' })
-vim.keymap.set("n", "]C", function() require("trouble").last({ skip_groups = true, jump = true }); end,
-  { silent = true, noremap = true, desc = 'Trouble Last' })
-vim.keymap.set("n", "[C", function() require("trouble").first({ skip_groups = true, jump = true }); end,
-  { silent = true, noremap = true, desc = 'Trouble First' })
-
--- [[ Configure Neotree ]]
-vim.keymap.set('n', '<leader>tt', ":Neotree toggle<cr>", { desc = 'Neo[t]ree [T]oggle', silent = true })
-vim.keymap.set('n', '<leader>tr', ":Neotree reveal<cr>", { desc = 'Neo[t]ree [R]eveal', silent = true })
-vim.keymap.set('n', '<leader>tf', ":Neotree filesystem<cr>", { desc = 'Neo[t]ree [F]iles', silent = true })
-vim.keymap.set('n', '<leader>tb', ":Neotree buffers<cr>", { desc = 'Neo[t]ree [B]uffers', silent = true })
-vim.keymap.set('n', '<leader>tg', ":Neotree git_status<cr>", { desc = 'Neo[t]ree [G]it', silent = true })
-
--- [[ Configure Fugitive ]]
-vim.keymap.set('n', '<leader>gs', ":G<cr>", { desc = '[G]it [S]tatus', silent = true })
-vim.keymap.set('n', '<leader>gb', ":Git blame<cr>", { desc = '[G]it [B]lame', silent = true })
-vim.keymap.set('v', '<leader>gb', ":'<,'>Git blame<cr>", { desc = '[G]it [B]lame', silent = true })
-vim.keymap.set('n', '<leader>gd', ":Gvdiffsplit<cr>", { desc = '[G]it [D]iff', silent = true })
-vim.keymap.set('n', '<leader>gl', ":GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
-vim.keymap.set('v', '<leader>gl', ":'<,'>GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
-
--- [[ Configure undotree ]]
-vim.cmd([[ let g:undotree_SetFocusWhenToggle = 1 ]])
-vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle, { desc = '[U]ndotree' })
-
--- Diagnostic keymaps
-vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic message" })
-vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Go to next diagnostic message" })
-vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = "Open floating diagnostic message" })
-vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = "Open diagnostics list" })

@@ -1,6 +1,17 @@
 return {
-  { 'tpope/vim-fugitive', event = 'VeryLazy' },
-  { 'tpope/vim-rhubarb',  event = 'VeryLazy' },
+  {
+    'tpope/vim-fugitive',
+    event = 'VeryLazy',
+    config = function()
+      vim.keymap.set('n', '<leader>gs', ":G<cr>", { desc = '[G]it [S]tatus', silent = true })
+      vim.keymap.set('n', '<leader>gb', ":Git blame<cr>", { desc = '[G]it [B]lame', silent = true })
+      vim.keymap.set('v', '<leader>gb', ":'<,'>Git blame<cr>", { desc = '[G]it [B]lame', silent = true })
+      vim.keymap.set('n', '<leader>gd', ":Gvdiffsplit<cr>", { desc = '[G]it [D]iff', silent = true })
+      vim.keymap.set('n', '<leader>gl', ":GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
+      vim.keymap.set('v', '<leader>gl', ":'<,'>GBrowse!<cr>", { desc = '[G]it[h]ub', silent = false })
+    end,
+  },
+  { 'tpope/vim-rhubarb', event = 'VeryLazy' },
 
   {
     -- Adds git releated signs to the gutter, as well as utilities for managing changes
