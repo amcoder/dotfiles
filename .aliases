@@ -1,5 +1,5 @@
 # Aliases for ls
-if [ -f /usr/bin/exa ]; then
+if command -v exa &> /dev/null; then
   alias ls='exa --icons --classify'
   alias ll='exa --icons --classify --long --group --header --links '
   alias lla='exa --icons --classify --long --group --header --links --all'

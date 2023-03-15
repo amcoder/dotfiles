@@ -112,6 +112,21 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 -- Remap C-a because tmux
 vim.keymap.set('n', '<C-z>', '<C-a>', { noremap = true })
 
+-- Stay centered
+vim.keymap.set('n', '<C-d>', '<C-d>zz')
+vim.keymap.set('n', '<C-u>', '<C-u>zz')
+vim.keymap.set('n', 'n', 'nzzzv')
+vim.keymap.set('n', 'N', 'Nzzzv')
+vim.keymap.set('n', '*', '*zzzv')
+vim.keymap.set('n', '#', '*zzzv')
+
+-- Alternate filter
+vim.keymap.set("n", '<bs>', '<C-^>')
+
+-- Kep selection when shifting
+vim.keymap.set("v", '>', '>gv')
+vim.keymap.set("v", '<', '<gv')
+
 -- System clipboard support
 vim.keymap.set({ 'n', 'v' }, '<leader>y', [["+y]])
 vim.keymap.set({ 'n', 'v' }, '<leader>Y', [["+y$]])
@@ -120,10 +135,14 @@ vim.keymap.set({ 'n', 'v' }, '<leader>D', [["+D]])
 vim.keymap.set({ 'n', 'v' }, '<leader>p', [["+p]])
 vim.keymap.set({ 'n', 'v' }, '<leader>P', [["+P]])
 
-vim.keymap.set('n', ']b', ':bnext<cr>', { desc = 'Next [B]uffer' })
-vim.keymap.set('n', '[b', ':bprev<cr>', { desc = 'Previous [B]uffer' })
-vim.keymap.set('n', ']B', ':blast<cr>', { desc = 'Last [B]uffer' })
-vim.keymap.set('n', '[B', ':bfirst<cr>', { desc = 'First [B]uffer' })
+-- New line above
+vim.keymap.set('n', '<leader>o', 'm`o<esc>``')
+vim.keymap.set('n', '<leader>O', 'm`O<esc>``')
+
+vim.keymap.set('n', ']b', ':bnext<cr>', { desc = 'Next [B]uffer', silent = true })
+vim.keymap.set('n', '[b', ':bprev<cr>', { desc = 'Previous [B]uffer', silent = true })
+vim.keymap.set('n', ']B', ':blast<cr>', { desc = 'Last [B]uffer', silent = true })
+vim.keymap.set('n', '[B', ':bfirst<cr>', { desc = 'First [B]uffer', silent = true })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic message" })
