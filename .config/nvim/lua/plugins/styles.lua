@@ -1,3 +1,7 @@
+local function shorten_branch(val)
+  return val:gsub('^andymiller/', 'am…/')
+end
+
 return {
   -- Color schemes
   { 'navarasu/onedark.nvim', lazy = true },
@@ -18,6 +22,10 @@ return {
     opts = {
       options = {
         theme = 'nordfox',
+      },
+      sections = {
+        lualine_b = { { 'branch', fmt = shorten_branch }, 'diff', 'diagnostics' },
+        lualine_c = { { 'filename', path = 1 } },
       },
     },
   },

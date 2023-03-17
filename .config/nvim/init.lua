@@ -72,7 +72,7 @@ vim.o.undofile = true
 -- vim.o.smartcase = true
 
 -- Scrolling
-vim.o.scrolloff = 8
+vim.o.scrolloff = 5
 
 -- Keep signcolumn on by default
 vim.wo.signcolumn = 'yes'
@@ -84,6 +84,9 @@ vim.o.timeoutlen = 300
 
 -- Set completeopt to have a better completion experience
 vim.o.completeopt = 'menuone,noselect'
+
+-- Show only a global status bar
+vim.o.laststatus = 3
 
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true

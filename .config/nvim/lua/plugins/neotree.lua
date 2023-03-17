@@ -8,7 +8,7 @@ return {
       "nvim-tree/nvim-web-devicons",
       "MunifTanjim/nui.nvim",
     },
-    cmd = 'Neotree',
+    event = 'VeryLazy',
     opts = {
       close_if_last_window = true,
       popup_border_style = "rounded",
