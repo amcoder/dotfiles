@@ -107,7 +107,7 @@ if [ -d /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.in
   source /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc
 fi
 
-if [ command -v direnv &> /dev/null ]; then
+if command -v direnv &> /dev/null; then
   export DIRENV_LOG_FORMAT=
   eval "$(direnv hook zsh)"
 fi
