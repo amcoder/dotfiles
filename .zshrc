@@ -67,19 +67,8 @@ fpath+=${ZDOTDIR:-~}/.oh-my-zsh.custom/completions
 zle -N edit-command-line
 bindkey -M vicmd v edit-command-line
 
-# Set up color output on mac
-if [ `uname` = "Darwin" ]; then
-  # export LS_COLORS='exfxcxdxbxegedabagacad'
-  # export LSCOLORS=$LS_COLORS
-fi
-
-# enable color support of ls and also add handy aliases on GNU machines
-if [ -x /usr/bin/dircolors ]; then
-  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
-fi
-
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+[[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 
 # Keypad
 # 0 . Enter
@@ -105,13 +94,9 @@ bindkey -s "^[Oj" "*"
 bindkey -s "^[Oo" "/"
 bindkey -s "^[OX" "="
 
-if [ -f ~/.aliases ]; then
-  . ~/.aliases
-fi
-
-if [ -d /usr/local/opt/chruby ]; then
-  source /usr/local/opt/chruby/share/chruby/chruby.sh
-  source /usr/local/opt/chruby/share/chruby/auto.sh
+# enable color support of ls and also add handy aliases on GNU machines
+if [ -x /usr/bin/dircolors ]; then
+  test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 fi
 
 export NVM_DIR="$HOME/.nvm"
@@ -122,7 +107,26 @@ if [ -d /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.in
   source /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc
 fi
 
-if [ -f ~/.zshrc.local ]; then
-  source ~/.zshrc.local
+if [ command -v direnv &> /dev/null ]; then
+  export DIRENV_LOG_FORMAT=
+  eval "$(direnv hook zsh)"
 fi
 
+# Set the editor to vi
+export EDITOR=vi
+export VISUAL=vi
+
+[ -f ~/.aliases ] && source ~/.aliases
+
+[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+
+# This will not run
+if [[ '' ]]; then
+# FullStory Specific!
+# We don't actually want to run this here. These are in .profile and .zshrc.local,
+# but fsdev forces these lines into this file.
+# They MUST NOT have prefixed whitespace, or fsdev will add them again.
+if [ -e /usr/local/bin/brew ]; then eval "$(/usr/local/bin/brew shellenv)"; else eval "$(/opt/homebrew/bin/brew shellenv)"; fi
+source /Users/andymiller/.fsprofile
+eval "$(direnv hook zsh)"
+fi

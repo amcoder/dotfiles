@@ -8,45 +8,28 @@
 # for ssh logins, install and configure the libpam-umask package.
 #umask 022
 
-if [ -d "/usr/local/bin" ] ; then
-  PATH="/usr/local/bin:$PATH"
-fi
-
-if [ -d "$HOME/bin" ] ; then
-  PATH="$HOME/bin:$PATH"
-fi
-
-if [ -d "$HOME/.local/bin" ] ; then
-  PATH="$HOME/.local/bin:$PATH"
-fi
-
-if [ -d $HOME/.cargo ]; then
-  . "$HOME/.cargo/env"
-fi
-
-if [ -d $HOME/.jenv/bin ]; then
-  PATH=$HOME/.jenv/bin:$PATH
-fi
-
-if [ -d /usr/local/go/bin ]; then
-  PATH=$PATH:/usr/local/go/bin
-fi
+[ -d "/usr/local/bin" ] && PATH="/usr/local/bin:$PATH"
 
 if [ -d /opt/homebrew/bin ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
 fi
 
-if [ -d $HOME/go/bin ]; then
-  PATH=$PATH:$HOME/go/bin
-fi
+[ -d /usr/local/go/bin ] && PATH=$PATH:/usr/local/go/bin
+
+[ -d "$HOME/bin" ] && PATH="$HOME/bin:$PATH"
+[ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
+[ -d $HOME/.jenv/bin ] && PATH=$HOME/.jenv/bin:$PATH
+[ -d $HOME/go/bin ] && PATH=$PATH:$HOME/go/bin
+[ -d $HOME/.cargo ] && source "$HOME/.cargo/env"
 
 export PATH
 
-# Set the editor to vi
-export EDITOR=vi
-
 # Fix for some ssh servers
+export LANG="en_US.UTF-8"
 export LC_CTYPE="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
 
 trap logout HUP
 

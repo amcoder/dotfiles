@@ -6,6 +6,3 @@
 # - .zlogin (login only)
 # - .zlogout (logout only)
 
-# Load ~/.profile to get any general login settings
-[[ -f ~/.profile ]] && emulate sh -c '. ~/.profile'
-
