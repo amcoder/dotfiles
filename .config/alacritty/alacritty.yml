@@ -107,17 +107,17 @@ window:
 # Font configuration
 font:
   # Normal (roman) font face
-  # normal:
-  # Font family
-  #
-  # Default:
-  #   - (macOS) Menlo
-  #   - (Linux/BSD) monospace
-  #   - (Windows) Consolas
-  # family: Sauce Code Pro Nerd Font
+  normal:
+    # Font family
+    #
+    # Default:
+    #   - (macOS) Menlo
+    #   - (Linux/BSD) monospace
+    #   - (Windows) Consolas
+    # family: Sauce Code Pro Nerd Font
 
-  # The `style` can be specified to pick a specific face.
-  #style: Regular
+    # The `style` can be specified to pick a specific face.
+    style: Regular
 
   # Bold font face
   bold:
@@ -128,7 +128,7 @@ font:
     #family: monospace
 
     # The `style` can be specified to pick a specific face.
-    style: Bold
+    style: Semibold
 
   # Italic font face
   italic:
@@ -150,7 +150,7 @@ font:
     #family: monospace
 
     # The `style` can be specified to pick a specific face.
-    style: Bold Italic
+    style: Semibold Italic
 
   # Point size
   size: 13.0

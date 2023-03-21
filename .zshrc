@@ -112,10 +112,6 @@ if command -v direnv &> /dev/null; then
   eval "$(direnv hook zsh)"
 fi
 
-# Set the editor to vi
-export EDITOR=vi
-export VISUAL=vi
-
 [ -f ~/.aliases ] && source ~/.aliases
 
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local

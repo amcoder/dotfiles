@@ -26,16 +26,17 @@ fi
 [ -d $HOME/.cargo ] && source "$HOME/.cargo/env"
 
 export PATH
-#
-# Set the editor to vi
-export EDITOR=vi
-export VISUAL=vi
-export PAGER=less
+
 if command -v nvim &> /dev/null; then
+  export EDITOR=nvim
+  export VISUAL=nvim
   export MANPAGER='nvim +Man!'
 else
+  export EDITOR=vi
+  export VISUAL=vi
   export MANPAGER=less
 fi
+export PAGER=less
 
 # Fix for some ssh servers
 export LANG="en_US.UTF-8"
