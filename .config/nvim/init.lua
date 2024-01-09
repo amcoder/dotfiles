@@ -88,6 +88,16 @@ vim.o.completeopt = 'menu,menuone,noselect,noinsert'
 -- Show only a global status bar
 vim.o.laststatus = 3
 
+-- Spell check
+vim.o.spell = true
+vim.o.spelllang = 'en_us'
+vim.o.spelloptions = 'camel'
+local spellfile = vim.fn.stdpath('config') .. '/spell/en.utf-8.add'
+vim.o.spellfile = spellfile
+if vim.fn.getftime(spellfile) > vim.fn.getftime(spellfile .. '.spl') then
+  vim.cmd(':silent mkspell! ' .. spellfile)
+end
+
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
@@ -152,6 +162,10 @@ vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = "Go to previous dia
 vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = "Go to next diagnostic message" })
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = "Open floating diagnostic message" })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = "Open diagnostics list" })
+
+-- Spelling
+vim.keymap.set('n', '<leader>zs', ':setlocal spelloptions=camel<CR>:setlocal spell!<CR>',
+  { desc = 'Toggle [S]pellcheck' })
 
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`

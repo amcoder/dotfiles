@@ -2,7 +2,6 @@ return {
   {
     -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
-    event = 'VeryLazy',
     dependencies = {
       'nvim-treesitter/nvim-treesitter-textobjects',
     },
@@ -69,6 +68,9 @@ return {
           },
         },
       },
+      playground = {
+        persist_queries = true,
+      },
     },
     config = function(_, opts)
       require('nvim-treesitter.configs').setup(opts)
@@ -78,6 +80,5 @@ return {
   },
   {
     'nvim-treesitter/playground',
-    cmd = 'TSPlaygroundToggle',
   },
 }

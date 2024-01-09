@@ -1,29 +1,34 @@
 [user]
-	name = Andy Miller
-	email = amcoder@gmail.com
+  name = Andy Miller
+  email = amcoder@gmail.com
 [core]
-	autocrlf = false
-	excludesfile = ~/.gitignore_global
+  autocrlf = false
+  excludesfile = ~/.gitignore_global
 	fsmonitor = true
 	untrackedcache = true
 [push]
-	default = simple
+  default = simple
 [color]
-	ui = auto
+  ui = auto
 [mergetool]
-	keepBackup = false
+  keepBackup = false
 [mergetool "vimdiff3"]
-	cmd = vim -f -d -c \"wincmd J\" \"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
+  cmd = vim -f -d -c \"wincmd J\" \"$MERGED\" \"$LOCAL\" \"$BASE\" \"$REMOTE\"
 [merge]
   tool = vimdiff3
 [alias]
-	check = diff 4b825dc642cb6eb9a060e54bf8d69288fbee4904 --check
-	lg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short
+  check = diff 4b825dc642cb6eb9a060e54bf8d69288fbee4904 --check
+  lg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short
   lgg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short --graph
   fap = fetch --all --prune
+  clean-branches = !git fetch --quiet --all --prune \
+        && git branch --merged origin/master | xargs git branch -d \
+        && git for-each-ref --format '%(refname:strip=2) %(upstream:track)' refs/heads \
+            | awk '$2 == \"[gone]\" { print $1 }' \
+            | xargs git branch -D
 [include]
   path=~/.gitconfig.local
 [pull]
-	rebase = true
+  rebase = true
 [init]
-	defaultBranch = main
+  defaultBranch = main
