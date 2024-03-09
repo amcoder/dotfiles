@@ -1,0 +1,32 @@
+regolith.wallpaper.file: /usr/share/backgrounds/nord_dark.png
+
+gtk.font_name: Ubuntu Regular 12
+
+wm.window.border.size: 1
+wm.floatingwindow.border.size: 1
+wm.hide.edge.borders: smart
+wm.bar.trayoutput: primary
+
+wm.bar.mode: hide
+
+wm.workspace.01.name: 1:<span> </span><span font_desc='RobotoMono Nerd Font 12'>1 </span><span foreground='#5E81AC'></span><span> </span>
+wm.workspace.02.name: 2:<span> </span><span font_desc='RobotoMono Nerd Font 12'>2 </span><span foreground='#88C0D0'></span><span> </span>
+wm.workspace.03.name: 3:<span> </span><span font_desc='RobotoMono Nerd Font 12'>3 </span><span foreground='#A3BE8C'></span><span> </span>
+wm.workspace.04.name: 4:<span> </span><span font_desc='RobotoMono Nerd Font 12'>4 </span><span foreground='#EBCB8B'></span><span> </span>
+wm.workspace.05.name: 5:<span> </span><span font_desc='RobotoMono Nerd Font 12'>5 </span><span foreground='#D08770'></span><span> </span>
+wm.workspace.06.name: 6:<span> </span><span font_desc='RobotoMono Nerd Font 12'>6 </span><span foreground='#BF616A'></span><span> </span>
+wm.workspace.07.name: 7:<span> </span><span font_desc='RobotoMono Nerd Font 12'>7 </span><span foreground='#5E81AC'></span><span> </span>
+wm.workspace.08.name: 8:<span> </span><span font_desc='RobotoMono Nerd Font 12'>8 </span><span foreground='#B48EAD'></span><span> </span>
+wm.workspace.09.name: 9:<span> </span><span font_desc='RobotoMono Nerd Font 12'>9 </span><span foreground='#E5E9F0'></span><span> </span>
+wm.workspace.10.name: 10:<span> </span><span font_desc='RobotoMono Nerd Font 12'>10 </span><span foreground='#5E81AC'></span><span> </span>
+wm.workspace.11.name: 11:<span> </span><span font_desc='RobotoMono Nerd Font 12'>11 </span><span foreground='#88C0D0'></span><span> </span>
+wm.workspace.12.name: 12:<span> </span><span font_desc='RobotoMono Nerd Font 12'>12 </span><span foreground='#A3BE8C'></span><span> </span>
+wm.workspace.13.name: 13:<span> </span><span font_desc='RobotoMono Nerd Font 12'>13 </span><span foreground='#EBCB8B'></span><span> </span>
+wm.workspace.14.name: 14:<span> </span><span font_desc='RobotoMono Nerd Font 12'>14 </span><span foreground='#D08770'></span><span> </span>
+wm.workspace.15.name: 15:<span> </span><span font_desc='RobotoMono Nerd Font 12'>15 </span><span foreground='#BF616A'></span><span> </span>
+wm.workspace.16.name: 16:<span> </span><span font_desc='RobotoMono Nerd Font 12'>16 </span><span foreground='#5E81AC'></span><span> </span>
+wm.workspace.17.name: 17:<span> </span><span font_desc='RobotoMono Nerd Font 12'>17 </span><span foreground='#B48EAD'></span><span> </span>
+wm.workspace.18.name: 18:<span> </span><span font_desc='RobotoMono Nerd Font 12'>18 </span><span foreground='#E5E9F0'></span><span> </span>
+wm.workspace.19.name: 19:<span> </span><span font_desc='RobotoMono Nerd Font 12'>19 </span><span foreground='#5E81AC'></span><span> </span>
+!regolith.look.path: /usr/share/regolith-look/nord
+regolith.look.path: /usr/share/regolith-look/nord
