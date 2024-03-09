@@ -24,6 +24,11 @@ fi
 [ -d $HOME/go/bin ] && PATH=$PATH:$HOME/go/bin
 [ -d $HOME/.cargo ] && source "$HOME/.cargo/env"
 
+if [ -d $HOME/.dotnet ]; then
+  export DOTNET_ROOT=$HOME/.dotnet
+  PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
+fi
+
 export PATH
 
 # Fix for some ssh servers
