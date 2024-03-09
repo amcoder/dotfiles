@@ -1,5 +1,10 @@
 return {
   {
+    -- omnisharp-extended
+    "Hoffs/omnisharp-extended-lsp.nvim",
+  },
+
+  {
     -- LSP Configuration & Plugins
     'neovim/nvim-lspconfig',
     dependencies = {
@@ -31,15 +36,27 @@ return {
       --  Add any additional override configuration in the following tables. They will be passed to
       --  the `settings` field of the server config. You must look up that documentation yourself.
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
-        -- rust_analyzer = {},
-        -- tsserver = {},
-
         eslint = {},
         gopls = {},
         rust_analyzer = {},
+        omnisharp = {
+          handlers = {
+            ["textDocument/definition"] = require('omnisharp_extended').handler,
+            ["textDocument/publishDiagnostics"] = vim.lsp.with(
+              vim.lsp.diagnostic.on_publish_diagnostics, {
+                underline = {
+                  severity = { min = vim.diagnostic.severity.INFO },
+                },
+                virtual_text = {
+                  severity = { min = vim.diagnostic.severity.INFO },
+                },
+              }
+            )
+          },
+          enable_roslyn_analyzers = true,
+          organize_imports_on_format = true,
+          enable_import_completion = true,
+        },
         lua_ls = {
           Lua = {
             workspace = { checkThirdParty = false },
@@ -67,10 +84,14 @@ return {
 
       mason_lspconfig.setup_handlers {
         function(server_name)
-          require('lspconfig')[server_name].setup {
-            capabilities = capabilities,
-            settings = servers[server_name],
-          }
+          if server_name == "omnisharp" then
+            require('lspconfig')[server_name].setup(servers[server_name])
+          else
+            require('lspconfig')[server_name].setup {
+              capabilities = capabilities,
+              settings = servers[server_name],
+            }
+          end
         end,
       }
     end

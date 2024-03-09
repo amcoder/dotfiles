@@ -1,5 +1,37 @@
 return {
   {
+    "mfussenegger/nvim-dap",
+  },
+
+  {
+    "rcarriga/nvim-dap-ui",
+    dependencies = { "mfussenegger/nvim-dap" },
+  },
+
+  {
+    "theHamsta/nvim-dap-virtual-text",
+  },
+
+  {
+    "NicholasMata/nvim-dap-cs",
+    opts = {
+      dap_configurations = {
+        {
+          type = "coreclr",
+          name = "launch - netcoredbg",
+          request = "launch",
+          program = function()
+            return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+          end,
+        }
+      },
+      netcoredbg = {
+        path = "/home/amcoder/.local/share/nvim/mason/packages/netcoredbg/netcoredbg"
+      }
+    }
+  },
+
+  {
     "folke/trouble.nvim",
     event = 'VeryLazy',
     dependencies = {
