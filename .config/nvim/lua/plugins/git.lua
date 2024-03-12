@@ -14,6 +14,9 @@ return {
 
   { 'tpope/vim-rhubarb', event = 'VeryLazy' },
 
+  -- Add bitbuicket support to fugitive
+  'tommcdo/vim-fubitive',
+
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
     opts = {
@@ -75,6 +78,7 @@ return {
 
         -- Text object
         map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+        map({ 'o', 'x' }, 'ah', ':<C-U>Gitsigns select_hunk<CR>')
       end,
     },
   },

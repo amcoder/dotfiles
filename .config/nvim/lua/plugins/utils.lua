@@ -4,7 +4,7 @@ return {
   'tpope/vim-repeat', -- Additional key repeats
 
   -- Nice select and input pupups
-  { 'stevearc/dressing.nvim', event = 'VeryLazy' },
+  { 'stevearc/dressing.nvim', opts = {}, event = 'VeryLazy' },
 
   -- Highlight word under cursor
   { 'RRethy/vim-illuminate', event = 'VeryLazy' },

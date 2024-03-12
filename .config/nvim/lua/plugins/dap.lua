@@ -1,13 +1,6 @@
 return {
-  -- Shows how to use the DAP plugin to debug your code.
-  --
-  -- Primarily focused on configuring the debugger for Go, but can
-  -- be extended to other languages as well. That's why it's called
-  -- kickstart.nvim and not kitchen-sink.nvim ;)
   {
-    -- NOTE: Yes, you can install new plugins here!
     'mfussenegger/nvim-dap',
-    -- NOTE: And you can specify dependencies as well
     dependencies = {
       -- Creates a beautiful debugger UI
       'rcarriga/nvim-dap-ui',
@@ -53,7 +46,9 @@ return {
       vim.keymap.set('n', '<F23>', dap.step_out, { desc = 'Debug: Step Out' })
       vim.keymap.set('n', '<F9>', dap.toggle_breakpoint, { desc = 'Debug: Toggle Breakpoint' })
       vim.keymap.set('n', '<F21>', function()
-        dap.set_breakpoint(vim.fn.input('Breakpoint condition: '))
+        vim.ui.input('Breakpoint condition: ', function(cond)
+          dap.set_breakpoint(cond)
+        end)
       end, { desc = 'Debug: Set Breakpoint' })
 
       -- Dap UI setup

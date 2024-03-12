@@ -29,13 +29,13 @@ return {
         },
       })
 
-      vim.keymap.set('n', '<leader>tt', neotest.run.run, { desc = 'Run [T]est' })
-      vim.keymap.set('n', '<leader>tf', function()
+      vim.keymap.set('n', '<leader>rt', neotest.run.run, { desc = '[R]un Nearest [T]est' })
+      vim.keymap.set('n', '<leader>rf', function()
         neotest.run.run(vim.fn.expand('%'))
-      end, { desc = '[T]est [F]ile' })
-      vim.keymap.set('n', '<leader>ta', function()
+      end, { desc = '[R]un Tests in [F]ile' })
+      vim.keymap.set('n', '<leader>ra', function()
         neotest.run.run(vim.fn.getcwd())
-      end, { desc = '[T]est [A]ll' })
+      end, { desc = '[R]un [A]ll Tests' })
 
       vim.keymap.set('n', '<leader>to', neotest.output.open, { desc = 'Test [O]utput' })
       vim.keymap.set('n', '<leader>tp', neotest.output_panel.toggle, { desc = 'Test [P]anel' })

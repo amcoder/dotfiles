@@ -19,8 +19,6 @@ return {
       'saadparwaiz1/cmp_luasnip',
 
       -- Adds other completion capabilities.
-      --  nvim-cmp does not ship with all sources by default. They are split
-      --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-buffer',
       'hrsh7th/cmp-path',
@@ -28,7 +26,19 @@ return {
       'hrsh7th/cmp-emoji',
       'petertriho/cmp-git',
 
+      -- Show lsp icons in the completion menu
       'onsails/lspkind.nvim',
+    },
+    keys = {
+      {
+        '<leader>C',
+        function()
+          vim.b.disable_cmp = not vim.b.disable_cmp
+          print('Completion ' .. (vim.b.disable_cmp and 'disabled' or 'enabled'))
+        end,
+        mode = '',
+        desc = 'Toggle Completion',
+      },
     },
     config = function()
       -- See `:help cmp`
@@ -41,6 +51,9 @@ return {
       require('luasnip.loaders.from_vscode').lazy_load()
 
       cmp.setup({
+        enabled = function()
+          return vim.api.nvim_get_mode().mode == 'c' or not vim.b.disable_cmp
+        end,
         snippet = {
           expand = function(args)
             luasnip.lsp_expand(args.body)
@@ -75,6 +88,25 @@ return {
           ['<C-f>'] = cmp.mapping.scroll_docs(4),
 
           ['<C-Space>'] = cmp.mapping.complete({}),
+
+          ['<Esc>'] = cmp.mapping.abort(),
+
+          ['<C-c>'] = cmp.mapping(function()
+            vim.b.disable_cmp = not vim.b.disable_cmp
+            print('Completion ' .. (vim.b.disable_cmp and 'disabled' or 'enabled'))
+            if vim.b.disable_cmp and cmp.visible() then
+              cmp.abort()
+            elseif not vim.b.disable_cmp and not cmp.visible() then
+              cmp.complete({})
+            end
+          end, { 'i', 's' }),
+
+          ['<C-e>'] = cmp.mapping.close(),
+
+          ['<C-y>'] = cmp.mapping.confirm({
+            behavior = cmp.ConfirmBehavior.Insert,
+            select = true,
+          }),
 
           ['<CR>'] = cmp.mapping.confirm({
             behavior = cmp.ConfirmBehavior.Replace,

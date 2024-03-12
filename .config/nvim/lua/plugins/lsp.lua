@@ -15,14 +15,9 @@ return {
     },
     config = function()
       --  This function gets run when an LSP attaches to a particular buffer.
-      --    That is to say, every time a new file is opened that is associated with
-      --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
-      --    function will be executed to configure the current buffer
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
-          -- In this case, we create a function that lets us more easily define mappings specific
-          -- for LSP related items. It sets the mode, buffer and description for us each time.
           local map = function(keys, func, desc)
             vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
@@ -64,7 +59,7 @@ return {
           --  See `:help K` for why this keymap
           map('K', vim.lsp.buf.hover, 'Hover Documentation')
 
-          -- WARN: This is not Goto Definition, this is Goto Declaration.
+          -- This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
@@ -88,7 +83,7 @@ return {
           end
 
           -- Map any keys defined in the LSP settings. This allows us to override
-          -- keymaps lik 'gd' to use a different implementation.
+          -- keymaps like 'gd' to use a different implementation.
           for _, m in ipairs(client.config.keymaps or {}) do
             ---@diagnostic disable-next-line: deprecated
             map(unpack(m))
@@ -122,8 +117,7 @@ return {
         omnisharp = {
           handlers = {
             ['textDocument/publishDiagnostics'] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
-              -- Roslyn hidden analytics come in as hints, so make then
-              -- a bit quiueter.
+              -- Roslyn hidden analytics come in as hints, so make then a bit quieter.
               underline = {
                 severity = { min = vim.diagnostic.severity.INFO },
               },
@@ -137,15 +131,13 @@ return {
           organize_imports_on_format = true,
           enable_import_completion = true,
           keymaps = {
+            -- override keys for omnisharp so that we can go to decompied code
             { 'gd', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition' },
             { 'gr', require('omnisharp_extended').telescope_lsp_references, '[G]oto [R]eferences' },
             { 'gI', require('omnisharp_extended').telescope_lsp_implementation, '[G]oto [I]mplementation' },
           },
         },
         lua_ls = {
-          -- cmd = {...},
-          -- filetypes { ...},
-          -- capabilities = {},
           settings = {
             Lua = {
               runtime = { version = 'LuaJIT' },
