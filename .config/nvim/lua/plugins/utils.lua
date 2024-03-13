@@ -10,6 +10,13 @@ return {
   { 'RRethy/vim-illuminate', event = 'VeryLazy' },
 
   {
+    'rcarriga/nvim-notify',
+    config = function()
+      vim.notify = require('notify')
+    end,
+  },
+
+  {
     'mbbill/undotree',
     cmd = { 'UndotreeShow', 'UndotreeHide', 'UndotreeFocus', 'UndotreeToggle' },
     keys = {

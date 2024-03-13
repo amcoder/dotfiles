@@ -86,6 +86,7 @@ return {
       -- Enable telescope extensions, if they are installed
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension, 'notify')
 
       -- See `:help telescope.builtin`
       local builtin = require('telescope.builtin')
@@ -107,6 +108,12 @@ return {
       vim.keymap.set('n', '<leader>sj', builtin.jumplist, { desc = '[S]earch [J]umplist' })
       vim.keymap.set('n', '<leader>sl', builtin.loclist, { desc = '[S]earch [L]oclist' })
       vim.keymap.set('n', '<leader>sq', builtin.quickfix, { desc = '[S]earch [Q]uickfix' })
+      vim.keymap.set(
+        'n',
+        '<leader>sn',
+        require('telescope').extensions.notify.notify,
+        { desc = '[S]how [N]otifications' }
+      )
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -125,11 +132,6 @@ return {
           prompt_title = 'Live Grep in Open Files',
         })
       end, { desc = '[S]earch [/] in Open Files' })
-
-      -- Shortcut for searching your neovim configuration files
-      vim.keymap.set('n', '<leader>sn', function()
-        builtin.find_files({ cwd = vim.fn.stdpath('config') })
-      end, { desc = '[S]earch [N]eovim files' })
     end,
   },
 }

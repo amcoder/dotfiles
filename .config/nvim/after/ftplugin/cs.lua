@@ -17,7 +17,7 @@ local sln = find_in_workspace(function(name)
   return name:match('%.sln$')
 end)
 
-local builddir = vim.fs.dirname(sln) or vim.fs.dirname(proj)
+local builddir = vim.fs.dirname(sln) or vim.fs.dirname(proj) or ''
 
 vim.opt_local.makeprg = 'dotnet build -nologo -consoleloggerparameters:NoSummary -verbosity:quiet ' .. builddir
 vim.opt_local.errorformat = '\\ %#%f(%l\\\\\\,%c):\\ %t%[A-z]%#\\ %m\\ [%.%#]'

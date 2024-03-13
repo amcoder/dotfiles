@@ -27,6 +27,9 @@ return {
         output = {
           open_on_run = true,
         },
+        consumers = {
+          overseer = require('neotest.consumers.overseer'),
+        },
       })
 
       vim.keymap.set('n', '<leader>rt', neotest.run.run, { desc = '[R]un Nearest [T]est' })
