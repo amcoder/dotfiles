@@ -89,8 +89,6 @@ return {
 
           ['<C-Space>'] = cmp.mapping.complete({}),
 
-          ['<Esc>'] = cmp.mapping.abort(),
-
           ['<C-c>'] = cmp.mapping(function()
             vim.b.disable_cmp = not vim.b.disable_cmp
             print('Completion ' .. (vim.b.disable_cmp and 'disabled' or 'enabled'))
