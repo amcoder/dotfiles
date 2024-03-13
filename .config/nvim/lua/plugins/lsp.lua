@@ -12,6 +12,12 @@ return {
 
       -- Extend omnisharp
       'Hoffs/omnisharp-extended-lsp.nvim',
+
+      -- Extend chsaarpls
+      'Decodetalkers/csharpls-extended-lsp.nvim',
+
+      -- roslyn LS
+      'jmederosalvarado/roslyn.nvim',
     },
     config = function()
       --  This function gets run when an LSP attaches to a particular buffer.
@@ -115,6 +121,7 @@ return {
         rust_analyzer = {},
         gopls = {},
         omnisharp = {
+          autostart = false,
           handlers = {
             ['textDocument/publishDiagnostics'] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
               -- Roslyn hidden analytics come in as hints, so make then a bit quieter.
@@ -135,6 +142,23 @@ return {
             { 'gd', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition' },
             { 'gr', require('omnisharp_extended').telescope_lsp_references, '[G]oto [R]eferences' },
             { 'gI', require('omnisharp_extended').telescope_lsp_implementation, '[G]oto [I]mplementation' },
+          },
+        },
+        csharp_ls = {
+          autostart = false,
+          handlers = {
+            ['textDocument/definition'] = require('csharpls_extended').handler,
+            ['textDocument/typeDefinition'] = require('csharpls_extended').handler,
+          },
+          keymaps = {
+            {
+              'gd',
+              function()
+                vim.lsp.buf.definition()
+              end,
+              '[G]oto [D]efinition',
+            },
+            { '<leader>D', vim.lsp.buf.type_definition, 'Type [D]efinition' },
           },
         },
         lua_ls = {
@@ -197,6 +221,15 @@ return {
             require('lspconfig')[server_name].setup(server)
           end,
         },
+      })
+
+      require('roslyn').setup({
+        dotnet_cmd = 'dotnet', -- this is the default
+        -- 4.10.0-2.24124.2
+        -- 4.8.0-3.23475.7 (default)
+        roslyn_version = '4.10.0-2.24124.2',
+        on_attach = function() end, -- required
+        capabilities = capabilities, -- required
       })
     end,
   },
