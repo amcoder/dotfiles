@@ -121,7 +121,7 @@ return {
         rust_analyzer = {},
         gopls = {},
         omnisharp = {
-          autostart = false,
+          autostart = true,
           handlers = {
             ['textDocument/publishDiagnostics'] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
               -- Roslyn hidden analytics come in as hints, so make then a bit quieter.
@@ -223,14 +223,15 @@ return {
         },
       })
 
-      require('roslyn').setup({
-        dotnet_cmd = 'dotnet', -- this is the default
-        -- 4.10.0-2.24124.2
-        -- 4.8.0-3.23475.7 (default)
-        roslyn_version = '4.10.0-2.24124.2',
-        on_attach = function() end, -- required
-        capabilities = capabilities, -- required
-      })
+      -- setup the roslyn LSP client
+      -- require('roslyn').setup({
+      --   dotnet_cmd = 'dotnet', -- this is the default
+      --   -- 4.10.0-2.24124.2
+      --   -- 4.8.0-3.23475.7 (default)
+      --   roslyn_version = '4.10.0-2.24124.2',
+      --   on_attach = function() end, -- required
+      --   capabilities = capabilities, -- required
+      -- })
     end,
   },
 }
