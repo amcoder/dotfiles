@@ -82,7 +82,18 @@ return {
 
       -- Install language specific config
       require('dap-go').setup()
-      require('dap-cs').setup()
+      require('dap-cs').setup({
+        dap_configurations = {
+          {
+            name = 'Launch',
+            type = 'coreclr',
+            request = 'launch',
+            program = function()
+              return vim.fn.input('Path to dll', vim.fn.getcwd() .. '/bin/Debug/', 'file')
+            end,
+          },
+        },
+      })
 
       require('dap.ext.vscode').load_launchjs(nil, {
         coreclr = { 'cs' },
