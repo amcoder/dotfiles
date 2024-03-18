@@ -65,6 +65,10 @@ return {
           --  See `:help K` for why this keymap
           map('K', vim.lsp.buf.hover, 'Hover Documentation')
 
+          -- Opens a popup that displays documentation about the word under your cursor
+          --  See `:help K` for why this keymap
+          map('<C-s>', vim.lsp.buf.signature_help, 'Signature Help')
+
           -- This is not Goto Definition, this is Goto Declaration.
           --  For example, in C this would take you to the header
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
@@ -88,9 +92,33 @@ return {
             })
           end
 
+          if client and client.server_capabilities.signatureHelpProvider then
+            require('lsp-overloads').setup(client, {
+              ui = {
+                border = 'none',
+                max_width = 120,
+                max_height = 20,
+              },
+              keymaps = {
+                next_signature = '<C-j>',
+                previous_signature = '<C-k>',
+                next_parameter = '<C-l>',
+                previous_parameter = '<C-h>',
+                close_signature = '<C-s>',
+              },
+            })
+
+            vim.keymap.set({ 'n', 'i' }, '<C-s>', '<cmd>LspOverloadsSignature<CR>', {
+              noremap = true,
+              silent = true,
+              buffer = event.buf,
+              desc = 'Show LSP signature help',
+            })
+          end
+
           -- Map any keys defined in the LSP settings. This allows us to override
           -- keymaps like 'gd' to use a different implementation.
-          for _, m in ipairs(client.config.keymaps or {}) do
+          for _, m in ipairs(client and client.config.keymaps or {}) do
             ---@diagnostic disable-next-line: deprecated
             map(unpack(m))
           end
@@ -120,6 +148,13 @@ return {
         docker_compose_language_service = {},
         rust_analyzer = {},
         gopls = {},
+        tsserver = {
+          settings = {
+            diagnostics = {
+              ignoredCodes = { 6133 },
+            },
+          },
+        },
         omnisharp = {
           autostart = true,
           handlers = {
@@ -233,5 +268,32 @@ return {
       --   capabilities = capabilities, -- required
       -- })
     end,
+  },
+
+  -- {
+  --   'ray-x/lsp_signature.nvim',
+  --   event = 'VeryLazy',
+  --   opts = {
+  --     doc_lines = 20,
+  --     max_width = 120,
+  --     hint_enable = false,
+  --     hint_inline = function()
+  --       return true
+  --     end,
+  --     hint_prefix = '➡️ ',
+  --     padding = ' ',
+  --     handler_opts = {
+  --       border = 'none',
+  --     },
+  --     toggle_key = '<C-s>',
+  --     select_signature_key = '<C-k>',
+  --   },
+  --   config = function(_, opts)
+  --     require('lsp_signature').setup(opts)
+  --   end,
+  -- },
+
+  {
+    'Issafalcon/lsp-overloads.nvim',
   },
 }
