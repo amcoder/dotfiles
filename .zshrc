@@ -29,9 +29,6 @@ CASE_SENSITIVE="true"
 # Uncomment following line if you want to disable command autocorrection
 DISABLE_CORRECTION="true"
 
-# enable agent forwarding
-zstyle :omz:plugins:ssh-agent agent-forwarding on
-
 # Pass unmatched extended globs to the command
 unsetopt nomatch
 
@@ -39,7 +36,7 @@ unsetopt nomatch
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # basic zsh plugins
-plugins=(vi-mode history-substring-search ssh-agent colored-man-pages)
+plugins=(vi-mode history-substring-search colored-man-pages)
 
 # linux plugins
 if [ "`uname -a`" =~ "Debian" ]; then
