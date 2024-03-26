@@ -22,7 +22,7 @@ fi
 [ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
 [ -d $HOME/.jenv/bin ] && PATH=$HOME/.jenv/bin:$PATH
 [ -d $HOME/go/bin ] && PATH=$PATH:$HOME/go/bin
-[ -d $HOME/.cargo ] && source "$HOME/.cargo/env"
+[ -d $HOME/.cargo ] && . "$HOME/.cargo/env"
 
 if [ -d $HOME/.dotnet ]; then
   export DOTNET_ROOT=$HOME/.dotnet

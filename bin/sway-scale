@@ -1,0 +1,18 @@
+#!/usr/bin/env zsh
+
+declare -A defaultScales
+defaultScales=([eDP-1]=2)
+
+swaymsg -t get_outputs | jq -r '.[] | select(.focused) | [.name, .scale] | @tsv' | read -r output scale
+
+if [ "$1" = "up" ]; then
+    let "scale = $scale + 0.1"
+elif [ "$1" = "down" ]; then
+    let "scale = $scale - 0.1"
+else
+    scale=${defaultScales[$output]:-1}
+fi
+
+scale=$(printf "%.1f" $scale)
+
+swaymsg output "$output" scale "$scale"

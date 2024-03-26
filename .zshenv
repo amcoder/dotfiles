@@ -6,6 +6,7 @@
 # - .zlogin (login only)
 # - .zlogout (logout only)
 
+# keep path array unique in zsh
 typeset -aU path
 typeset -U PATH
 

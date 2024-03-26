@@ -1,0 +1,15 @@
+#!/usr/bin/env zsh
+
+brightness=`brightnessctl -m s $1 | cut -d, -f4 | tr -d '%'`
+
+if [ $brightness -le 33 ]; then
+    icon="notification-display-brightness-low"
+elif [ $brightness -le 66 ]; then
+    icon="notification-display-brightness-medium"
+elif [ $brightness -le 99 ]; then
+    icon="notification-display-brightness-high"
+else
+    icon="notification-display-brightness-full"
+fi
+notify-send Brightness -t 2000 -h int:value:$brightness -i $icon
+
