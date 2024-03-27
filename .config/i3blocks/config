@@ -29,9 +29,18 @@ command=~/.config/i3blocks/$BLOCK_NAME/$BLOCK_NAME
 separator_block_width=15
 markup=none
 
-[dunst]
-interval=once
+[aptupgrade]
+interval=3600
+command=apt-get -sq upgrade | grep -E '^[0-9]+ upgraded' | cut -d' ' -f1 | { read n; [ $n = "0" ] && env printf '\n' || env printf "\ue4c7 $n\n"; }
+
+[battery]
+interval=30
 markup=pango
+command=~/.config/i3blocks/battery
+
+[mail]
+interval=60
+command=zsh -c "(( `messages -s` > 0 )) && print \"\uf0e0\" || print \"\n\""
 
 [battery2]
 markup=pango
@@ -41,3 +50,6 @@ interval=30
 command=date '+%a, %b %d %H:%M'
 interval=5
 
+[dunst]
+interval=once
+markup=pango

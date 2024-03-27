@@ -1,0 +1,82 @@
+#!/usr/bin/env zsh
+
+LAPTOP="\uf109"
+CHARGING="\uf1e6"
+
+FULL="\uf240"
+THREE_QUARTERS="\uf241"
+HALF="\uf242"
+ONE_QUARTER="\uf243"
+EMPTY="\uf244"
+
+LAPTOP_VISIBLE_CHARGE=80
+BLUETOOTH_VISIBLE_CHARGE=50
+
+output=()
+
+charge_icon() {
+    if [[ $1 -ge 90 ]]; then
+        echo $FULL
+    elif [[ $1 -ge 65 ]]; then
+        echo $THREE_QUARTERS
+    elif [[ $1 -ge 40 ]]; then
+        echo $HALF
+    elif [[ $1 -ge 15 ]]; then
+        echo "<span color=\"#EBCB8B\">$ONE_QUARTER</span>"
+    else
+        echo "<span color=\"#BF616A\">$EMPTY</span>"
+    fi
+}
+
+type_icon() {
+    case $1 in
+        input-mouse)
+            echo "\uf8cc"
+            ;;
+        input-keyboard)
+            echo "\uf11c"
+            ;;
+        audio-headset)
+            echo "\uf590"
+            ;;
+        phone)
+            echo "\uf3cd"
+            ;;
+        *)
+            echo "\u003f"
+            ;;
+    esac
+}
+
+#
+# Laptop batteries
+IFS='|'
+while read -r name st charge; do
+    [[ $charge -gt $LAPTOP_VISIBLE_CHARGE ]] && continue
+
+    battery="$LAPTOP"
+    if [[ $st != "Discharging" ]]; then
+        battery="$battery $CHARGING"
+    fi
+
+    output+=("$battery $(charge_icon $charge)")
+done <<< $(acpi -b | sed -r 's/^(.+): (.+), ([0-9]+)\%.*/\1|\2|\3/')
+unset IFS
+
+#
+# Bluetooth devices
+while read -r t id name; do
+    info=$(bluetoothctl info $id)
+
+    [[ $info =~ (Battery Percentage: .* [(](.*)[)]) ]]
+    charge=${match[2]}
+    [[ -z $charge || $charge -gt $BLUETOOTH_VISIBLE_CHARGE ]] && continue
+
+    [[ $info =~ (Icon: ([^[:space:]]+)) ]]
+    battery=$(type_icon ${match[2]})
+
+    output+=("$battery $(charge_icon $charge)")
+done <<< $(bluetoothctl devices Connected)
+
+# Join the output array with spaces
+echo ${(j:   :)output}
