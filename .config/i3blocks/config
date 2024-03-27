@@ -42,10 +42,6 @@ command=~/.config/i3blocks/battery
 interval=60
 command=zsh -c "(( `messages -s` > 0 )) && print \"\uf0e0\" || print \"\n\""
 
-[battery2]
-markup=pango
-interval=30
-
 [time]
 command=date '+%a, %b %d %H:%M'
 interval=5
