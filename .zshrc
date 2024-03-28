@@ -113,13 +113,3 @@ fi
 
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 
-# This will not run
-if [[ '' ]]; then
-# FullStory Specific!
-# We don't actually want to run this here. These are in .profile and .zshrc.local,
-# but fsdev forces these lines into this file.
-# They MUST NOT have prefixed whitespace, or fsdev will add them again.
-if [ -e /usr/local/bin/brew ]; then eval "$(/usr/local/bin/brew shellenv)"; else eval "$(/opt/homebrew/bin/brew shellenv)"; fi
-source /Users/andymiller/.fsprofile
-eval "$(direnv hook zsh)"
-fi
