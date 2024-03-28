@@ -21,7 +21,9 @@ ZSH_CUSTOM=$HOME/.oh-my-zsh.custom
 # Look in ~/.oh-my-zsh/themes/
 # Optionally, if you set this to "random", it'll load a random theme each
 # time that oh-my-zsh is loaded.
-ZSH_THEME="powerlevel10k/powerlevel10k"
+[[ "$TERM" == "linux" ]] \
+  && ZSH_THEME="robbyrussel" \
+  || ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # Set to this to use case-sensitive completion
 CASE_SENSITIVE="true"
@@ -38,24 +40,18 @@ unsetopt nomatch
 # basic zsh plugins
 plugins=(vi-mode history-substring-search colored-man-pages)
 
-# linux plugins
+# Platform plugins
 if [ "`uname -a`" =~ "Debian" ]; then
   plugins=($plugins debian)
-fi
-if [ "`uname -a`" =~ "Ubuntu" ]; then
+elif [ "`uname -a`" =~ "Ubuntu" ]; then
   plugins=($plugins ubuntu)
-fi
-
-# mac plugins
-if [ `uname` = "Darwin" ]; then
+elif [ `uname` = "Darwin" ]; then
   plugins=($plugins brew)
 fi
 
 # Development plugins
 plugins=($plugins git docker docker-compose dotnet gradle)
-if [ -d $HOME/.jenv/bin ]; then
-  plugins=($plugins jenv)
-fi
+[ -d $HOME/.jenv/bin ] && plugins=($plugins jenv)
 
 source $ZSH/oh-my-zsh.sh
 
@@ -100,12 +96,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-if [ -d /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc ]; then
-  source /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.zsh.inc
-fi
-
 if command -v direnv &> /dev/null; then
-  export DIRENV_LOG_FORMAT=
   eval "$(direnv hook zsh)"
 fi
 
@@ -113,3 +104,4 @@ fi
 
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 
+export _ZSHRC_LOADED=1:$_ZSHRC_LOADED

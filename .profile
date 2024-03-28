@@ -1,47 +1,39 @@
-# ~/.profile: executed by the command interpreter for login shells.
-# This file is not read by bash(1), if ~/.bash_profile or ~/.bash_login
-# exists.
-# see /usr/share/doc/bash/examples/startup-files for examples.
-# the files are located in the bash-doc package.
+# ~/.profile
+#
+# Executed upon login. The intention is that this file is sourced by whatever
+# mechanism is used to log in, whether that is a login shell, or a graphical
+# environment. This must stay POSIX compliant.
 
-# the default umask is set in /etc/profile; for setting the umask
-# for ssh logins, install and configure the libpam-umask package.
-#umask 022
-
-[ -d "/usr/local/bin" ] && PATH="/usr/local/bin:$PATH"
-
-if [ -d /opt/homebrew/bin ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -f /usr/local/bin/brew ]; then
-  eval "$(/usr/local/bin/brew shellenv)"
-fi
-
-[ -d /usr/local/go/bin ] && PATH=$PATH:/usr/local/go/bin
+[ -f /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
+[ -f /usr/local/bin/brew ] && eval "$(/usr/local/bin/brew shellenv)"
+[ -d /usr/local/go/bin ] && PATH="$PATH:/usr/local/go/bin"
 
 [ -d "$HOME/bin" ] && PATH="$HOME/bin:$PATH"
 [ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
-[ -d $HOME/.jenv/bin ] && PATH=$HOME/.jenv/bin:$PATH
-[ -d $HOME/go/bin ] && PATH=$PATH:$HOME/go/bin
-[ -d $HOME/.cargo ] && . "$HOME/.cargo/env"
-
-if [ -d $HOME/.dotnet ]; then
-  export DOTNET_ROOT=$HOME/.dotnet
-  PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
-fi
+[ -d "$HOME/.jenv/bin" ] && PATH="$HOME/.jenv/bin:$PATH"
+[ -d "$HOME/go/bin" ] && PATH="$HOME/go/bin:$PATH"
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 export PATH
 
-# Fix for some ssh servers
-export LANG="en_US.UTF-8"
-export LC_CTYPE="en_US.UTF-8"
-export LC_ALL="en_US.UTF-8"
+export PAGER=less
+export MANPAGER=less
+if command -v nvim > /dev/null; then
+  export EDITOR=nvim
+  export VISUAL=nvim
+  export MANPAGER='nvim +Man!'
+elif command -v vim > /dev/null; then
+  export EDITOR=vim
+  export VISUAL=vim
+else
+  export EDITOR=vi
+  export VISUAL=vi
+fi
+
+export MBOX=~/.mbox
 
 trap logout HUP
 
-# if running bash
-if [ -n "$BASH_VERSION" ]; then
-  # include .bashrc if it exists
-  if [ -f "$HOME/.bashrc" ]; then
-    . "$HOME/.bashrc"
-  fi
-fi
+[ -f "$HOME/.profile.local" ] && . "$HOME/.profile.local"
+
+export _PROFILE_LOADED=1:$_PROFILE_LOADED

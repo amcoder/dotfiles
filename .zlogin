@@ -6,3 +6,6 @@
 # - .zlogin (login only)
 # - .zlogout (logout only)
 
+[ -f ~/.zlogin.local ] && source ~/.zlogin.local
+
+export _ZLOGIN_LOADED=1:$_ZLOGIN_LOADED

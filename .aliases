@@ -1,18 +1,20 @@
 # Aliases for ls
 if command -v exa &> /dev/null; then
   alias ls='exa --icons --classify'
+  alias la='exa --icons --classify --all'
   alias ll='exa --icons --classify --long --group --header --links '
   alias lla='exa --icons --classify --long --group --header --links --all'
 else
-  # alias ls='ls -F'
-  # alias ll='ls -l'
   alias la='ls -A'
+  alias ll='ls -lh'
   alias lla='ls -lAh'
-  # alias l='ls -CF'
 fi
 
 # tmux
-tms() { tmux new-session -As ${1:-default} }
+tms() {
+  [ -z "$1" ] && name=default || name=$1
+  tmux new-session -As $name
+}
 
 # Alias to rebuild launch services to fix messed up icon/file handler associations
 if [ -x /System/Library/Frameworks/CoreServices.framework/Versions/A/Frameworks/LaunchServices.framework/Versions/A/Support/lsregister ]; then

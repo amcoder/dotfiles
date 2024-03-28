@@ -88,10 +88,6 @@ if [ -x /usr/bin/dircolors ]; then
   export LS_COLORS
 fi
 
-if [ -f ~/.aliases ]; then
-  . ~/.aliases
-fi
-
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
@@ -113,7 +109,16 @@ export GIT_PS1_SHOWSTASHSTATE=true
 export GIT_PS1_SHOWUNTRACKEDFILES=true
 export GIT_PS1_SHOWUPSTREAM=auto
 
-
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+if command -v direnv &> /dev/null; then
+  eval "$(direnv hook bash)"
+fi
+
+[ -f ~/.aliases ] && source ~/.aliases
+
+[ -f ~/.basrc.local ] && source ~/.bashrc.local
+
+export _BASHRC_LOADED=1:$_BASHRC_LOADED
