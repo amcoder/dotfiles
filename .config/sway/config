@@ -356,6 +356,7 @@ for_window [app_id="software-properties-gtk"] floating enable
 for_window [app_id="org.kde.polkit-kde-authentication-agent-1"] floating enable
 for_window [app_id="org.kde.kdeconnect-settings"] floating enable
 for_window [app_id="org.kde.kdeconnect-indicator"] floating enable
+for_window [app_id="org.kde.kdeconnect.handler"] floating enable
 for_window [app_id="org.kde.kdeconnect.app"] floating enable
 
 #
