@@ -1,4 +1,0 @@
-#!/usr/bin/bash
-for i in $(snap connections | grep gtk-common-themes:gtk-3-themes | awk '{print $2}'); do
-  sudo snap connect $i gtk-theme-nordic:gtk-3-themes
-done
