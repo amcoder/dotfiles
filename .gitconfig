@@ -21,7 +21,7 @@
   lgg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short --graph
   fap = fetch --all --prune
   clean-branches = !git fetch --quiet --all --prune \
-        && git branch --merged origin/master | xargs git branch -d \
+        && git branch --merged $(git symbolic-ref refs/remotes/origin/HEAD) | grep -Ev '^\\*' | xargs git branch -d \
         && git for-each-ref --format '%(refname:strip=2) %(upstream:track)' refs/heads \
             | awk '$2 == \"[gone]\" { print $1 }' \
             | xargs git branch -D
