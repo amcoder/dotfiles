@@ -340,24 +340,46 @@ bindsym $mod+backslash exec 1password --quick-access
 bindsym $mod+Shift+backslash exec 1password
 bindsym $mod+Shift+n exec nautilus
 
-for_window [title=".*1Password$"] floating enable
-for_window [title="^Copying.*Dolphin$"] floating enable
-for_window [app_id="pavucontrol"] floating enable
-for_window [app_id="org.gnome.Calculator"] floating enable
-for_window [app_id="org.gnome.tweaks"] floating enable
-for_window [app_id="org.gnome.baobab"] floating enable
-for_window [app_id="org.gnome.FileRoller"] floating enable
-for_window [app_id="org.gnome.NautilusPreviewer"] floating enable
-for_window [app_id="gnome-disks"] floating enable
-for_window [app_id="blueman-manager"] floating enable
-for_window [app_id="blueman-services"] floating enable
-for_window [app_id="blueman-sendto"] floating enable
-for_window [app_id="software-properties-gtk"] floating enable
-for_window [app_id="org.kde.polkit-kde-authentication-agent-1"] floating enable
-for_window [app_id="org.kde.kdeconnect-settings"] floating enable
-for_window [app_id="org.kde.kdeconnect-indicator"] floating enable
-for_window [app_id="org.kde.kdeconnect.handler"] floating enable
-for_window [app_id="org.kde.kdeconnect.app"] floating enable
+#
+# Window overrides
+for_window {
+    [shell="xwayland"] title_format "[XW] %title"
+
+    [title=".*1Password$"] floating enable
+    [title="^Copying.*Dolphin$"] floating enable
+
+    [app_id="StorageExplorer" title="^Connect to Azure Storage$"] floating enable
+    [app_id="StorageExplorer" title="^Edit Entity$"] floating enable
+    [app_id="StorageExplorer" title="^Add Entity$"] floating enable
+
+    [app_id="pavucontrol"] floating enable
+
+    [app_id="org.gnome.Calculator"] floating enable
+    [app_id="org.gnome.tweaks"] floating enable
+    [app_id="org.gnome.baobab"] floating enable
+    [app_id="org.gnome.FileRoller"] floating enable
+    [app_id="org.gnome.NautilusPreviewer"] floating enable
+    [app_id="gnome-disks"] floating enable
+    [app_id="software-properties-gtk"] floating enable
+
+    [app_id="blueman-manager"] floating enable
+    [app_id="blueman-services"] floating enable
+    [app_id="blueman-sendto"] floating enable
+
+    [app_id="org.kde.polkit-kde-authentication-agent-1"] floating enable
+    [app_id="org.kde.kdeconnect-settings"] floating enable
+    [app_id="org.kde.kdeconnect-indicator"] floating enable
+    [app_id="org.kde.kdeconnect.handler"] floating enable
+    [app_id="org.kde.kdeconnect.app"] floating enable
+
+    [window_role="pop-up"] floating enable
+    [window_role="bubble"] floating enable
+    [window_role="dialog"] floating enable
+    [window_type="dialog"] floating enable
+
+    [title="(?:Open|Save) (?:File|Folder|As)"] floating enable
+    [title="^Select path to save file$"] floating enable
+}
 
 #
 # Colors
