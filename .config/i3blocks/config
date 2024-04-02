@@ -34,9 +34,11 @@ interval=3600
 command=apt-get -sq upgrade | grep -E '^[0-9]+ upgraded' | cut -d' ' -f1 | { read n; [ $n = "0" ] && env printf '\n' || env printf "\ue4c7 $n\n"; }
 
 [battery]
+command=~/.config/i3blocks/battery
 interval=30
 markup=pango
-command=~/.config/i3blocks/battery
+format=json
+_expanded=false
 
 [mail]
 interval=60

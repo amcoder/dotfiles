@@ -14,6 +14,14 @@ BLUETOOTH_VISIBLE_CHARGE=50
 
 output=()
 
+if [[ $BLOCK_BUTTON == 1 ]]; then
+    if [[ $_expanded == "false" ]]; then
+        _expanded="true"
+    else
+        _expanded="false"
+    fi
+fi
+
 charge_icon() {
     if [[ $1 -ge 90 ]]; then
         echo $FULL
@@ -51,7 +59,7 @@ type_icon() {
 #
 # Laptop batteries
 IFS='|'
-while read -r name st charge; do
+while read -r name st charge remaining; do
     [[ $charge -gt $LAPTOP_VISIBLE_CHARGE ]] && continue
 
     battery="$LAPTOP"
@@ -59,8 +67,18 @@ while read -r name st charge; do
         battery="$battery $CHARGING"
     fi
 
-    output+=("$battery $(charge_icon $charge)")
-done <<< $(acpi -b | sed -r 's/^(.+): (.+), ([0-9]+)\%.*/\1|\2|\3/')
+    battery=("$battery $(charge_icon $charge)")
+    if [[ $_expanded == "true" ]]; then
+        t=""
+        if [[ $st == "Discharging" ]]; then
+            t="($remaining remaining)"
+        elif [[ $st == "Charging" ]]; then
+            t="($remaining to full)"
+        fi
+        battery="$battery <span rise=\\\"1pt\\\" size=\\\"smaller\\\">$charge% $t</span>"
+    fi
+    output+=("$battery")
+done <<< $(acpi -b | sed -r 's/^(.+): (.+), ([0-9]+)\%(, )?([0-9]+:[0-9]+)?.*/\1|\2|\3|\5/')
 unset IFS
 
 #
@@ -75,8 +93,13 @@ while read -r t id name; do
     [[ $info =~ (Icon: ([^[:space:]]+)) ]]
     battery=$(type_icon ${match[2]})
 
-    output+=("$battery $(charge_icon $charge)")
+    battery="$battery $(charge_icon $charge)"
+    if [[ $_expanded == "true" ]]; then
+        battery="$battery <span rise=\\\"1pt\\\" size=\\\"smaller\\\">$charge%</span>"
+    fi
+    output+=("$battery")
 done <<< $(bluetoothctl devices Connected)
 
 # Join the output array with spaces
-echo ${(j:   :)output}
+output="${(j:   :)output}"
+echo "{ \"full_text\": \"$output\", \"_expanded\": \"$_expanded\" }"
