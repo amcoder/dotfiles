@@ -121,4 +121,4 @@ fi
 
 [ -f ~/.basrc.local ] && source ~/.bashrc.local
 
-export _BASHRC_LOADED=1:$_BASHRC_LOADED
+export _BASHRC_LOADED=$(( ${_BASHRC_LOADED:-0} + 1 ))

@@ -11,4 +11,4 @@
 
 [ -f ~/.zprofile.local ] && source ~/.zprofile.local
 
-export _ZPROFILE_LOADED=1:$_ZPROFILE_LOADED
+export _ZPROFILE_LOADED=$(( ${_ZPROFILE_LOADED:-0} + 1 ))

@@ -8,4 +8,4 @@
 
 [ -f ~/.zshenv.local ] && source ~/.zshenv.local
 
-export _ZSHENV_LOADED=1:$_ZSHENV_LOADED
+export _ZSHENV_LOADED=$(( ${_ZSHENV_LOADED:-0} + 1 ))

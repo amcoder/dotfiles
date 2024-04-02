@@ -42,4 +42,4 @@ trap logout HUP
 
 [ -f "$HOME/.profile.local" ] && . "$HOME/.profile.local"
 
-export _PROFILE_LOADED=1:$_PROFILE_LOADED
+export _PROFILE_LOADED=$(( ${_PROFILE_LOADED:-0} + 1 ))

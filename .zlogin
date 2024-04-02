@@ -8,4 +8,4 @@
 
 [ -f ~/.zlogin.local ] && source ~/.zlogin.local
 
-export _ZLOGIN_LOADED=1:$_ZLOGIN_LOADED
+export _ZLOGIN_LOADED=$(( ${_ZLOGIN_LOADED:-0} + 1 ))
