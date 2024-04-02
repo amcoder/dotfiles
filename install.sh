@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ignorefiles=". .. .DS_Store .git .gitignore .gitmodules .ssh .vagrant.d .config"
+ignorefiles=". .. .DS_Store .git .gitignore .gitmodules .config"
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $scriptdir
 
@@ -14,9 +14,7 @@ exclude() {
   return 1
 }
 
-mkdir -p ~/.vagrant.d
-
-for file in .* bin .vagrant.d/* .config/*
+for file in .* bin .config/*
 do
   if exclude $file; then
     echo "Skipping $file"
