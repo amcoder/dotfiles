@@ -16,6 +16,12 @@
 
 export PATH
 
+[ -z "$MANPATH" ] && MANPATH=$(manpath)
+[ -d "$HOME/.local/share/man" ] && MANPATH="$HOME/.local/share/man:$MANPATH"
+[ -d "$HOME/.local/man" ] && MANPATH="$HOME/.local/man:$MANPATH"
+
+export MANPATH
+
 export PAGER=less
 export MANPAGER=less
 if command -v nvim > /dev/null; then
