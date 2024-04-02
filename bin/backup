@@ -1,21 +1,16 @@
-#!/bin/sh
+#!/bin/sh -x
 
 # 24 hourly
 # 30 daily
 # 52 weeks
 # 5 years
-#
-# remove $INTERVAL.$(($NUM-1))
-# for each $INTERVAL
-#   mv $INTERVAL.$(($i-1)) $INTERVAL.$i
-# rsync to $INTERVAL.0
-# link latest to $INTERVAL.0
 
 #-- begin of user configuration
-MACHINE=beedle.local
-USER=amcoder
+BACKUP_SERVER=beedle.local
+BACKUP_USER=amcoder
+USER=$(whoami)
 SOURCEDIR=/home/$USER/
-TARGETDIR=/volume1/backup/impa/amcoder
+TARGETDIR=/volume1/backup/$(hostname)/$USER
 #-- end of user configuration
 
 INTERVAL=$1
@@ -30,35 +25,29 @@ rsync -avzPh --delete --delete-excluded -e ssh \
   --exclude-from=/home/$USER/.backup_exclude \
   --link-dest=$TARGETDIR/latest \
   $SOURCEDIR \
-  $USER@$MACHINE:$TEMPFILE
+  $BACKUP_USER@$BACKUP_SERVER:$TEMPFILE
 
 # check exit status to see if backup failed
 if [ "$?" = 0 ]; then
   # Rotate backups
-  printf "rm -rf $TARGETDIR/$INTERVAL.$(($NUM-1))\n"
-  ssh $USER@$MACHINE "rm -rf $TARGETDIR/$INTERVAL.$(($NUM-1))"
+  ssh $BACKUP_USER@$BACKUP_SERVER "[ -d $TARGETDIR/$INTERVAL.$(($NUM-1)) ] && rm -rf $TARGETDIR/$INTERVAL.$(($NUM-1))"
   for i in `seq $(($NUM-1)) -1 1`
   do
-    printf "mv $TARGETDIR/$INTERVAL.$(($i-1)) $TARGETDIR/$INTERVAL.$i\n"
-    ssh $USER@$MACHINE "mv $TARGETDIR/$INTERVAL.$(($i-1)) $TARGETDIR/$INTERVAL.$i"
+    ssh $BACKUP_USER@$BACKUP_SERVER "[ -d $TARGETDIR/$INTERVAL.$(($i-1)) ] && mv $TARGETDIR/$INTERVAL.$(($i-1)) $TARGETDIR/$INTERVAL.$i"
   done
 
   # Rename directory if succeeded
-  printf "mv $TEMPFILE $TARGETDIR/$INTERVAL.0\n"
-  ssh $USER@$MACHINE "mv $TEMPFILE $TARGETDIR/$INTERVAL.0"
-  printf "touch $TARGETDIR/$INTERVAL.0\n"
-  ssh $USER@$MACHINE "touch $TARGETDIR/$INTERVAL.0"
+  ssh $BACKUP_USER@$BACKUP_SERVER "mv $TEMPFILE $TARGETDIR/$INTERVAL.0"
+  ssh $BACKUP_USER@$BACKUP_SERVER "touch $TARGETDIR/$INTERVAL.0"
 
   # Remove link to latest backup
-  printf "rm -f $TARGETDIR/latest\n"
-  ssh $USER@$MACHINE "rm -f $TARGETDIR/latest"
+  ssh $BACKUP_USER@$BACKUP_SERVER "rm -f $TARGETDIR/latest"
 
   # Create link to the newest backup
-  printf "ln -s $TARGETDIR/$INTERVAL.0 $TARGETDIR/latest\n"
-  ssh $USER@$MACHINE "ln -s $TARGETDIR/$INTERVAL.0 $TARGETDIR/latest"
+  ssh $BACKUP_USER@$BACKUP_SERVER "ln -s $TARGETDIR/$INTERVAL.0 $TARGETDIR/latest"
 else
   # Rename directory if failed
   printf "rsync failed\n"
-  printf "mv $TEMPFILE $TARGETDIR/$INTERVAL-failed-$TIMESTAMP\n"
-  ssh $USER@$MACHINE "mv $TEMPFILE $TARGETDIR/$INTERVAL-failed-$TIMESTAMP"
+  ssh $BACKUP_USER@$BACKUP_SERVER "mv $TEMPFILE $TARGETDIR/$INTERVAL-failed-$TIMESTAMP"
+  exit 1
 fi
