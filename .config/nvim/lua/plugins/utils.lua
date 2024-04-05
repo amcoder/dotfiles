@@ -3,6 +3,8 @@ return {
 
   'tpope/vim-repeat', -- Additional key repeats
 
+  'tpope/vim-surround', -- Surround text objects
+
   -- Nice select and input pupups
   { 'stevearc/dressing.nvim', opts = {}, event = 'VeryLazy' },
 

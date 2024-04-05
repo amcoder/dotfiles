@@ -1,7 +1,11 @@
+vim.g.copilot_no_tab_map = true
+vim.g.copilot_assume_mapped = true
+
 return {
   {
     'github/copilot.vim',
     config = function()
+      vim.cmd('imap <silent><script><expr> <C-c> copilot#Accept("<CR>")')
       vim.keymap.set('n', '<leader>cp', ':Copilot<cr>', { desc = 'Open Copilot' })
     end,
   },

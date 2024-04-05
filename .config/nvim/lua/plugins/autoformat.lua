@@ -41,6 +41,24 @@ return {
         -- is found.
         -- javascript = { { "prettierd", "prettier" } },
       },
+      formatters = {
+        jq = {
+          args = function(_, ctx)
+            local result = {}
+            local output = vim.fn.system({ 'editorconfig', ctx.filename })
+            if string.match(output, 'indent_style=tab') then
+              table.insert(result, '--tab')
+            else
+              local indent_size = string.match(output, 'indent_size=([0-9]+)')
+              if indent_size then
+                table.insert(result, '--indent')
+                table.insert(result, indent_size)
+              end
+            end
+            return result
+          end,
+        },
+      },
     },
   },
 }
