@@ -32,27 +32,23 @@ return {
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        json = { 'jq' },
+        typescript = { { 'prettierd', 'prettier' } },
         javascript = { { 'prettierd', 'prettier' } },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use a sub-list to tell conform to run *until* a formatter
-        -- is found.
-        -- javascript = { { "prettierd", "prettier" } },
+        json = { { 'prettierd', 'prettier' } },
+        css = { { 'prettierd', 'prettier' } },
+        yaml = { { 'prettierd', 'prettier' } },
       },
       formatters = {
         jq = {
           args = function(_, ctx)
+            -- Add editorconfig support to jq
             local result = {}
-            local output = vim.fn.system({ 'editorconfig', ctx.filename })
-            if string.match(output, 'indent_style=tab') then
-              table.insert(result, '--tab')
-            else
-              local indent_size = string.match(output, 'indent_size=([0-9]+)')
-              if indent_size then
+            if vim.b[ctx.buf].editorconfig then
+              if vim.b[ctx.buf].editorconfig.indent_style == 'tab' then
+                table.insert(result, '--tab')
+              elseif vim.b[ctx.buf].editorconfig.indent_size then
                 table.insert(result, '--indent')
-                table.insert(result, indent_size)
+                table.insert(result, vim.b[ctx.buf].editorconfig.indent_size)
               end
             end
             return result

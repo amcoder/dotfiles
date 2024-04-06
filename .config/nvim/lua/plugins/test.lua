@@ -33,6 +33,9 @@ return {
       })
 
       vim.keymap.set('n', '<leader>rt', neotest.run.run, { desc = '[R]un Nearest [T]est' })
+      vim.keymap.set('n', '<leader>rd', function()
+        neotest.run.run({ strategy = 'dap' })
+      end, { desc = '[R]un Nearest Test [D]ebug' })
       vim.keymap.set('n', '<leader>rf', function()
         neotest.run.run(vim.fn.expand('%'))
       end, { desc = '[R]un Tests in [F]ile' })
