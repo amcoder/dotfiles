@@ -24,4 +24,14 @@ if command -v nvim &> /dev/null; then
   alias vi='nvim'
 fi
 
+if command -v just &> /dev/null; then
+  alias j='just'
+  alias jb='just build'
+  alias jt='just test'
+  alias jtw='just test-watch'
+  alias jr='just run'
+  alias jrw='just run-watch'
+  alias jc='just clean'
+fi
+
 [ -f ~/.aliases.local ] && source ~/.aliases.local
