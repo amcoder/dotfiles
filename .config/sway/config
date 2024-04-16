@@ -343,7 +343,7 @@ bindsym $mod+Shift+n exec nautilus
 #
 # Inhibit idle
 for_window [con_mark=NOIDLE] inhibit_idle open; border normal 2
-bindsym $mod+i [con_mark=NOIDLE] inhibit_idle none; [con_mark=NOIDLE] border pixel 2; \
+bindsym $mod+Shift+i [con_mark=NOIDLE] inhibit_idle none; [con_mark=NOIDLE] border pixel 2; \
                 mark --toggle NOIDLE; \
                 [con_mark=NOIDLE] inhibit_idle open; [con_mark=NOIDLE] border normal 2
 
