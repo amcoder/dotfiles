@@ -248,7 +248,7 @@ exec /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1
     bindsym $mod+Shift+f floating toggle
 
     # Swap focus between the tiling area and the floating area
-    # bindsym $mod+space focus mode_toggle
+    bindsym $mod+Ctrl+f focus mode_toggle
 
     # Move focus to the parent container
     bindsym $mod+a focus parent
