@@ -1,0 +1,4 @@
+#!/usr/bin/env zsh
+
+why="$@"
+systemd-inhibit --what=shutdown:sleep --who="$(basename $0)" --why="$why" "$@"
