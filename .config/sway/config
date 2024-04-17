@@ -52,7 +52,7 @@ exec_always ~/bin/sway-laptop-lid
 # Example configuration:
 #
 exec swayidle -w \
-        idlehint 30 \
+        idlehint 120 \
         lock 'swaylock -f' \
         timeout 300 'loginctl lock-session' \
         timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
