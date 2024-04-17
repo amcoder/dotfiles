@@ -1,0 +1,52 @@
+#!/usr/bin/env zsh
+
+OFF="\uf880"
+NOSLEEP="\uf06e"
+NOIDLE="\uf140"
+
+state=${state:-off}
+
+no_lock() {
+    if ps -p $INHIBITOR_PID &> /dev/null; then
+        kill -SIGTERM $INHIBITOR_PID
+    fi
+    INHIBITOR_PID=""
+}
+
+function inhibit() {
+    no_lock
+    systemd-inhibit --what=$1 sleep infinity &> /dev/null &
+    INHIBITOR_PID=$!
+    disown
+}
+
+if [[ $BLOCK_BUTTON == 1 ]]; then
+    case $state in
+        off)
+            state="nosleep"
+            inhibit shutdown:sleep
+            ;;
+        nosleep)
+            state="noidle"
+            inhibit shutdown:sleep:idle
+            ;;
+        noidle)
+            state="off"
+            no_lock
+            ;;
+    esac
+fi
+
+case $state in
+    off)
+        icon=$OFF
+        ;;
+    nosleep)
+        icon=$NOSLEEP
+        ;;
+    noidle)
+        icon=$NOIDLE
+        ;;
+esac
+
+echo "{ \"full_text\": \"$icon\", \"state\": \"$state\", \"INHIBITOR_PID\": \"$INHIBITOR_PID\" }"

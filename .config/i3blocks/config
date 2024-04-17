@@ -48,6 +48,12 @@ command=zsh -c "(( `messages -s` > 0 )) && print \"\uf0e0\" || print \"\n\""
 command=date '+%a, %b %d %H:%M'
 interval=5
 
+[insomnia]
+command=~/.config/i3blocks/insomnia
+interval=once
+markup=pango
+format=json
+
 [dunst]
 interval=once
 markup=pango
