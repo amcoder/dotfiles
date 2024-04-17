@@ -15,7 +15,7 @@ no_lock() {
 
 function inhibit() {
     no_lock
-    systemd-inhibit --what=$1 sleep infinity &> /dev/null &
+    systemd-inhibit --what=$1 --who=insomnia --why=user sleep infinity &> /dev/null &
     INHIBITOR_PID=$!
     disown
 }
