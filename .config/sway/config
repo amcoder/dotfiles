@@ -339,6 +339,7 @@ bindsym $mod+Shift+p exec grimshot save anything
 bindsym $mod+backslash exec 1password --quick-access
 bindsym $mod+Shift+backslash exec 1password
 bindsym $mod+Shift+n exec nautilus
+bindsym $mod+Shift+e exec bemoji -t
 
 #
 # Inhibit idle
