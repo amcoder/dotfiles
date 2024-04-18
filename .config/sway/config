@@ -15,7 +15,7 @@ set $right l
 set $term alacritty
 
 # Your preferred browser
-set $browser google-chrome
+set $browser google-chrome --ozone-platform=wayland
 
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
