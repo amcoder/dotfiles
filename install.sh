@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-ignorefiles=". .. .DS_Store .git .gitignore .gitmodules .config"
+ignorefiles=". .. .DS_Store .git .gitignore .gitmodules .config .local"
 scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $scriptdir
 
@@ -14,7 +14,10 @@ exclude() {
   return 1
 }
 
-for file in .* bin .config/*
+mkdir -p ~/.config
+mkdir -p ~/.local/bin
+
+for file in .* .local/bin/* .config/*
 do
   if exclude $file; then
     echo "Skipping $file"
