@@ -138,37 +138,38 @@ bindsym $mod+Shift+Up move up
 bindsym $mod+Shift+Right move right
 
 # Workspace definitions
-set $ws1 1:<span> </span><span>1 </span><span foreground='#5E81AC'></span><span> </span>
-set $ws2 2:<span> </span><span>2 </span><span foreground='#88C0D0'></span><span> </span>
-set $ws3 3:<span> </span><span>3 </span><span foreground='#A3BE8C'></span><span> </span>
-set $ws4 4:<span> </span><span>4 </span><span foreground='#EBCB8B'>󰅩</span><span> </span>
-set $ws5 5:<span> </span><span>5 </span><span foreground='#D08770'>󰅩</span><span> </span>
-set $ws6 6:<span> </span><span>6 </span><span foreground='#BF616A'>󰅩</span><span> </span>
-set $ws7 7:<span> </span><span>7 </span><span foreground='#B48EAD'></span><span> </span>
-set $ws8 8:<span> </span><span>8 </span><span foreground='#8FBCBB'></span><span> </span>
-set $ws9 9:<span> </span><span>9 </span><span foreground='#5E81AC'></span><span> </span>
-set $ws10 10:<span> </span><span>10 </span><span foreground='#88C0D0'>󰝚</span><span> </span>
-set $ws11 11:<span> </span><span>11 </span><span foreground='#A3BE8C'></span><span> </span>
-set $ws12 12:<span> </span><span>12 </span><span foreground='#EBCB8B'></span><span> </span>
-set $ws13 13:<span> </span><span>13 </span><span foreground='#D08770'></span><span> </span>
-set $ws14 14:<span> </span><span>14 </span><span foreground='#BF616A'></span><span> </span>
-set $ws15 15:<span> </span><span>15 </span><span foreground='#B48EAD'></span><span> </span>
-set $ws16 16:<span> </span><span>16 </span><span foreground='#8FBCBB'></span><span> </span>
-set $ws17 17:<span> </span><span>17 </span><span foreground='#5E81AC'></span><span> </span>
-set $ws18 18:<span> </span><span>18 </span><span foreground='#88C0D0'></span><span> </span>
-set $ws19 19:<span> </span><span>19 </span><span foreground='#A3BE8C'></span><span> </span>
+# Note:   is the font awesome icon for a hexagon
+set  $ws1  1: 1  <span foreground='#5E81AC'> </span>
+set  $ws2  2: 2  <span foreground='#88C0D0'> </span>
+set  $ws3  3: 3  <span foreground='#A3BE8C'> </span>
+set  $ws4  4: 4  <span foreground='#EBCB8B'> 󰅩 </span>
+set  $ws5  5: 5  <span foreground='#D08770'> 󰅩 </span>
+set  $ws6  6: 6  <span foreground='#BF616A'> 󰅩 </span>
+set  $ws7  7: 7  <span foreground='#B48EAD'> </span>
+set  $ws8  8: 8  <span foreground='#8FBCBB'> </span>
+set  $ws9  9: 9  <span foreground='#5E81AC'> </span>
+set $ws10 10: 10 <span foreground='#88C0D0'>󰝚 </span>
+set $ws11 11: 11 <span foreground='#A3BE8C'> </span>
+set $ws12 12: 12 <span foreground='#EBCB8B'> </span>
+set $ws13 13: 13 <span foreground='#D08770'> </span>
+set $ws14 14: 14 <span foreground='#BF616A'> </span>
+set $ws15 15: 15 <span foreground='#B48EAD'> </span>
+set $ws16 16: 16 <span foreground='#8FBCBB'> </span>
+set $ws17 17: 17 <span foreground='#5E81AC'> </span>
+set $ws18 18: 18 <span foreground='#88C0D0'> </span>
+set $ws19 19: 19 <span foreground='#A3BE8C'> </span>
 
 # Switch to workspace
-bindsym $mod+1 workspace number $ws1
-bindsym $mod+2 workspace number $ws2
-bindsym $mod+3 workspace number $ws3
-bindsym $mod+4 workspace number $ws4
-bindsym $mod+5 workspace number $ws5
-bindsym $mod+6 workspace number $ws6
-bindsym $mod+7 workspace number $ws7
-bindsym $mod+8 workspace number $ws8
-bindsym $mod+9 workspace number $ws9
-bindsym $mod+0 workspace number $ws10
+bindsym $mod+1      workspace number $ws1
+bindsym $mod+2      workspace number $ws2
+bindsym $mod+3      workspace number $ws3
+bindsym $mod+4      workspace number $ws4
+bindsym $mod+5      workspace number $ws5
+bindsym $mod+6      workspace number $ws6
+bindsym $mod+7      workspace number $ws7
+bindsym $mod+8      workspace number $ws8
+bindsym $mod+9      workspace number $ws9
+bindsym $mod+0      workspace number $ws10
 bindsym $mod+Ctrl+1 workspace number $ws11
 bindsym $mod+Ctrl+2 workspace number $ws12
 bindsym $mod+Ctrl+3 workspace number $ws13
@@ -179,23 +180,23 @@ bindsym $mod+Ctrl+7 workspace number $ws17
 bindsym $mod+Ctrl+8 workspace number $ws18
 bindsym $mod+Ctrl+9 workspace number $ws19
 
-bindsym $mod+Alt+Right workspace next
+bindsym $mod+Alt+Right  workspace next
 bindsym $mod+Alt+$right workspace next
-bindsym $mod+Alt+Left workspace prev
-bindsym $mod+Alt+$left workspace prev
+bindsym $mod+Alt+Left   workspace prev
+bindsym $mod+Alt+$left  workspace prev
 
 
 # Move focused container to workspace
-bindsym $mod+Shift+1 move container to workspace number $ws1
-bindsym $mod+Shift+2 move container to workspace number $ws2
-bindsym $mod+Shift+3 move container to workspace number $ws3
-bindsym $mod+Shift+4 move container to workspace number $ws4
-bindsym $mod+Shift+5 move container to workspace number $ws5
-bindsym $mod+Shift+6 move container to workspace number $ws6
-bindsym $mod+Shift+7 move container to workspace number $ws7
-bindsym $mod+Shift+8 move container to workspace number $ws8
-bindsym $mod+Shift+9 move container to workspace number $ws9
-bindsym $mod+Shift+0 move container to workspace number $ws10
+bindsym $mod+Shift+1      move container to workspace number $ws1
+bindsym $mod+Shift+2      move container to workspace number $ws2
+bindsym $mod+Shift+3      move container to workspace number $ws3
+bindsym $mod+Shift+4      move container to workspace number $ws4
+bindsym $mod+Shift+5      move container to workspace number $ws5
+bindsym $mod+Shift+6      move container to workspace number $ws6
+bindsym $mod+Shift+7      move container to workspace number $ws7
+bindsym $mod+Shift+8      move container to workspace number $ws8
+bindsym $mod+Shift+9      move container to workspace number $ws9
+bindsym $mod+Shift+0      move container to workspace number $ws10
 bindsym $mod+Ctrl+Shift+1 move container to workspace number $ws11
 bindsym $mod+Ctrl+Shift+2 move container to workspace number $ws12
 bindsym $mod+Ctrl+Shift+3 move container to workspace number $ws13
