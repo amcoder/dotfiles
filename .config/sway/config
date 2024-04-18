@@ -144,19 +144,19 @@ set $ws3 3:<span> </span><span>3 </span><span foreground='#A3BE8C'></span><sp
 set $ws4 4:<span> </span><span>4 </span><span foreground='#EBCB8B'>󰅩</span><span> </span>
 set $ws5 5:<span> </span><span>5 </span><span foreground='#D08770'>󰅩</span><span> </span>
 set $ws6 6:<span> </span><span>6 </span><span foreground='#BF616A'>󰅩</span><span> </span>
-set $ws7 7:<span> </span><span>7 </span><span foreground='#5E81AC'></span><span> </span>
-set $ws8 8:<span> </span><span>8 </span><span foreground='#B48EAD'></span><span> </span>
-set $ws9 9:<span> </span><span>9 </span><span foreground='#E5E9F0'></span><span> </span>
-set $ws10 10:<span> </span><span>10 </span><span foreground='#5E81AC'>󰝚</span><span> </span>
-set $ws11 11:<span> </span><span>11 </span><span foreground='#88C0D0'></span><span> </span>
-set $ws12 12:<span> </span><span>12 </span><span foreground='#A3BE8C'></span><span> </span>
-set $ws13 13:<span> </span><span>13 </span><span foreground='#EBCB8B'></span><span> </span>
-set $ws14 14:<span> </span><span>14 </span><span foreground='#D08770'></span><span> </span>
-set $ws15 15:<span> </span><span>15 </span><span foreground='#BF616A'></span><span> </span>
-set $ws16 16:<span> </span><span>16 </span><span foreground='#5E81AC'></span><span> </span>
-set $ws17 17:<span> </span><span>17 </span><span foreground='#B48EAD'></span><span> </span>
-set $ws18 18:<span> </span><span>18 </span><span foreground='#E5E9F0'></span><span> </span>
-set $ws19 19:<span> </span><span>19 </span><span foreground='#5E81AC'></span><span> </span>
+set $ws7 7:<span> </span><span>7 </span><span foreground='#B48EAD'></span><span> </span>
+set $ws8 8:<span> </span><span>8 </span><span foreground='#8FBCBB'></span><span> </span>
+set $ws9 9:<span> </span><span>9 </span><span foreground='#5E81AC'></span><span> </span>
+set $ws10 10:<span> </span><span>10 </span><span foreground='#88C0D0'>󰝚</span><span> </span>
+set $ws11 11:<span> </span><span>11 </span><span foreground='#A3BE8C'></span><span> </span>
+set $ws12 12:<span> </span><span>12 </span><span foreground='#EBCB8B'></span><span> </span>
+set $ws13 13:<span> </span><span>13 </span><span foreground='#D08770'></span><span> </span>
+set $ws14 14:<span> </span><span>14 </span><span foreground='#BF616A'></span><span> </span>
+set $ws15 15:<span> </span><span>15 </span><span foreground='#B48EAD'></span><span> </span>
+set $ws16 16:<span> </span><span>16 </span><span foreground='#8FBCBB'></span><span> </span>
+set $ws17 17:<span> </span><span>17 </span><span foreground='#5E81AC'></span><span> </span>
+set $ws18 18:<span> </span><span>18 </span><span foreground='#88C0D0'></span><span> </span>
+set $ws19 19:<span> </span><span>19 </span><span foreground='#A3BE8C'></span><span> </span>
 
 # Switch to workspace
 bindsym $mod+1 workspace number $ws1
