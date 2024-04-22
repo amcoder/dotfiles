@@ -168,10 +168,22 @@ return {
               },
             }),
           },
-          enable_editorconfig_support = true,
-          enable_roslyn_analyzers = true,
-          organize_imports_on_format = true,
-          enable_import_completion = true,
+          settings = {
+            FormattingOptions = {
+              EnableEditorConfigSupport = true,
+              OrganizeImports = true,
+            },
+            RoslynExtensionsOptions = {
+              EnableAnalyzersSupport = true,
+              EnableImportCompletion = true,
+              AnalyzeOpenDocumentsOnly = nil,
+            },
+            Sdk = {
+              -- Specifies whether to include preview versions of the .NET SDK when
+              -- determining which version to use for project loading.
+              IncludePrereleases = true,
+            },
+          },
           keymaps = {
             -- override keys for omnisharp so that we can go to decompied code
             { 'gd', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition' },
