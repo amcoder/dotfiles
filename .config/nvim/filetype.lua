@@ -4,5 +4,6 @@ vim.filetype.add({
     csproj = 'xml.msproj',
     vbproj = 'xml.msproj',
     dcproj = 'xml.msproj',
+    props = 'xml.msproj',
   },
 })
