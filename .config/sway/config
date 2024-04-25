@@ -309,6 +309,9 @@ bindsym $mod+Shift+backslash exec 1password
 bindsym $mod+Shift+n exec nautilus
 bindsym $mod+Shift+e exec bemoji -t
 
+# notifications
+bindsym $mod+n exec dunstctl action
+
 # Inhibit idle
 for_window [con_mark="no idle"] inhibit_idle open; border normal 2
 bindsym $mod+Shift+i [con_mark="no idle"] inhibit_idle none; [con_mark="no idle"] border pixel 2; \
