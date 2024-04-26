@@ -19,10 +19,14 @@
 [merge]
   tool = nvimdiff
   conflictstyle = diff3
+[pretty]
+  onelinecopy = %C(auto)%h%d %s
+  onelineex = %C(auto)%(decorate:prefix=        ,suffix=%n)%h %s %Cgreen(%cr) %C(bold blue)<%an>%Creset
+  columns = %C(auto)%(decorate:prefix=                                    ,suffix=%n)%h %Cgreen%>(14,trunc)%cr %C(bold blue)%<(12,trunc)%an%C(auto) %s
 [alias]
   check = diff 4b825dc642cb6eb9a060e54bf8d69288fbee4904 --check
-  lg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short
-  lgg = log --pretty=format:'%C(yellow)%h%Creset -%C(red)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=short --graph
+  lg = log --pretty=onelineex
+  lgg = log --pretty=onelineex --graph
   fap = fetch --all --prune
   clean-branches = !git fetch --quiet --all --prune \
         && git branch --merged $(git symbolic-ref refs/remotes/origin/HEAD) | grep -Ev '^\\*' | xargs git branch -d \
