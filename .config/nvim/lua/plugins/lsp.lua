@@ -176,7 +176,7 @@ return {
             RoslynExtensionsOptions = {
               EnableAnalyzersSupport = true,
               EnableImportCompletion = true,
-              AnalyzeOpenDocumentsOnly = nil,
+              EnableDecompilationSupport = true,
             },
             Sdk = {
               -- Specifies whether to include preview versions of the .NET SDK when
