@@ -12,12 +12,6 @@ return {
 
       -- Extend omnisharp
       'Hoffs/omnisharp-extended-lsp.nvim',
-
-      -- Extend csharpls
-      -- 'Decodetalkers/csharpls-extended-lsp.nvim',
-
-      -- roslyn LS
-      -- 'jmederosalvarado/roslyn.nvim',
     },
     config = function()
       --  This function gets run when an LSP attaches to a particular buffer.
@@ -33,49 +27,41 @@ return {
             return
           end
 
-          if client.name == 'omnisharp' then
-            -- override keys for omnisharp so that we can go to decompied code
-            map('gd', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition')
-            map('<C-]>', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition')
+          -- Jump to the definition of the word under your cursor.
+          --  This is where a variable was first declared, or where a function is defined, etc.
+          --  To jump back, press <C-T>.
+          if client.server_capabilities.definitionProvider then
+            map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
+            map('<C-]>', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
             map(
               '<C-LeftMouse>',
-              "<LeftMouse><cmd>lua require('omnisharp_extended').telescope_lsp_definition()<CR>",
+              "<LeftMouse><cmd>lua require('telescope.builtin').lsp_definitions()<CR>",
               '[G]oto [D]efinition'
             )
-            map('gr', require('omnisharp_extended').telescope_lsp_references, '[G]oto [R]eferences')
-            map('gi', require('omnisharp_extended').telescope_lsp_implementation, '[G]oto [I]mplementation')
-            map('gt', require('omnisharp_extended').telescope_lsp_type_definition, '[G]oto [T]ype Definition')
-          else
-            -- Jump to the definition of the word under your cursor.
-            --  This is where a variable was first declared, or where a function is defined, etc.
-            --  To jump back, press <C-T>.
-            if client.server_capabilities.definitionProvider then
-              map('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-              map('<C-]>', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-              map(
-                '<C-LeftMouse>',
-                "<LeftMouse><cmd>lua require('telescope.builtin').lsp_definitions()<CR>",
-                '[G]oto [D]efinition'
-              )
-            end
+          end
 
-            -- Find references for the word under your cursor.
-            if client.server_capabilities.referencesProvider then
-              map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-            end
+          -- This is not Goto Definition, this is Goto Declaration.
+          --  For example, in C this would take you to the header
+          if client.server_capabilities.declarationProvider then
+            map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
+          end
 
-            -- Jump to the implementation of the word under your cursor.
-            --  Useful when your language has ways of declaring types without an actual implementation.
-            if client.server_capabilities.implementationProvider then
-              map('gi', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-            end
+          -- Find references for the word under your cursor.
+          if client.server_capabilities.referencesProvider then
+            map('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
+          end
 
-            -- Jump to the type of the word under your cursor.
-            --  Useful when you're not sure what type a variable is and you want to see
-            --  the definition of its *type*, not where it was *defined*.
-            if client.server_capabilities.typeDefinitionProvider then
-              map('gt', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype Definition')
-            end
+          -- Jump to the implementation of the word under your cursor.
+          --  Useful when your language has ways of declaring types without an actual implementation.
+          if client.server_capabilities.implementationProvider then
+            map('gi', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
+          end
+
+          -- Jump to the type of the word under your cursor.
+          --  Useful when you're not sure what type a variable is and you want to see
+          --  the definition of its *type*, not where it was *defined*.
+          if client.server_capabilities.typeDefinitionProvider then
+            map('gt', require('telescope.builtin').lsp_type_definitions, '[G]oto [T]ype Definition')
           end
 
           -- Fuzzy find all the symbols in your current document.
@@ -100,6 +86,12 @@ return {
           -- or a suggestion from your LSP for this to activate.
           if client.server_capabilities.codeActionProvider then
             map('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
+            vim.keymap.set(
+              'v',
+              '<leader>ca',
+              vim.lsp.buf.code_action,
+              { buffer = event.buf, desc = 'LSP: [C]ode [A]ction' }
+            )
           end
 
           -- Opens a popup that displays documentation about the word under your cursor
@@ -111,31 +103,7 @@ return {
           -- Opens a popup that displays documentation about the word under your cursor
           --  See `:help K` for why this keymap
           if client.server_capabilities.signatureHelpProvider then
-            map('<C-s>', vim.lsp.buf.signature_help, 'Signature Help')
-          end
-
-          -- This is not Goto Definition, this is Goto Declaration.
-          --  For example, in C this would take you to the header
-          map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
-
-          -- The following two autocommands are used to highlight references of the
-          -- word under your cursor when your cursor rests there for a little while.
-          --    See `:help CursorHold` for information about when this is executed
-          --
-          -- When you move your cursor, the highlights will be cleared (the second autocommand).
-          if client.server_capabilities.documentHighlightProvider then
-            vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
-              buffer = event.buf,
-              callback = vim.lsp.buf.document_highlight,
-            })
-
-            vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
-              buffer = event.buf,
-              callback = vim.lsp.buf.clear_references,
-            })
-          end
-
-          if client.server_capabilities.signatureHelpProvider then
+            -- map('<C-s>', vim.lsp.buf.signature_help, 'Signature Help')
             require('lsp-overloads').setup(client, {
               ui = {
                 border = 'none',
@@ -157,6 +125,28 @@ return {
               buffer = event.buf,
               desc = 'Show LSP signature help',
             })
+          end
+
+          -- The following two autocommands are used to highlight references of the
+          -- word under your cursor when your cursor rests there for a little while.
+          --    See `:help CursorHold` for information about when this is executed
+          --
+          -- When you move your cursor, the highlights will be cleared (the second autocommand).
+          if client.server_capabilities.documentHighlightProvider then
+            vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
+              buffer = event.buf,
+              callback = vim.lsp.buf.document_highlight,
+            })
+
+            vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, {
+              buffer = event.buf,
+              callback = vim.lsp.buf.clear_references,
+            })
+          end
+
+          -- load keymap overrides for the specific LSP
+          for _, keymap in ipairs(client.config.keymaps or {}) do
+            map(unpack(keymap))
           end
         end,
       })
@@ -192,7 +182,6 @@ return {
           },
         },
         omnisharp = {
-          autostart = true,
           handlers = {
             ['textDocument/publishDiagnostics'] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
               -- Roslyn hidden analytics come in as hints, so make then a bit quieter.
@@ -220,25 +209,23 @@ return {
               IncludePrereleases = true,
             },
           },
-          keymaps = {},
+          keymaps = {
+            { 'gd', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition (omnisharp)' },
+            { '<C-]>', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition (omnisharp)' },
+            {
+              '<C-LeftMouse>',
+              "<LeftMouse><cmd>lua require('omnisharp_extended').telescope_lsp_definition()<CR>",
+              '[G]oto [D]efinition (omnisharp)',
+            },
+            { 'gr', require('omnisharp_extended').telescope_lsp_references, '[G]oto [R]eferences (omnisharp)' },
+            { 'gi', require('omnisharp_extended').telescope_lsp_implementation, '[G]oto [I]mplementation (omnisharp)' },
+            {
+              'gt',
+              require('omnisharp_extended').telescope_lsp_type_definition,
+              '[G]oto [T]ype Definition (omnisharp)',
+            },
+          },
         },
-        -- csharp_ls = {
-        --   autostart = false,
-        --   handlers = {
-        --     ['textDocument/definition'] = require('csharpls_extended').handler,
-        --     ['textDocument/typeDefinition'] = require('csharpls_extended').handler,
-        --   },
-        --   keymaps = {
-        --     {
-        --       'gd',
-        --       function()
-        --         vim.lsp.buf.definition()
-        --       end,
-        --       '[G]oto [D]efinition',
-        --     },
-        --     { '<leader>D', vim.lsp.buf.type_definition, 'Type [D]efinition' },
-        --   },
-        -- },
         lua_ls = {
           settings = {
             Lua = {
@@ -300,41 +287,8 @@ return {
           end,
         },
       })
-
-      -- setup the roslyn LSP client
-      -- require('roslyn').setup({
-      --   dotnet_cmd = 'dotnet', -- this is the default
-      --   -- 4.10.0-2.24124.2
-      --   -- 4.8.0-3.23475.7 (default)
-      --   roslyn_version = '4.10.0-2.24124.2',
-      --   on_attach = function() end, -- required
-      --   capabilities = capabilities, -- required
-      -- })
     end,
   },
-
-  -- {
-  --   'ray-x/lsp_signature.nvim',
-  --   event = 'VeryLazy',
-  --   opts = {
-  --     doc_lines = 20,
-  --     max_width = 120,
-  --     hint_enable = false,
-  --     hint_inline = function()
-  --       return true
-  --     end,
-  --     hint_prefix = '➡️ ',
-  --     padding = ' ',
-  --     handler_opts = {
-  --       border = 'none',
-  --     },
-  --     toggle_key = '<C-s>',
-  --     select_signature_key = '<C-k>',
-  --   },
-  --   config = function(_, opts)
-  --     require('lsp_signature').setup(opts)
-  --   end,
-  -- },
 
   {
     'Issafalcon/lsp-overloads.nvim',
