@@ -24,6 +24,12 @@ return {
     'rcarriga/nvim-notify',
     config = function()
       vim.notify = require('notify')
+
+      require('notify').setup({
+        max_width = 50,
+        max_height = 10,
+        render = 'wrapped-compact',
+      })
     end,
   },
 
