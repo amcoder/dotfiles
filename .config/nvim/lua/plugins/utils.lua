@@ -6,7 +6,16 @@ return {
   'tpope/vim-surround', -- Surround text objects
 
   -- Nice select and input pupups
-  { 'stevearc/dressing.nvim', opts = {}, event = 'VeryLazy' },
+  {
+    'stevearc/dressing.nvim',
+    event = 'VeryLazy',
+    opts = {
+      input = {
+        insert_only = false,
+        start_in_insert = false,
+      },
+    },
+  },
 
   -- Highlight word under cursor
   { 'RRethy/vim-illuminate', event = 'VeryLazy' },
