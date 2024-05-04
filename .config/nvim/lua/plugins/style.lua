@@ -8,6 +8,11 @@ return {
           comments = 'italic',
         },
       },
+      groups = {
+        all = {
+          CursorLine = { bg = 'bg2' },
+        },
+      },
     },
     config = function(_, opts)
       require('nightfox').setup(opts)
