@@ -1,0 +1,102 @@
+#!/usr/bin/env sh
+
+options=$(getopt -o hre:k:c: --long help,remote,env:,api-key:,collection: -- "$@") || {
+  printf 'ERROR: Invalid argument\n' >&2
+  exit 1
+}
+eval set -- "$options"
+
+while true; do
+  case "$1" in
+    -h|--help)
+      echo "Usage: $(basename "$0") [options]"
+      echo "Options:"
+      echo "  -h, --help: Show this help message"
+      echo "  -c, --collection: Collection file"
+      echo "  -e, --env: Environment file"
+      echo "  -k, --api-key: Postman API key"
+      echo "  -r, --remote: Use the remote collection"
+      echo "Environment variables:"
+      echo "  POSTMAN_API_KEY: Postman API key"
+      echo ""
+      echo "If the collection and environment files are not specified, the script will look for the first collection and environment files in the current directory and its subdirectories."
+      echo "If the Postman API key is not specified, the script will look for the API key in the environment variable POSTMAN_API_KEY or in the file ~/.config/Postman/api-key."
+      echo "If the environment is not specified, the script will use the Local environment."
+      echo "The postman api key is required to download the collection from Postman."
+      exit 0;;
+    -r|--remote)
+      remote=true
+      shift;;
+    -e|--env)
+      env="$2"
+      shift 2;;
+    -k|--api-key)
+      api_key="$2"
+      shift 2;;
+    -c|--collection)
+      collection="$2"
+      shift 2;;
+    --)
+      shift
+      break;;
+    *)
+      break;;
+  esac
+done
+
+# Read the postman api key from the environment variable POSTMAN_API_KEY
+# fall back to the file ~/.config/Postman/api_key
+api_key=${api_key:-${POSTMAN_API_KEY:-$(cat ~/.config/Postman/api-key)}}
+
+# Default environment is Dev
+env=${env:-Local}
+
+if [ -f "$collection" ]; then
+  file="$collection"
+else
+  # Find the first collection file in the current directory and its subdirectories
+  file=$(find . -name "$collection*.postman_collection.json" | head -1)
+  if [ -z "$file" ]; then
+    echo "Collection file $collection*.postman_collection.json not found"
+    exit 1
+  fi
+fi
+
+if [ -f "$env" ]; then
+  envfile="$env"
+else
+  # Find the first environment file in the current directory and its subdirectories
+  envfile=$(find . -name "$env.postman_environment.json" | head -1)
+  if [ -z "$envfile" ]; then
+    echo "Env file $env.postman_environment.json not found"
+    exit 1
+  fi
+fi
+
+collection_name=$(jq -r '.info.name' "$file")
+if [ -z "$collection_name" ]; then
+  echo "No collection name found"
+  exit 1
+fi
+
+echo "Collection name: $collection_name"
+
+# If remote is set, download the collection from Postman rather than using the local file
+if [ ! -z "$remote" ]; then
+  collection_id=$(curl -s https://api.getpostman.com/collections \
+                    -H "X-Api-Key: $api_key" | \
+                    jq --raw-output --arg name "$collection_name" '.collections[] | select(.name == $name) | .id')
+  if [ -z "$collection_id" ]; then
+    echo "Collection not found in Postman"
+    exit 1
+  fi
+
+  file="$(mktemp)"
+  trap "rm $file" EXIT
+
+  echo "Downloading collection $collection_name"
+  curl -s https://api.getpostman.com/collections/$collection_id \
+         -H "X-Api-Key: $api_key" > $file
+fi
+
+newman run $file -e $envfile
