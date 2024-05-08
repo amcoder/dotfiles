@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-options=$(getopt -o hre:k:c: --long help,remote,env:,api-key:,collection: -- "$@") || {
+options=$(getopt -o hre:k:c:f: --long help,remote,env:,api-key:,collection:,folder: -- "$@") || {
   printf 'ERROR: Invalid argument\n' >&2
   exit 1
 }
@@ -16,6 +16,7 @@ while true; do
       echo "  -e, --env: Environment file"
       echo "  -k, --api-key: Postman API key"
       echo "  -r, --remote: Use the remote collection"
+      echo "  -f, --folder: Postman collection folder to run"
       echo "Environment variables:"
       echo "  POSTMAN_API_KEY: Postman API key"
       echo ""
@@ -35,6 +36,9 @@ while true; do
       shift 2;;
     -c|--collection)
       collection="$2"
+      shift 2;;
+    -f|--folder)
+      folder="$2"
       shift 2;;
     --)
       shift
@@ -99,4 +103,4 @@ if [ ! -z "$remote" ]; then
          -H "X-Api-Key: $api_key" > $file
 fi
 
-newman run $file -e $envfile
+newman run $file -e $envfile --folder "$folder"
