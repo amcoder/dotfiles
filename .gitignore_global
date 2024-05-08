@@ -2,5 +2,5 @@
 tags
 .vscode
 .netcoredbg_hist
-.local/
+.local-dev/
 Local.postman_environment.json
