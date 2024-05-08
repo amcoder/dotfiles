@@ -20,9 +20,9 @@ while true; do
       echo "  POSTMAN_API_KEY: Postman API key"
       echo ""
       echo "If the collection and environment files are not specified, the script will look for the first collection and environment files in the current directory and its subdirectories."
-      echo "If the Postman API key is not specified, the script will look for the API key in the environment variable POSTMAN_API_KEY or in the file ~/.config/Postman/api-key."
       echo "If the environment is not specified, the script will use the Local environment."
       echo "The postman api key is required to download the collection from Postman."
+      echo "If the Postman API key is not specified, the script will look for the API key in the environment variable POSTMAN_API_KEY or in the file ~/.config/Postman/api-key."
       exit 0;;
     -r|--remote)
       remote=true
@@ -48,7 +48,7 @@ done
 # fall back to the file ~/.config/Postman/api_key
 api_key=${api_key:-${POSTMAN_API_KEY:-$(cat ~/.config/Postman/api-key)}}
 
-# Default environment is Dev
+# Default environment is Local
 env=${env:-Local}
 
 if [ -f "$collection" ]; then
