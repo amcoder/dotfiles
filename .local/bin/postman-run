@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
 
-set -x
-
 options=$(getopt -o hre:k:c:f:v: --long help,remote,env:,api-key:,collection:,folder:,env-var: -- "$@") || {
   printf 'ERROR: Invalid argument\n' >&2
   exit 1
@@ -12,6 +10,7 @@ while true; do
   case "$1" in
     -h|--help)
       echo "Usage: $(basename "$0") [options]"
+      echo ""
       echo "Options:"
       echo "  -h, --help: Show this help message"
       echo "  -c, --collection: Collection file"
@@ -19,7 +18,8 @@ while true; do
       echo "  -k, --api-key: Postman API key"
       echo "  -r, --remote: Use the remote collection"
       echo "  -f, --folder: Postman collection folder to run"
-      echo "  -v, --env-var: Set environment variables"
+      echo "  -v, --env-var: Set Postman environment variables"
+      echo ""
       echo "Environment variables:"
       echo "  POSTMAN_API_KEY: Postman API key"
       echo ""
