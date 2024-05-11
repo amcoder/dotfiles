@@ -12,6 +12,7 @@
   rebase = true
 [push]
   default = simple
+  autoSetupRemote = true
 [color]
   ui = auto
 [mergetool]
