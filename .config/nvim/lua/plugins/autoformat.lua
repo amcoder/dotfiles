@@ -33,10 +33,13 @@ return {
       formatters_by_ft = {
         lua = { 'stylua' },
         typescript = { { 'prettierd', 'prettier' } },
+        typescriptreact = { { 'prettierd', 'prettier' } },
         javascript = { { 'prettierd', 'prettier' } },
+        javascriptreact = { { 'prettierd', 'prettier' } },
         json = { { 'prettierd', 'prettier' } },
         css = { { 'prettierd', 'prettier' } },
         yaml = { { 'prettierd', 'prettier' } },
+        markdown = { { 'prettierd', 'prettier' } },
       },
       formatters = {
         jq = {
