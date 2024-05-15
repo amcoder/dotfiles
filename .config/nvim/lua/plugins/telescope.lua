@@ -46,6 +46,8 @@ return {
             '--hidden',
             '-g',
             '!.git',
+            '-g',
+            '!node_modules',
           },
           mappings = {
             i = { ['<c-t>'] = trouble.open_with_trouble },
@@ -54,7 +56,7 @@ return {
         },
         pickers = {
           find_files = {
-            find_command = { 'rg', '--files', '--hidden', '-g', '!.git' },
+            find_command = { 'rg', '--files', '--hidden', '-g', '!.git', '-g', '!node_modules' },
           },
           oldfiles = {
             cwd_only = true,
