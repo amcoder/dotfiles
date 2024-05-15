@@ -31,6 +31,9 @@ CASE_SENSITIVE="true"
 # Uncomment following line if you want to disable command autocorrection
 DISABLE_CORRECTION="true"
 
+# Set cursor depending on vi mode
+VI_MODE_SET_CURSOR=true
+
 # Pass unmatched extended globs to the command
 unsetopt nomatch
 
@@ -56,9 +59,6 @@ plugins=($plugins git docker docker-compose dotnet gradle)
 source $ZSH/oh-my-zsh.sh
 
 fpath+=${ZDOTDIR:-~}/.oh-my-zsh.custom/completions
-
-zle -N edit-command-line
-bindkey -M vicmd v edit-command-line
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
