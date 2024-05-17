@@ -27,6 +27,8 @@ return {
     opts = {
       options = {
         theme = 'nordfox',
+        component_separators = { left = '', right = '' },
+        section_separators = { left = '', right = '' },
       },
       sections = {
         lualine_a = {
