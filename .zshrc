@@ -27,16 +27,16 @@ source "${ZINIT_HOME}/zinit.zsh"
 
 # Add in zsh plugins
 zinit light romkatv/zsh-defer
-zinit light zsh-users/zsh-syntax-highlighting
-zinit light zsh-users/zsh-completions
-zinit light zsh-users/zsh-autosuggestions
-zinit light zsh-users/zsh-history-substring-search
-zinit light Aloxaf/fzf-tab
 zinit ice depth=1; zinit light romkatv/powerlevel10k
+zsh-defer zinit light zsh-users/zsh-syntax-highlighting
+zsh-defer zinit light zsh-users/zsh-completions
+zsh-defer zinit light zsh-users/zsh-autosuggestions
+zsh-defer zinit light zsh-users/zsh-history-substring-search
+zsh-defer zinit light Aloxaf/fzf-tab
 
 # Add in snippets
-zinit snippet OMZP::sudo
-zinit snippet OMZP::command-not-found
+zsh-defer zinit snippet OMZP::sudo
+zsh-defer zinit snippet OMZP::command-not-found
 
 # Load completions
 autoload -Uz compinit && compinit
@@ -83,13 +83,6 @@ zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompcac
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && zsh-defer \. "$NVM_DIR/nvm.sh"  # This loads nvm
-
-if command -v direnv &> /dev/null; then
-  eval "$(direnv hook zsh)"
-fi
-
 if command -v fzf &> /dev/null; then
   export FZF_TMUX_OPTS='-p80%,60%'
   export FZF_CTRL_T_OPTS="
@@ -110,13 +103,20 @@ if command -v fzf &> /dev/null; then
 fi
 
 if command -v zoxide &> /dev/null; then
-  eval "$(zoxide init --cmd cd zsh)"
+  zsh-defer eval "$(zoxide init --cmd cd zsh)"
 fi
 
 if command -v op &> /dev/null; then
-  eval "$(op completion zsh)"
+  zsh-defer eval "$(op completion zsh)"
   compdef _op op
 fi
+
+if command -v direnv &> /dev/null; then
+  zsh-defer eval "$(direnv hook zsh)"
+fi
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && zsh-defer \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
 [ -f ~/.aliases ] && source ~/.aliases
 
