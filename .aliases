@@ -11,11 +11,11 @@ alias less='less -R'
 alias more='less'
 
 # Aliases for ls
-if command -v exa &> /dev/null; then
-  alias ls='exa --icons --classify'
-  alias la='exa --icons --classify --all'
-  alias ll='exa --icons --classify --long --group --header --links '
-  alias lla='exa --icons --classify --long --group --header --links --all'
+if command -v eza &> /dev/null; then
+  alias ls='eza --icons --classify'
+  alias la='eza --icons --classify --all'
+  alias ll='eza --icons --classify --long --group --header --links '
+  alias lla='eza --icons --classify --long --group --header --links --all'
 else
   alias la='ls -A'
   alias ll='ls -lh'
