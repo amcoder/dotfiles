@@ -101,6 +101,11 @@ if command -v fzf &> /dev/null; then
   source <(fzf --zsh)
 fi
 
+if command -v op &> /dev/null; then
+  eval "$(op completion zsh)"
+  compdef _op op
+fi
+
 [ -f ~/.aliases ] && source ~/.aliases
 
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
