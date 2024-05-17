@@ -13,6 +13,8 @@
 [ -d "$HOME/.jenv/bin" ] && PATH="$HOME/.jenv/bin:$PATH"
 [ -d "$HOME/go/bin" ] && PATH="$HOME/go/bin:$PATH"
 [ -d "$HOME/.local/go/bin" ] && PATH="$HOME/.local/go/bin:$PATH"
+[ -d "$HOME/.fzf/bin" ] && PATH="$HOME/.fzf/bin:$PATH"
+
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 export PATH

@@ -85,11 +85,22 @@ if command -v direnv &> /dev/null; then
 fi
 
 if command -v fzf &> /dev/null; then
-  eval "$(fzf --zsh)"
-fi
-if [ -d /usr/share/doc/fzf/examples ]; then
-  source /usr/share/doc/fzf/examples/key-bindings.zsh
-  source /usr/share/doc/fzf/examples/completion.zsh
+  export FZF_TMUX_OPTS='-p80%,60%'
+  export FZF_CTRL_T_OPTS="
+    --walker-skip .git,node_modules,target
+    --preview 'bat -n --color=always {}'
+    --bind 'ctrl-/:change-preview-window(down|hidden|)'"
+  export FZF_CTRL_R_OPTS="
+    --preview 'echo {}' --preview-window up:3:hidden:wrap
+    --bind 'ctrl-/:toggle-preview'
+    --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
+    --color header:italic
+    --header 'Press CTRL-Y to copy command into clipboard'"
+  export FZF_ALT_C_OPTS="
+    --walker-skip .git,node_modules,target
+    --preview 'tree -C {}'"
+
+  source <(fzf --zsh)
 fi
 
 [ -f ~/.aliases ] && source ~/.aliases
