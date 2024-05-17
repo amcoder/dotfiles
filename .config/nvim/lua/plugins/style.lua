@@ -29,6 +29,9 @@ return {
         theme = 'nordfox',
         component_separators = { left = '', right = '' },
         section_separators = { left = '', right = '' },
+        ignore_focus = {
+          'neo-tree',
+        },
       },
       sections = {
         lualine_a = {
