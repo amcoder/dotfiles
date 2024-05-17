@@ -1,3 +1,15 @@
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+alias less='less -R'
+alias more='less'
+
 # Aliases for ls
 if command -v exa &> /dev/null; then
   alias ls='exa --icons --classify'
