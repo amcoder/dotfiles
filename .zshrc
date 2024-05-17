@@ -101,6 +101,10 @@ if command -v fzf &> /dev/null; then
   source <(fzf --zsh)
 fi
 
+if command -v zoxide &> /dev/null; then
+  eval "$(zoxide init --cmd cd zsh)"
+fi
+
 if command -v op &> /dev/null; then
   eval "$(op completion zsh)"
   compdef _op op
