@@ -29,6 +29,7 @@
   lg = log --pretty=onelineex
   lgg = log --pretty=onelineex --graph
   fap = fetch --all --prune
+  puoh = push -u origin HEAD
   clean-branches = !git fetch --quiet --all --prune \
         && git branch --merged $(git symbolic-ref refs/remotes/origin/HEAD) | grep -Ev '^\\*' | xargs git branch -d \
         && git for-each-ref --format '%(refname:strip=2) %(upstream:track)' refs/heads \
