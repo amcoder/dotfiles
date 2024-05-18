@@ -18,19 +18,15 @@ ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 ZSH_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh"
 [ -d "$ZSH_DATA_DIR" ] || mkdir -p "$ZSH_DATA_DIR"
 
-# Set the directory we want to store zinit and plugins
+# Setup zinit
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
-
-# Download Zinit, if it's not there yet
 if [ ! -d "$ZINIT_HOME" ]; then
    mkdir -p "$(dirname $ZINIT_HOME)"
    git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 fi
-
-# Source/Load zinit
 source "${ZINIT_HOME}/zinit.zsh"
 
-# Add in zsh plugins
+# Plugins
 zinit light romkatv/zsh-defer
 zinit ice depth=1; zinit light romkatv/powerlevel10k
 zinit light zsh-users/zsh-syntax-highlighting
@@ -39,15 +35,16 @@ zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-history-substring-search
 zinit light Aloxaf/fzf-tab
 
-# Add in snippets
+# Snippets
 zinit snippet OMZP::sudo
 zinit snippet OMZP::command-not-found
 
-# Load completions
+# Compinit
 autoload -Uz compinit && compinit -d "${ZSH_CACHE_DIR}/.zcompdump"
 zinit cdreplay -q
 
-# To customize prompt, run `p10k configure` or edit p10k.zsh.
+# Powerlevel10k
+[[ ! -f "$ZDOTDIR/.p10k.zsh" ]] || source "$ZDOTDIR/.p10k.zsh"
 [[ ! -f "$ZDOTDIR/p10k.zsh" ]] || source "$ZDOTDIR/p10k.zsh"
 
 # Keybindings
@@ -78,7 +75,7 @@ setopt hist_find_no_dups
 # show hidden files
 setopt globdots
 
-# Completion styling
+# Completion
 zstyle ':completion:*' menu no
 zstyle ':completion:*' matcher-list '' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
@@ -88,6 +85,7 @@ zstyle ':completion:*:*:*:*:descriptions' format '[%d]'
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
+# FZF
 # TODO: Remove this after we reboot since it's in the profile
 [ -d "$HOME/.local/share/fzf/bin" ] && PATH="$HOME/.local/share/fzf/bin:$PATH"
 if command -v fzf &> /dev/null; then
@@ -109,22 +107,27 @@ if command -v fzf &> /dev/null; then
   source <(fzf --zsh)
 fi
 
+# Zoxide
 if command -v zoxide &> /dev/null; then
   eval "$(zoxide init --cmd cd zsh)"
 fi
 
+# 1Password
 if command -v op &> /dev/null; then
   eval "$(op completion zsh)"
   compdef _op op
 fi
 
+# direnv
 if command -v direnv &> /dev/null; then
   eval "$(direnv hook zsh)"
 fi
 
+# NVM
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && zsh-defer \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
+# Aliases
 [ -f "$ZDOTDIR/.aliases" ] && source "$ZDOTDIR/.aliases"
 
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
