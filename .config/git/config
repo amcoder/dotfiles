@@ -1,9 +1,9 @@
+; Git will also read ~/.gitconfig, so you can put any machine local settings there
 [user]
   name = Andy Miller
   email = amcoder@gmail.com
 [core]
   autocrlf = false
-  excludesfile = ~/.gitignore_global
   fsmonitor = true
   untrackedcache = true
 [init]
@@ -35,5 +35,3 @@
         && git for-each-ref --format '%(refname:strip=2) %(upstream:track)' refs/heads \
             | awk '$2 == \"[gone]\" { print $1 }' \
             | xargs git branch -D
-[include]
-  path=~/.gitconfig.local
