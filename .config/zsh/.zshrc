@@ -125,7 +125,7 @@ fi
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && zsh-defer \. "$NVM_DIR/nvm.sh"  # This loads nvm
 
-[ -f ~/.aliases ] && source ~/.aliases
+[ -f "$ZDOTDIR/.aliases" ] && source "$ZDOTDIR/.aliases"
 
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
 
