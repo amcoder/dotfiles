@@ -47,8 +47,8 @@ zinit snippet OMZP::command-not-found
 autoload -Uz compinit && compinit -d "${ZSH_CACHE_DIR}/.zcompdump"
 zinit cdreplay -q
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# To customize prompt, run `p10k configure` or edit p10k.zsh.
+[[ ! -f "$ZDOTDIR/p10k.zsh" ]] || source "$ZDOTDIR/p10k.zsh"
 
 # Keybindings
 bindkey -v
