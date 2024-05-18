@@ -183,13 +183,52 @@ return {
         },
         omnisharp = {
           handlers = {
-            ['textDocument/publishDiagnostics'] = vim.lsp.with(vim.lsp.diagnostic.on_publish_diagnostics, {
+            ['textDocument/publishDiagnostics'] = vim.lsp.with(function(err, result, ctx, config)
+              -- Remove duplicates
+              local hash = {}
+              local deduped = {}
+              for _, diagnostic in ipairs(result.diagnostics) do
+                local key = vim.inspect(diagnostic)
+                if not hash[key] then
+                  table.insert(deduped, diagnostic)
+                  hash[key] = true
+                end
+              end
+              result.diagnostics = deduped
+
+              -- Override severity
+              for i, diagnostic in ipairs(result.diagnostics) do
+                if config.diagnostics[diagnostic.code] then
+                  if config.diagnostics[diagnostic.code] == 0 then
+                    result.diagnostics[i] = nil
+                  else
+                    diagnostic.severity = config.diagnostics[diagnostic.code]
+                  end
+                end
+              end
+
+              -- Remove diagnostics that we don't care about
+              result.diagnostics = vim.tbl_filter(function(diagnostic)
+                return diagnostic ~= nil
+              end, result.diagnostics)
+
+              vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
+            end, {
               -- Roslyn hidden analytics come in as hints, so make then a bit quieter.
               underline = {
                 severity = { min = vim.diagnostic.severity.INFO },
               },
               virtual_text = {
                 severity = { min = vim.diagnostic.severity.INFO },
+              },
+              diagnostics = {
+                IDE0008 = 0,
+                IDE0046 = 0,
+                IDE0058 = 0,
+                IDE0160 = 0,
+                IDE0022 = 0,
+                RemoveUnnecessaryImportsFixable = 0,
+                CS8019 = vim.diagnostic.severity.WARN,
               },
             }),
           },
