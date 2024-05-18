@@ -32,18 +32,3 @@ do
   rm -rf ~/$file
   ln -s $scriptdir/$file ~/$file
 done
-
-zsh_location=`which zsh`
-if [ $zsh_location != "" ]; then
-  if [ $SHELL != $zsh_location ]; then
-    echo "\033[0;34mTime to change your default shell to zsh!\033[0m"
-    chsh -s $zsh_location
-
-    /usr/bin/env zsh
-    source ~/.zshrc
-  else
-    echo "Already using ZSH"
-  fi
-else
-  echo "ZSH not installed. Skipping ZSH setup"
-fi
