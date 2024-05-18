@@ -1,4 +1,4 @@
-# This runs right before loggin out of a login shell
+# This runs right before logging out of a login shell
 # Load order:
 # - .zshenv
 # - .zprofile (login only)
