@@ -4,6 +4,12 @@
 # mechanism is used to log in, whether that is a login shell, or a graphical
 # environment. This must stay POSIX compliant.
 
+export XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-$HOME/.config}
+export XDG_DATA_HOME=${XDG_DATA_HOME:-$HOME/.local/share}
+export XDG_CACHE_HOME=${XDG_CACHE_HOME:-$HOME/.cache}
+export XDG_STATE_HOME=${XDG_STATE_HOME:-$HOME/.local/state}
+export XDG_BIN_HOME=${XDG_BIN_HOME:-$HOME/.local/bin}
+
 [ -f /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
 [ -f /usr/local/bin/brew ] && eval "$(/usr/local/bin/brew shellenv)"
 [ -d /usr/local/go/bin ] && PATH="$PATH:/usr/local/go/bin"
