@@ -1,11 +1,6 @@
-# This is loaded first for all zsh instances
-# Load order:
-# - .zshenv
-# - .zprofile (login only)
-# - .zshrc (interactive only)
-# - .zlogin (login only)
-# - .zlogout (logout only)
+# This is only here to set the ZDOTDIR environment variable to the correct location.
+# See .config/zsh for the real configuration.
 
-[ -f ~/.zshenv.local ] && source ~/.zshenv.local
+export ZDOTDIR="${XDG_CONFIG_DIR:-$HOME/.config}/zsh"
 
-export _ZSHENV_LOADED=$(( ${_ZSHENV_LOADED:-0} + 1 ))
+source $ZDOTDIR/.zshenv

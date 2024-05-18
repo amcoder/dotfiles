@@ -13,6 +13,11 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
+ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+[ -d "$ZSH_CACHE_DIR" ] || mkdir -p "$ZSH_CACHE_DIR"
+ZSH_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh"
+[ -d "$ZSH_DATA_DIR" ] || mkdir -p "$ZSH_DATA_DIR"
+
 # Set the directory we want to store zinit and plugins
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 
@@ -28,18 +33,18 @@ source "${ZINIT_HOME}/zinit.zsh"
 # Add in zsh plugins
 zinit light romkatv/zsh-defer
 zinit ice depth=1; zinit light romkatv/powerlevel10k
-zsh-defer zinit light zsh-users/zsh-syntax-highlighting
-zsh-defer zinit light zsh-users/zsh-completions
-zsh-defer zinit light zsh-users/zsh-autosuggestions
-zsh-defer zinit light zsh-users/zsh-history-substring-search
-zsh-defer zinit light Aloxaf/fzf-tab
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-completions
+zinit light zsh-users/zsh-autosuggestions
+zinit light zsh-users/zsh-history-substring-search
+zinit light Aloxaf/fzf-tab
 
 # Add in snippets
-zsh-defer zinit snippet OMZP::sudo
-zsh-defer zinit snippet OMZP::command-not-found
+zinit snippet OMZP::sudo
+zinit snippet OMZP::command-not-found
 
 # Load completions
-autoload -Uz compinit && compinit
+autoload -Uz compinit && compinit -d "${ZSH_CACHE_DIR}/.zcompdump"
 zinit cdreplay -q
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
@@ -59,7 +64,7 @@ bindkey -M vicmd 'v' edit-command-line
 
 # History
 HISTSIZE=5000
-HISTFILE=~/.zsh_history
+HISTFILE="${ZSH_DATA_DIR}/.zsh_history"
 SAVEHIST=$HISTSIZE
 HISTDUP=erase
 setopt appendhistory
@@ -78,7 +83,7 @@ zstyle ':completion:*' menu no
 zstyle ':completion:*' matcher-list '' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/.zcompcache"
+zstyle ':completion:*' cache-path "${ZSH_CACHE_DIR}/.zcompcache"
 zstyle ':completion:*:*:*:*:descriptions' format '[%d]'
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
@@ -103,16 +108,16 @@ if command -v fzf &> /dev/null; then
 fi
 
 if command -v zoxide &> /dev/null; then
-  zsh-defer eval "$(zoxide init --cmd cd zsh)"
+  eval "$(zoxide init --cmd cd zsh)"
 fi
 
 if command -v op &> /dev/null; then
-  zsh-defer eval "$(op completion zsh)"
+  eval "$(op completion zsh)"
   compdef _op op
 fi
 
 if command -v direnv &> /dev/null; then
-  zsh-defer eval "$(direnv hook zsh)"
+  eval "$(direnv hook zsh)"
 fi
 
 export NVM_DIR="$HOME/.nvm"
