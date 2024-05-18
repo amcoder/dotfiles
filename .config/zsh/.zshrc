@@ -85,8 +85,6 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
 # FZF
-# TODO: Remove this after we reboot since it's in the profile
-[ -d "$HOME/.local/share/fzf/bin" ] && PATH="$HOME/.local/share/fzf/bin:$PATH"
 if command -v fzf &> /dev/null; then
   export FZF_TMUX_OPTS='-p80%,60%'
   export FZF_CTRL_T_OPTS="
