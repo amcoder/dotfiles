@@ -1,6 +1,5 @@
-
 import = ["~/.config/alacritty.local.toml"]
-live_config_reload = false
+live_config_reload = true
 
 [colors.primary]
 background = "#2e3440"
@@ -58,7 +57,10 @@ cyan = "#6d96a5"
 white = "#aeb3bb"
 
 [font]
-size = 13.0
+size = 13
+
+[font.offset]
+y = -1
 
 [font.bold]
 style = "Semibold"
@@ -83,4 +85,4 @@ opacity = 1
 
 [window.padding]
 x = 5
-y = 5
+y = 0
