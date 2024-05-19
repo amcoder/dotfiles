@@ -107,7 +107,7 @@
     taskwarrior             # taskwarrior task count (https://taskwarrior.org/)
     per_directory_history   # Oh My Zsh per-directory-history local/global indicator
     # cpu_arch              # CPU architecture
-    #time                    # current time
+    # time                    # current time
     # =========================[ Line #2 ]=========================
     newline
     # ip                    # ip address and bandwidth usage for a specified network interface
@@ -135,7 +135,7 @@
   # Or for a specific segment in specific state:
   #
   #   POWERLEVEL9K_DIR_NOT_WRITABLE_ICON_BEFORE_CONTENT=false
-  typeset -g POWERLEVEL9K_ICON_BEFORE_CONTENT=
+  typeset -g POWERLEVEL9K_ICON_BEFORE_CONTENT=true
 
   # Add an empty line before each prompt.
   typeset -g POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
@@ -167,25 +167,29 @@
     typeset -g POWERLEVEL9K_EMPTY_LINE_RIGHT_PROMPT_FIRST_SEGMENT_START_SYMBOL='%{%}'
   fi
 
+  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_LEFT_WHITESPACE='%S%F{#2e3440}\uE0B6%s'
+  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_RIGHT_WHITESPACE='%S%F{#2e3440}%K{0}\uE0B4%s'
+  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_MIDDLE_WHITESPACE=' %S '
+
   # Separator between same-color segments on the left.
-  typeset -g POWERLEVEL9K_LEFT_SUBSEGMENT_SEPARATOR='\uE0B5'
+  typeset -g POWERLEVEL9K_LEFT_SUBSEGMENT_SEPARATOR='%k '
   # Separator between same-color segments on the right.
-  typeset -g POWERLEVEL9K_RIGHT_SUBSEGMENT_SEPARATOR='\uE0B7'
+  typeset -g POWERLEVEL9K_RIGHT_SUBSEGMENT_SEPARATOR='%k '
   # Separator between different-color segments on the left.
-  typeset -g POWERLEVEL9K_LEFT_SEGMENT_SEPARATOR='\uE0B4'
+  typeset -g POWERLEVEL9K_LEFT_SEGMENT_SEPARATOR='%k '
   # Separator between different-color segments on the right.
-  typeset -g POWERLEVEL9K_RIGHT_SEGMENT_SEPARATOR='\uE0B6'
+  typeset -g POWERLEVEL9K_RIGHT_SEGMENT_SEPARATOR='%k '
   # To remove a separator between two segments, add "_joined" to the second segment name.
   # For example: POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(os_icon context_joined)
 
   # The right end of left prompt.
-  typeset -g POWERLEVEL9K_LEFT_PROMPT_LAST_SEGMENT_END_SYMBOL='\uE0B4'
+  typeset -g POWERLEVEL9K_LEFT_PROMPT_LAST_SEGMENT_END_SYMBOL=
   # The left end of right prompt.
-  typeset -g POWERLEVEL9K_RIGHT_PROMPT_FIRST_SEGMENT_START_SYMBOL='\uE0B6'
+  typeset -g POWERLEVEL9K_RIGHT_PROMPT_FIRST_SEGMENT_START_SYMBOL=
   # The left end of left prompt.
-  typeset -g POWERLEVEL9K_LEFT_PROMPT_FIRST_SEGMENT_START_SYMBOL='\uE0B6'
+  typeset -g POWERLEVEL9K_LEFT_PROMPT_FIRST_SEGMENT_START_SYMBOL=
   # The right end of right prompt.
-  typeset -g POWERLEVEL9K_RIGHT_PROMPT_LAST_SEGMENT_END_SYMBOL='\uE0B4'
+  typeset -g POWERLEVEL9K_RIGHT_PROMPT_LAST_SEGMENT_END_SYMBOL=
   # Left prompt terminator for lines without any segments.
   typeset -g POWERLEVEL9K_EMPTY_LINE_LEFT_PROMPT_LAST_SEGMENT_END_SYMBOL=
 
@@ -223,17 +227,17 @@
   # Current directory background color.
   typeset -g POWERLEVEL9K_DIR_BACKGROUND=4
   # Default current directory foreground color.
-  typeset -g POWERLEVEL9K_DIR_FOREGROUND=254
+  typeset -g POWERLEVEL9K_DIR_FOREGROUND=0
   # If directory is too long, shorten some of its segments to the shortest possible unique
   # prefix. The shortened directory can be tab-completed to the original.
   typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_unique
   # Replace removed segment suffixes with this symbol.
   typeset -g POWERLEVEL9K_SHORTEN_DELIMITER=
   # Color of the shortened directory segments.
-  typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND=250
+  typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND=0
   # Color of the anchor directory segments. Anchor segments are never shortened. The first
   # segment is always an anchor.
-  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=255
+  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=0
   # Display anchor directory segments in bold.
   typeset -g POWERLEVEL9K_DIR_ANCHOR_BOLD=true
   # Don't shorten directories that contain any of these files. They are anchors.
@@ -530,9 +534,9 @@
 
   # Status when it's just an error code (e.g., '1'). No need to show it if prompt_char is enabled as
   # it will signify error by turning red.
-  typeset -g POWERLEVEL9K_STATUS_ERROR=false
+  typeset -g POWERLEVEL9K_STATUS_ERROR=true
   typeset -g POWERLEVEL9K_STATUS_ERROR_VISUAL_IDENTIFIER_EXPANSION='✘'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=3
+  typeset -g POWERLEVEL9K_STATUS_ERROR_FOREGROUND=0
   typeset -g POWERLEVEL9K_STATUS_ERROR_BACKGROUND=1
 
   # Status when the last command was terminated by a signal.
@@ -540,14 +544,14 @@
   # Use terse signal names: "INT" instead of "SIGINT(2)".
   typeset -g POWERLEVEL9K_STATUS_VERBOSE_SIGNAME=false
   typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_VISUAL_IDENTIFIER_EXPANSION='✘'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_FOREGROUND=3
+  typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_FOREGROUND=0
   typeset -g POWERLEVEL9K_STATUS_ERROR_SIGNAL_BACKGROUND=1
 
   # Status when some part of a pipe command fails and the overall exit status is also non-zero.
   # It may look like this: 1|0.
   typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE=true
   typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_VISUAL_IDENTIFIER_EXPANSION='✘'
-  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_FOREGROUND=3
+  typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_FOREGROUND=0
   typeset -g POWERLEVEL9K_STATUS_ERROR_PIPE_BACKGROUND=1
 
   ###################[ command_execution_time: duration of the last command ]###################
@@ -741,7 +745,7 @@
 
   ##########[ nordvpn: nordvpn connection status, linux only (https://nordvpn.com/) ]###########
   # NordVPN connection indicator color.
-  typeset -g POWERLEVEL9K_NORDVPN_FOREGROUND=7
+  typeset -g POWERLEVEL9K_NORDVPN_FOREGROUND=0
   typeset -g POWERLEVEL9K_NORDVPN_BACKGROUND=4
   # Hide NordVPN connection indicator when not connected.
   typeset -g POWERLEVEL9K_NORDVPN_{DISCONNECTED,CONNECTING,DISCONNECTING}_CONTENT_EXPANSION=
@@ -909,8 +913,8 @@
 
   ###########[ timewarrior: timewarrior tracking status (https://timewarrior.net/) ]############
   # Timewarrior color.
-  typeset -g POWERLEVEL9K_TIMEWARRIOR_FOREGROUND=255
-  typeset -g POWERLEVEL9K_TIMEWARRIOR_BACKGROUND=8
+  typeset -g POWERLEVEL9K_TIMEWARRIOR_FOREGROUND=0
+  typeset -g POWERLEVEL9K_TIMEWARRIOR_BACKGROUND=7
 
   # If the tracked task is longer than 24 characters, truncate and append "…".
   # Tip: To always display tasks without truncation, delete the following parameter.
@@ -1151,7 +1155,7 @@
 
   ###############[ dotnet_version: .NET version (https://dotnet.microsoft.com) ]################
   # .NET version color.
-  typeset -g POWERLEVEL9K_DOTNET_VERSION_FOREGROUND=7
+  typeset -g POWERLEVEL9K_DOTNET_VERSION_FOREGROUND=0
   typeset -g POWERLEVEL9K_DOTNET_VERSION_BACKGROUND=5
   # Show .NET version only when in a .NET project subdirectory.
   typeset -g POWERLEVEL9K_DOTNET_VERSION_PROJECT_ONLY=true
@@ -1169,7 +1173,7 @@
 
   ##########[ laravel_version: laravel php framework version (https://laravel.com/) ]###########
   # Laravel version color.
-  typeset -g POWERLEVEL9K_LARAVEL_VERSION_FOREGROUND=1
+  typeset -g POWERLEVEL9K_LARAVEL_VERSION_FOREGROUND=0
   typeset -g POWERLEVEL9K_LARAVEL_VERSION_BACKGROUND=7
   # Custom icon.
   # typeset -g POWERLEVEL9K_LARAVEL_VERSION_VISUAL_IDENTIFIER_EXPANSION='⭐'
@@ -1190,7 +1194,7 @@
 
   ####################[ java_version: java version (https://www.java.com/) ]####################
   # Java version color.
-  typeset -g POWERLEVEL9K_JAVA_VERSION_FOREGROUND=1
+  typeset -g POWERLEVEL9K_JAVA_VERSION_FOREGROUND=0
   typeset -g POWERLEVEL9K_JAVA_VERSION_BACKGROUND=7
   # Show java version only when in a java project subdirectory.
   typeset -g POWERLEVEL9K_JAVA_VERSION_PROJECT_ONLY=true
@@ -1217,7 +1221,7 @@
   #######################[ rvm: ruby version from rvm (https://rvm.io) ]########################
   # Rvm color.
   typeset -g POWERLEVEL9K_RVM_FOREGROUND=0
-  typeset -g POWERLEVEL9K_RVM_BACKGROUND=240
+  typeset -g POWERLEVEL9K_RVM_BACKGROUND=7
   # Don't show @gemset at the end.
   typeset -g POWERLEVEL9K_RVM_SHOW_GEMSET=false
   # Don't show ruby- at the front.
@@ -1248,7 +1252,7 @@
 
   ###############[ jenv: java version from jenv (https://github.com/jenv/jenv) ]################
   # Java color.
-  typeset -g POWERLEVEL9K_JENV_FOREGROUND=1
+  typeset -g POWERLEVEL9K_JENV_FOREGROUND=0
   typeset -g POWERLEVEL9K_JENV_BACKGROUND=7
   # Hide java version if it doesn't come from one of these sources.
   typeset -g POWERLEVEL9K_JENV_SOURCES=(shell local global)
@@ -1276,7 +1280,7 @@
 
   ###########[ perlbrew: perl version from perlbrew (https://github.com/gugod/App-perlbrew) ]############
   # Perlbrew color.
-  typeset -g POWERLEVEL9K_PERLBREW_FOREGROUND=67
+  typeset -g POWERLEVEL9K_PERLBREW_FOREGROUND=0
   # Show perlbrew version only when in a perl project subdirectory.
   typeset -g POWERLEVEL9K_PERLBREW_PROJECT_ONLY=true
   # Don't show "perl-" at the front.
@@ -1359,14 +1363,14 @@
       # '*prod*'  PROD    # These values are examples that are unlikely
       # '*test*'  TEST    # to match your needs. Customize them as needed.
       '*'         OTHER)
-  typeset -g POWERLEVEL9K_TERRAFORM_OTHER_FOREGROUND=4
-  typeset -g POWERLEVEL9K_TERRAFORM_OTHER_BACKGROUND=0
+  typeset -g POWERLEVEL9K_TERRAFORM_OTHER_FOREGROUND=0
+  typeset -g POWERLEVEL9K_TERRAFORM_OTHER_BACKGROUND=4
   # typeset -g POWERLEVEL9K_TERRAFORM_OTHER_VISUAL_IDENTIFIER_EXPANSION='⭐'
 
   #############[ terraform_version: terraform version (https://www.terraform.io) ]##############
   # Terraform version color.
-  typeset -g POWERLEVEL9K_TERRAFORM_VERSION_FOREGROUND=4
-  typeset -g POWERLEVEL9K_TERRAFORM_VERSION_BACKGROUND=0
+  typeset -g POWERLEVEL9K_TERRAFORM_VERSION_FOREGROUND=0
+  typeset -g POWERLEVEL9K_TERRAFORM_VERSION_BACKGROUND=4
   # Custom icon.
   # typeset -g POWERLEVEL9K_TERRAFORM_VERSION_VISUAL_IDENTIFIER_EXPANSION='⭐'
 
@@ -1409,7 +1413,7 @@
       # '*prod*'  PROD    # These values are examples that are unlikely
       # '*test*'  TEST    # to match your needs. Customize them as needed.
       '*'       DEFAULT)
-  typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_FOREGROUND=7
+  typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_FOREGROUND=0
   typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_BACKGROUND=5
   # typeset -g POWERLEVEL9K_KUBECONTEXT_DEFAULT_VISUAL_IDENTIFIER_EXPANSION='⭐'
 
@@ -1494,7 +1498,7 @@
       # '*prod*'  PROD    # These values are examples that are unlikely
       # '*test*'  TEST    # to match your needs. Customize them as needed.
       '*'       DEFAULT)
-  typeset -g POWERLEVEL9K_AWS_DEFAULT_FOREGROUND=7
+  typeset -g POWERLEVEL9K_AWS_DEFAULT_FOREGROUND=0
   typeset -g POWERLEVEL9K_AWS_DEFAULT_BACKGROUND=1
   # typeset -g POWERLEVEL9K_AWS_DEFAULT_VISUAL_IDENTIFIER_EXPANSION='⭐'
 
@@ -1506,8 +1510,8 @@
 
   #[ aws_eb_env: aws elastic beanstalk environment (https://aws.amazon.com/elasticbeanstalk/) ]#
   # AWS Elastic Beanstalk environment color.
-  typeset -g POWERLEVEL9K_AWS_EB_ENV_FOREGROUND=2
-  typeset -g POWERLEVEL9K_AWS_EB_ENV_BACKGROUND=0
+  typeset -g POWERLEVEL9K_AWS_EB_ENV_FOREGROUND=0
+  typeset -g POWERLEVEL9K_AWS_EB_ENV_BACKGROUND=2
   # Custom icon.
   # typeset -g POWERLEVEL9K_AWS_EB_ENV_VISUAL_IDENTIFIER_EXPANSION='⭐'
 
@@ -1546,7 +1550,7 @@
       '*'         OTHER)
 
   # Azure account name color.
-  typeset -g POWERLEVEL9K_AZURE_OTHER_FOREGROUND=7
+  typeset -g POWERLEVEL9K_AZURE_OTHER_FOREGROUND=0
   typeset -g POWERLEVEL9K_AZURE_OTHER_BACKGROUND=4
   # Custom icon.
   # typeset -g POWERLEVEL9K_AZURE_OTHER_VISUAL_IDENTIFIER_EXPANSION='⭐'
@@ -1556,7 +1560,7 @@
   # Tip: Remove the next line to always show gcloud.
   typeset -g POWERLEVEL9K_GCLOUD_SHOW_ON_COMMAND='gcloud|gcs|gsutil'
   # Google cloud color.
-  typeset -g POWERLEVEL9K_GCLOUD_FOREGROUND=7
+  typeset -g POWERLEVEL9K_GCLOUD_FOREGROUND=0
   typeset -g POWERLEVEL9K_GCLOUD_BACKGROUND=4
 
   # Google cloud format. Change the value of POWERLEVEL9K_GCLOUD_PARTIAL_CONTENT_EXPANSION and/or
