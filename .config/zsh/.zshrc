@@ -92,6 +92,11 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 _comp_options+=(globdots)
 
+# Named directories
+for dir in $HOME/projects/transact/*/; do
+  hash -d "${${dir:t}##(bb-ea-|eaevo-(ui-|api-|))}"="${dir%/}"
+done
+
 # FZF
 if command -v fzf &> /dev/null; then
   # export FZF_TMUX_OPTS='-p80%,60%'
