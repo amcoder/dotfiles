@@ -40,7 +40,7 @@ zinit snippet OMZP::sudo
 zinit snippet OMZP::command-not-found
 
 # Compinit
-autoload -Uz compinit && compinit -d "${ZSH_CACHE_DIR}/.zcompdump"
+autoload -Uz compinit && compinit -d "${ZSH_CACHE_DIR}/zcompdump"
 zinit cdreplay -q
 
 # Powerlevel10k
@@ -59,8 +59,8 @@ zle -N edit-command-line
 bindkey -M vicmd 'v' edit-command-line
 
 # History
-HISTSIZE=10000
-HISTFILE="${ZSH_DATA_DIR}/.zsh_history"
+HISTSIZE=100000
+HISTFILE="${ZSH_DATA_DIR}/history"
 SAVEHIST=$HISTSIZE
 HISTDUP=erase
 setopt append_history
@@ -86,7 +86,7 @@ zstyle ':completion:*' menu no
 zstyle ':completion:*' matcher-list '' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' use-cache on
-zstyle ':completion:*' cache-path "${ZSH_CACHE_DIR}/.zcompcache"
+zstyle ':completion:*' cache-path "${ZSH_CACHE_DIR}/zcompcache"
 zstyle ':completion:*:*:*:*:descriptions' format '[%d]'
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
