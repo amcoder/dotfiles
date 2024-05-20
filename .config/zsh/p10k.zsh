@@ -169,7 +169,7 @@
 
   typeset -g POWERLEVEL9K_{LEFT,RIGHT}_LEFT_WHITESPACE='%S%F{#2e3440}\uE0B6%s'
   typeset -g POWERLEVEL9K_{LEFT,RIGHT}_RIGHT_WHITESPACE='%S%F{#2e3440}%K{0}\uE0B4%s'
-  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_MIDDLE_WHITESPACE=' %S '
+  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_MIDDLE_WHITESPACE='%S\u258d'
 
   # Separator between same-color segments on the left.
   typeset -g POWERLEVEL9K_LEFT_SUBSEGMENT_SEPARATOR='%k '
