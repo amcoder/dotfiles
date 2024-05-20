@@ -14,12 +14,17 @@ export XDG_BIN_HOME=${XDG_BIN_HOME:-$HOME/.local/bin}
 [ -f /usr/local/bin/brew ] && eval "$(/usr/local/bin/brew shellenv)"
 [ -d /usr/local/go/bin ] && PATH="$PATH:/usr/local/go/bin"
 
-[ -d "$HOME/bin" ] && PATH="$HOME/bin:$PATH"
-[ -d "$HOME/.local/bin" ] && PATH="$HOME/.local/bin:$PATH"
-[ -d "$HOME/go/bin" ] && PATH="$HOME/go/bin:$PATH"
-[ -d "$HOME/.local/go/bin" ] && PATH="$HOME/.local/go/bin:$PATH"
-[ -d "$HOME/.local/share/fzf/bin" ] && PATH="$HOME/.local/share/fzf/bin:$PATH"
-[ -d "$HOME/.cargo/bin" ] && PATH="$HOME/.cargo/bin:$PATH"
+# Add local bin directories to PATH if they exist.
+while read -r path; do
+  [ -d "$path" ] && PATH="$path:$PATH"
+done <<EOF
+$HOME/bin
+$HOME/.local/bin
+$HOME/go/bin
+$HOME/.local/go/bin
+$HOME/.local/share/fzf/bin
+$HOME/.cargo/bin
+EOF
 
 export PATH
 
