@@ -59,20 +59,27 @@ zle -N edit-command-line
 bindkey -M vicmd 'v' edit-command-line
 
 # History
-HISTSIZE=5000
+HISTSIZE=10000
 HISTFILE="${ZSH_DATA_DIR}/.zsh_history"
 SAVEHIST=$HISTSIZE
 HISTDUP=erase
-setopt appendhistory
-setopt sharehistory
+setopt append_history
+setopt share_history
+setopt hist_expire_dups_first
 setopt hist_ignore_space
 setopt hist_ignore_all_dups
-setopt hist_save_no_dups
 setopt hist_ignore_dups
+setopt hist_save_no_dups
 setopt hist_find_no_dups
 
-# show hidden files
-setopt globdots
+# cd and pushd
+setopt auto_cd
+setopt cdable_vars
+setopt cd_silent
+setopt auto_pushd
+setopt pushd_ignore_dups
+setopt pushd_silent
+setopt pushd_to_home
 
 # Completion
 zstyle ':completion:*' menu no
@@ -83,6 +90,7 @@ zstyle ':completion:*' cache-path "${ZSH_CACHE_DIR}/.zcompcache"
 zstyle ':completion:*:*:*:*:descriptions' format '[%d]'
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
+_comp_options+=(globdots)
 
 # FZF
 if command -v fzf &> /dev/null; then
