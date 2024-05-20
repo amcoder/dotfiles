@@ -19,8 +19,7 @@ export XDG_BIN_HOME=${XDG_BIN_HOME:-$HOME/.local/bin}
 [ -d "$HOME/go/bin" ] && PATH="$HOME/go/bin:$PATH"
 [ -d "$HOME/.local/go/bin" ] && PATH="$HOME/.local/go/bin:$PATH"
 [ -d "$HOME/.local/share/fzf/bin" ] && PATH="$HOME/.local/share/fzf/bin:$PATH"
-
-[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+[ -d "$HOME/.cargo/bin" ] && PATH="$HOME/.cargo/bin:$PATH"
 
 export PATH
 
