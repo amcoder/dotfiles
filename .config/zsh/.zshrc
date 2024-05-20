@@ -56,7 +56,11 @@ bindkey -M vicmd 'j' history-substring-search-down
 # Edit command line
 autoload -Uz edit-command-line
 zle -N edit-command-line
-bindkey -M vicmd 'v' edit-command-line
+bindkey -M vicmd 'vv' edit-command-line
+bindkey -rM viins '^[^['
+bindkey -rM vicmd '^[^['
+bindkey -M viins '^[s' sudo-command-line
+bindkey -M vicmd '^[s' sudo-command-line
 
 # History
 HISTSIZE=100000
