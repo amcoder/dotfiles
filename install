@@ -1,34 +1,28 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
-ignorefiles=". .. .DS_Store .git .gitignore .gitmodules .config .local"
-scriptdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $scriptdir
+dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
+excludefiles=". .. .DS_Store .git .gitignore .gitmodules .config .local"
 exclude() {
-  for f in $ignorefiles
-  do
-    if [ $f = $1 ]; then
-      return 0
-    fi
-  done
-  return 1
+  test "${excludefiles#*$1}" != "$excludefiles"
+  return $?
 }
 
-mkdir -p ~/.config
-mkdir -p ~/.local/bin
+mkdir -p "$HOME/.config" \
+         "$HOME/.local/bin"
 
 for file in .* .local/bin/* .config/*
 do
-  if exclude $file; then
-    echo "Skipping $file"
-    continue
-  fi
-  echo "Setting up $file"
-  if [ -e ~/$file ] && [ ! -L ~/$file ]; then
+  exclude "$file" && continue
+
+  echo "Linking $file"
+ 
+  # Backup existing files
+  if [ -e "$HOME/$file" ] && [ ! -L "$HOME/$file" ]; then
     backup="$file.backup.$(date +%s)"
-    echo "  ~/$file exists. backing up to ~/$backup"
-    mv ~/$file ~/$backup
+    mv "$HOME/$file" "$HOME/$backup"
   fi
-  rm -rf ~/$file
-  ln -s $scriptdir/$file ~/$file
+
+  # Create symlink
+  ln -nfs "$dir/$file" "$HOME/$file"
 done
