@@ -6,4 +6,7 @@ vim.filetype.add({
     dcproj = 'xml.msproj',
     props = 'xml.msproj',
   },
+  filename = {
+    ['.aliases'] = 'zsh',
+  },
 })
