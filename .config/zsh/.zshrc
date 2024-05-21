@@ -17,6 +17,8 @@ ZSH_CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 [ -d "$ZSH_CACHE_DIR" ] || mkdir -p "$ZSH_CACHE_DIR"
 ZSH_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh"
 [ -d "$ZSH_DATA_DIR" ] || mkdir -p "$ZSH_DATA_DIR"
+ZSH_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/zsh"
+[ -d "$ZSH_STATE_DIR" ] || mkdir -p "$ZSH_STATE_DIR"
 
 # Setup zinit
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -68,7 +70,7 @@ bindkey -M vicmd '^[s' sudo-command-line
 
 # History
 HISTSIZE=100000
-HISTFILE="${ZSH_DATA_DIR}/history"
+HISTFILE="${ZSH_STATE_DIR}/history"
 SAVEHIST=$HISTSIZE
 HISTDUP=erase
 setopt append_history
