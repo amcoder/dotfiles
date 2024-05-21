@@ -144,8 +144,9 @@ if command -v direnv &> /dev/null; then
 fi
 
 # NVM
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && zsh-defer \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -d "$XDG_CONFIG_HOME/nvm" ] && export NVM_DIR="$XDG_CONFIG_HOME/nvm"
+[ -d "$HOME/.nvm" ] && export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && zsh-defer \. "$NVM_DIR/nvm.sh"
 
 # Aliases
 [ -f "$ZDOTDIR/.aliases" ] && source "$ZDOTDIR/.aliases"
