@@ -2,7 +2,7 @@
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-excludefiles=". .. .DS_Store .git .gitignore .gitmodules .config .local .config/gtk-3.0 .config/gtk-4.0"
+excludefiles=". .. .DS_Store Brewfile .git .gitignore .gitmodules .config .local .config/gtk-3.0 .config/gtk-4.0"
 exclude() {
   test "${excludefiles#*$1}" != "$excludefiles"
   return $?
@@ -24,3 +24,11 @@ do
   mkdir -p "$(dirname "$HOME/$file")"
   ln -nfs "$dir/$file" "$HOME/$file"
 done
+
+if [ $(uname) = "Darwin" ]; then
+  echo "MacOS detected"
+  if ! command -v brew &> /dev/null; then
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  fi
+  brew bundle --no-lock
+fi
