@@ -1,4 +1,3 @@
-import = ["~/.config/alacritty.local.toml"]
 live_config_reload = true
 
 [colors.primary]
