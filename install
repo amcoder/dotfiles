@@ -32,3 +32,9 @@ if [ $(uname) = "Darwin" ]; then
   fi
   brew bundle --no-lock
 fi
+
+if command -v apt &> /dev/null; then
+  echo "Debian/Ubuntu detected"
+  sudo apt update
+  sudo apt install -y git bat eza fzf neovim ripgrep tmux zoxide
+fi
