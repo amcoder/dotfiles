@@ -15,8 +15,8 @@ export XDG_BIN_HOME=${XDG_BIN_HOME:-$HOME/.local/bin}
 [ -d /usr/local/go/bin ] && PATH="$PATH:/usr/local/go/bin"
 
 # Add local bin directories to PATH if they exist.
-while read -r path; do
-  [ -d "$path" ] && PATH="$path:$PATH"
+while read -r p; do
+  [ -d "$p" ] && PATH="$p:$PATH"
 done <<EOF
 $HOME/bin
 $HOME/.local/bin
