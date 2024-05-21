@@ -48,7 +48,7 @@ else
   export VISUAL=vi
 fi
 
-export MBOX=~/.mbox
+export MBOX="$XDG_DATA_HOME/mail/mbox"
 
 trap logout HUP
 
