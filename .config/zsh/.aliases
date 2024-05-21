@@ -11,15 +11,16 @@ alias less='less -R'
 alias more='less'
 
 # Aliases for ls
-if command -v eza &> /dev/null; then
+if [ $TERM != "linux" ] && command -v eza &> /dev/null; then
   alias ls='eza --icons --classify'
   alias la='eza --icons --classify --all'
   alias ll='eza --icons --classify --long --group --header --links '
   alias lla='eza --icons --classify --long --group --header --links --all'
 else
-  alias la='ls -A'
-  alias ll='ls -lh'
-  alias lla='ls -lAh'
+  alias ls='ls --color'
+  alias la='ls -A --color'
+  alias ll='ls -lh --color'
+  alias lla='ls -lAh --color'
 fi
 
 # tmux

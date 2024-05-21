@@ -44,7 +44,11 @@ autoload -Uz compinit && compinit -d "${ZSH_CACHE_DIR}/zcompdump"
 zinit cdreplay -q
 
 # Powerlevel10k
-[[ ! -f "$ZDOTDIR/p10k.zsh" ]] || source "$ZDOTDIR/p10k.zsh"
+if [ $TERM = "linux" ]; then
+  [[ ! -f "$ZDOTDIR/p10k.pure.zsh" ]] || source "$ZDOTDIR/p10k.pure.zsh"
+else
+  [[ ! -f "$ZDOTDIR/p10k.zsh" ]] || source "$ZDOTDIR/p10k.zsh"
+fi
 
 # Keybindings
 bindkey -v
