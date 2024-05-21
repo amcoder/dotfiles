@@ -22,7 +22,7 @@ TEMPFILE=$TARGETDIR/$INTERVAL-tmp-$TIMESTAMP
 
 # Create new backup using rsync and output to log
 rsync -avzPh --delete --delete-excluded -e ssh \
-  --exclude-from=/home/$USER/.backup_exclude \
+  --exclude-from=/home/$USER/.config/backup_exclude \
   --link-dest=$TARGETDIR/latest \
   $SOURCEDIR \
   $BACKUP_USER@$BACKUP_SERVER:$TEMPFILE
