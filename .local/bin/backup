@@ -6,48 +6,48 @@
 # 5 years
 
 #-- begin of user configuration
-BACKUP_SERVER=beedle.local
-BACKUP_USER=amcoder
-USER=$(whoami)
-SOURCEDIR=/home/$USER/
-TARGETDIR=/volume1/backup/$(hostname)/$USER
+backup_server=beedle.local
+backup_user=amcoder
+user=$(whoami)
+sourcedir=/home/$user/
+targetdir=/volume1/backup/$(hostname)/$user
 #-- end of user configuration
 
-INTERVAL=$1
-NUM=$2
+interval=$1
+num=$2
 
-TIMESTAMP=`date "+%Y-%m-%dT%H-%M-%S"`
+timestamp=`date "+%Y-%m-%dT%H-%M-%S"`
 
-TEMPFILE=$TARGETDIR/$INTERVAL-tmp-$TIMESTAMP
+tempfile=$targetdir/$INTERVAL-tmp-$timestamp
 
 # Create new backup using rsync and output to log
 rsync -avzPh --delete --delete-excluded -e ssh \
-  --exclude-from=/home/$USER/.config/backup_exclude \
-  --link-dest=$TARGETDIR/latest \
-  $SOURCEDIR \
-  $BACKUP_USER@$BACKUP_SERVER:$TEMPFILE
+  --exclude-from=/home/$user/.config/backup_exclude \
+  --link-dest=$targetdir/latest \
+  $sourcedir \
+  $backup_user@$backup_server:$tempfile
 
 # check exit status to see if backup failed
 if [ "$?" = 0 ]; then
   # Rotate backups
-  ssh $BACKUP_USER@$BACKUP_SERVER "[ -d $TARGETDIR/$INTERVAL.$(($NUM-1)) ] && rm -rf $TARGETDIR/$INTERVAL.$(($NUM-1))"
-  for i in `seq $(($NUM-1)) -1 1`
+  ssh $backup_user@$backup_server "[ -d $targetdir/$interval.$(($num-1)) ] && rm -rf $targetdir/$interval.$(($num-1))"
+  for i in `seq $(($num-1)) -1 1`
   do
-    ssh $BACKUP_USER@$BACKUP_SERVER "[ -d $TARGETDIR/$INTERVAL.$(($i-1)) ] && mv $TARGETDIR/$INTERVAL.$(($i-1)) $TARGETDIR/$INTERVAL.$i"
+    ssh $backup_user@$backup_server "[ -d $targetdir/$interval.$(($i-1)) ] && mv $targetdir/$interval.$(($i-1)) $targetdir/$interval.$i"
   done
 
   # Rename directory if succeeded
-  ssh $BACKUP_USER@$BACKUP_SERVER "mv $TEMPFILE $TARGETDIR/$INTERVAL.0"
-  ssh $BACKUP_USER@$BACKUP_SERVER "touch $TARGETDIR/$INTERVAL.0"
+  ssh $backup_user@$backup_server "mv $tempfile $targetdir/$interval.0"
+  ssh $backup_user@$backup_server "touch $targetdir/$interval.0"
 
   # Remove link to latest backup
-  ssh $BACKUP_USER@$BACKUP_SERVER "rm -f $TARGETDIR/latest"
+  ssh $backup_user@$backup_server "rm -f $targetdir/latest"
 
   # Create link to the newest backup
-  ssh $BACKUP_USER@$BACKUP_SERVER "ln -s $TARGETDIR/$INTERVAL.0 $TARGETDIR/latest"
+  ssh $backup_user@$backup_server "ln -s $targetdir/$interval.0 $targetdir/latest"
 else
   # Rename directory if failed
   printf "rsync failed\n"
-  ssh $BACKUP_USER@$BACKUP_SERVER "mv $TEMPFILE $TARGETDIR/$INTERVAL-failed-$TIMESTAMP"
+  ssh $backup_user@$backup_server "mv $tempfile $targetdir/$interval-failed-$timestamp"
   exit 1
 fi
