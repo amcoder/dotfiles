@@ -1,3 +1,6 @@
+import = [
+  "~/.config/alacritty/alacritty.local.toml",
+]
 live_config_reload = true
 
 [colors.primary]
@@ -57,9 +60,6 @@ white = "#aeb3bb"
 
 [font]
 size = 13
-
-[font.offset]
-y = -1
 
 [font.bold]
 style = "Semibold"
