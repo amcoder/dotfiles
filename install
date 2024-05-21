@@ -8,9 +8,6 @@ exclude() {
   return $?
 }
 
-mkdir -p "$HOME/.config" \
-         "$HOME/.local/bin"
-
 for file in .* .local/bin/* .config/* .config/gtk-3.0/* .config/gtk-4.0/*
 do
   exclude "$file" && continue
@@ -24,5 +21,6 @@ do
   fi
 
   # Create symlink
+  mkdir -p "$(dirname "$HOME/$file")"
   ln -nfs "$dir/$file" "$HOME/$file"
 done
