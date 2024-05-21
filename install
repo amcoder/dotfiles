@@ -2,7 +2,7 @@
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-excludefiles=". .. .DS_Store .git .gitignore .gitmodules .config .local"
+excludefiles=". .. .DS_Store .git .gitignore .gitmodules .config .local .config/gtk-3.0 .config/gtk-4.0"
 exclude() {
   test "${excludefiles#*$1}" != "$excludefiles"
   return $?
@@ -11,7 +11,7 @@ exclude() {
 mkdir -p "$HOME/.config" \
          "$HOME/.local/bin"
 
-for file in .* .local/bin/* .config/*
+for file in .* .local/bin/* .config/* .config/gtk-3.0/* .config/gtk-4.0/*
 do
   exclude "$file" && continue
 
