@@ -25,16 +25,18 @@ do
   ln -nfs "$dir/$file" "$HOME/$file"
 done
 
-if [ $(uname) = "Darwin" ]; then
-  echo "MacOS detected"
-  if ! command -v brew &> /dev/null; then
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+if [ "$1" = "--deps" ]; then
+  if [ $(uname) = "Darwin" ]; then
+    echo "MacOS detected"
+    if ! command -v brew &> /dev/null; then
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+    brew bundle --no-lock
   fi
-  brew bundle --no-lock
-fi
 
-if command -v apt &> /dev/null; then
-  echo "Debian/Ubuntu detected"
-  sudo apt update
-  sudo apt install -y git bat eza fzf neovim ripgrep tmux zoxide
+  if command -v apt &> /dev/null; then
+    echo "Debian/Ubuntu detected"
+    sudo apt update
+    sudo apt install -y git bat eza fzf neovim ripgrep tmux zoxide
+  fi
 fi
