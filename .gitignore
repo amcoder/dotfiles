@@ -4,4 +4,4 @@
 ui-fingerprint
 first-time-setup*
 
-alacritty.local.toml
+.config/alacritty/local.toml

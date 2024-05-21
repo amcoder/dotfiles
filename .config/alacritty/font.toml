@@ -1,0 +1,15 @@
+[font]
+size = 13
+
+[font.bold]
+style = "Semibold"
+
+[font.bold_italic]
+style = "Semibold Italic"
+
+[font.italic]
+style = "Italic"
+
+[font.normal]
+family = "SauceCodePro Nerd Font"
+style = "Regular"
