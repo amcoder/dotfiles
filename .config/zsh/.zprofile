@@ -7,6 +7,6 @@
 # - .zlogout (logout only)
 
 # Keep everyhting in .profile and just source it from here
-[ -f ~/.profile ] && source ~/.profile
+[ -f "$HOME/.profile" ] && source "$HOME/.profile"
 
-[ -f ~/.zprofile.local ] && source ~/.zprofile.local
+[ -f "$ZDOTDIR/.zprofile.local" ] && source "$ZDOTDIR/.zprofile.local"

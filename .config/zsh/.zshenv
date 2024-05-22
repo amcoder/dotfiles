@@ -6,4 +6,4 @@
 # - .zlogin (login only)
 # - .zlogout (logout only)
 
-[ -f ~/.zshenv.local ] && source ~/.zshenv.local
+[ -f "$ZDOTDIR/.zshenv.local" ] && source "$ZDOTDIR/.zshenv.local"

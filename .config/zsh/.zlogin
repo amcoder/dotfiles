@@ -6,4 +6,4 @@
 # - .zlogin (login only)
 # - .zlogout (logout only)
 
-[ -f ~/.zlogin.local ] && source ~/.zlogin.local
+[ -f "$ZDOTDIR/.zlogin.local" ] && source "$ZDOTDIR/.zlogin.local"

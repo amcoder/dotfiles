@@ -52,4 +52,4 @@ if command -v just &> /dev/null; then
   alias jc='just clean'
 fi
 
-[ -f ~/.aliases.local ] && source ~/.aliases.local
+[ -f "$ZDOTDIR/.aliases.local" ] && source "$ZDOTDIR/.aliases.local"

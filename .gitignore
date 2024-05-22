@@ -5,3 +5,4 @@ ui-fingerprint
 first-time-setup*
 
 .config/alacritty/local.toml
+.config/zsh/*.local

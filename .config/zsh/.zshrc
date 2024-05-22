@@ -151,4 +151,4 @@ fi
 # Aliases
 [ -f "$ZDOTDIR/.aliases" ] && source "$ZDOTDIR/.aliases"
 
-[ -f ~/.zshrc.local ] && source ~/.zshrc.local
+[ -f "$ZDOTDIR/.zshrc.local" ] && source "$ZDOTDIR/.zshrc.local"
