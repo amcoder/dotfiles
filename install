@@ -30,6 +30,9 @@ done
 unset IFS
 set +f
 
+# Set DOTFILES_DIR
+echo "export DOTFILES_DIR=$dir" > "$ZDOTDIR/dotfiles-dir.zsh"
+
 if [ "$1" = "--deps" ]; then
   if [ $(uname) = "Darwin" ]; then
     echo "MacOS detected"

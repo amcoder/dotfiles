@@ -148,6 +148,9 @@ fi
 # NVM
 [ -s "$NVM_DIR/nvm.sh" ] && zsh-defer \. "$NVM_DIR/nvm.sh"
 
+# dot command
+[ -f "$ZDOTDIR/dot.zsh" ] && source "$ZDOTDIR/dot.zsh"
+
 # Aliases
 [ -f "$ZDOTDIR/.aliases" ] && source "$ZDOTDIR/.aliases"
 
