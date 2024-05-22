@@ -2,18 +2,20 @@
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-excludefiles=". .. .DS_Store Brewfile .git .gitignore .gitmodules .config .local .config/gtk-3.0 .config/gtk-4.0"
-exclude() {
-  test "${excludefiles#*$1}" != "$excludefiles"
-  return $?
-}
+IFS='
+'
+set -f
 
-for file in .* .local/bin/* .config/* .config/gtk-3.0/* .config/gtk-4.0/*
-do
-  exclude "$file" && continue
+sources="
+.config
+.local
+.profile
+.zshenv
+"
 
+for file in $(find $sources -type f); do
   echo "Linking $file"
- 
+
   # Backup existing files
   if [ -e "$HOME/$file" ] && [ ! -L "$HOME/$file" ]; then
     backup="$file.backup.$(date +%s)"
@@ -24,6 +26,9 @@ do
   mkdir -p "$(dirname "$HOME/$file")"
   ln -nfs "$dir/$file" "$HOME/$file"
 done
+
+unset IFS
+set +f
 
 if [ "$1" = "--deps" ]; then
   if [ $(uname) = "Darwin" ]; then
