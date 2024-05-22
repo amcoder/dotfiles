@@ -7,5 +7,3 @@
 # - .zlogout (logout only)
 
 [ -f ~/.zlogin.local ] && source ~/.zlogin.local
-
-export _ZLOGIN_LOADED=$(( ${_ZLOGIN_LOADED:-0} + 1 ))

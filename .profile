@@ -53,5 +53,3 @@ export MBOX="$XDG_DATA_HOME/mail/mbox"
 trap logout HUP
 
 [ -f "$HOME/.profile.local" ] && . "$HOME/.profile.local"
-
-export _PROFILE_LOADED=$(( ${_PROFILE_LOADED:-0} + 1 ))

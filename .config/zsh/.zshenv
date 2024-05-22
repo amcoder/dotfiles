@@ -7,5 +7,3 @@
 # - .zlogout (logout only)
 
 [ -f ~/.zshenv.local ] && source ~/.zshenv.local
-
-export _ZSHENV_LOADED=$(( ${_ZSHENV_LOADED:-0} + 1 ))

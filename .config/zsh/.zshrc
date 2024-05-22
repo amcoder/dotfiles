@@ -152,5 +152,3 @@ fi
 [ -f "$ZDOTDIR/.aliases" ] && source "$ZDOTDIR/.aliases"
 
 [ -f ~/.zshrc.local ] && source ~/.zshrc.local
-
-export _ZSHRC_LOADED=$(( ${_ZSHRC_LOADED:-0} + 1 ))
