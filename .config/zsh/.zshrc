@@ -110,7 +110,7 @@ if [ -d "$HOME/projects/transact" ]; then
 fi
 
 # FZF
-if command -v fzf &> /dev/null && fzf --zsh &> /dev/null; then
+if command -v fzf &> /dev/null; then
   # export FZF_TMUX_OPTS='-p80%,60%'
   export FZF_CTRL_T_OPTS="
     --walker-skip .git,node_modules,target
@@ -126,7 +126,9 @@ if command -v fzf &> /dev/null && fzf --zsh &> /dev/null; then
     --walker-skip .git,node_modules,target
     --preview 'tree -C {}'"
 
-  source <(fzf --zsh)
+  [ fzf --zsh &> /dev/null ] \
+    && source <(fzf --zsh) \
+    || source "$XDG_CONFIG_HOME/fzf/fzf.zsh"
 fi
 
 # Zoxide
