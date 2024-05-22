@@ -10,6 +10,20 @@ export XDG_CACHE_HOME=${XDG_CACHE_HOME:-$HOME/.cache}
 export XDG_STATE_HOME=${XDG_STATE_HOME:-$HOME/.local/state}
 export XDG_BIN_HOME=${XDG_BIN_HOME:-$HOME/.local/bin}
 
+export MBOX="$XDG_DATA_HOME/mail/mbox"
+
+export DOCKER_CONFIG="$XDG_CONFIG_HOME"/docker
+
+export CARGO_HOME="$XDG_DATA_HOME"/cargo
+export RUSTUP_HOME="$XDG_DATA_HOME"/rustup
+
+export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/config
+export NPM_CONFIG_CACHE=$XDG_CACHE_HOME/npm
+export NVM_DIR="$XDG_DATA_HOME/nvm"
+
+export NUGET_PACKAGES="$XDG_CACHE_HOME"/NuGetPackages
+export OMNISHARPHOME="$XDG_CONFIG_HOME/omnisharp"
+
 [ -f /opt/homebrew/bin/brew ] && eval "$(/opt/homebrew/bin/brew shellenv)"
 [ -f /usr/local/bin/brew ] && eval "$(/usr/local/bin/brew shellenv)"
 [ -d /usr/local/go/bin ] && PATH="$PATH:/usr/local/go/bin"
@@ -20,10 +34,9 @@ while read -r p; do
 done <<EOF
 $HOME/bin
 $HOME/.local/bin
-$HOME/go/bin
-$HOME/.local/go/bin
-$HOME/.local/share/fzf/bin
-$HOME/.cargo/bin
+$XDG_DATA_HOME/fzf/bin
+$XDG_DATA_HOME/go/bin
+$CARGO_HOME/bin
 EOF
 
 export PATH
@@ -31,7 +44,6 @@ export PATH
 [ -z "$MANPATH" ] && MANPATH=$(manpath)
 [ -d "$HOME/.local/share/man" ] && MANPATH="$HOME/.local/share/man:$MANPATH"
 [ -d "$HOME/.local/man" ] && MANPATH="$HOME/.local/man:$MANPATH"
-
 export MANPATH
 
 export PAGER=less
@@ -47,8 +59,6 @@ else
   export EDITOR=vi
   export VISUAL=vi
 fi
-
-export MBOX="$XDG_DATA_HOME/mail/mbox"
 
 trap logout HUP
 
