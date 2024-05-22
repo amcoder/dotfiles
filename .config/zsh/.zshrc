@@ -110,7 +110,7 @@ if [ -d "$HOME/projects/transact" ]; then
 fi
 
 # FZF
-if command -v fzf &> /dev/null; then
+if command -v fzf &> /dev/null && fzf --zsh &> /dev/null; then
   # export FZF_TMUX_OPTS='-p80%,60%'
   export FZF_CTRL_T_OPTS="
     --walker-skip .git,node_modules,target
