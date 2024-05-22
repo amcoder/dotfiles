@@ -103,9 +103,11 @@ zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 _comp_options+=(globdots)
 
 # Named directories
-for dir in $HOME/projects/transact/*/; do
-  hash -d "${${dir:t}##(bb-ea-|eaevo-(ui-|api-|))}"="${dir%/}"
-done
+if [ -d "$HOME/projects/transact" ]; then
+  for dir in $HOME/projects/transact/*/; do
+    hash -d "${${dir:t}##(bb-ea-|eaevo-(ui-|api-|))}"="${dir%/}"
+  done
+fi
 
 # FZF
 if command -v fzf &> /dev/null; then
