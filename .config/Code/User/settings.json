@@ -1,0 +1,183 @@
+{
+  "window.menuBarVisibility": "toggle",
+
+  "workbench.colorTheme": "Nord",
+
+  "security.workspace.trust.untrustedFiles": "open",
+
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+
+  "editor.fontFamily": "'JetBrains Mono Light', 'Source Code Pro', Menlo, Monaco, 'Courier New', monospace",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 13,
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.minimap.maxColumn": 50,
+  "editor.minimap.enabled": false,
+
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+
+  "prettier.singleQuote": true,
+
+  "terminal.integrated.fontFamily": "'SauceCodePro Nerd Font', 'Source Code Pro', Menlo, Monaco, 'Courier New', monospace",
+
+  // Linux terminal settings
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "icon": "terminal-bash",
+      "path": "bash"
+    },
+    "fish": {
+      "path": "fish"
+    },
+    "pwsh": {
+      "icon": "terminal-powershell",
+      "path": "pwsh"
+    },
+    "tmux": {
+      "path": "tmux",
+      "args": ["new-session", "-A", "-s", "${workspaceFolderBasename}"],
+      "icon": "terminal-tmux"
+    },
+    "tmux:main": {
+      "path": "tmux",
+      "args": ["new-session", "-A", "-s", "main"],
+      "icon": "terminal-tmux",
+      "overrideName": true
+    },
+    "tmux:new": {
+      "path": "tmux",
+      "icon": "terminal-tmux",
+      "overrideName": true
+    },
+    "zsh": {
+      "path": "zsh"
+    }
+  },
+  "terminal.integrated.defaultProfile.linux": "tmux",
+  "terminal.integrated.automationProfile.linux": {
+    "path": "zsh",
+    "args": ["-i"]
+  },
+
+  // macOS terminal settings
+  "terminal.integrated.profiles.osx": {
+    "bash": {
+      "path": "bash",
+      "args": ["-l"],
+      "icon": "terminal-bash"
+    },
+    "zsh": {
+      "path": "zsh",
+      "args": ["-l"]
+    },
+    "fish": {
+      "path": "fish",
+      "args": ["-l"]
+    },
+    "tmux": {
+      "path": "tmux",
+      "args": ["new-session", "-A", "-s", "${workspaceFolderBasename}"],
+      "icon": "terminal-tmux"
+    },
+    "tmux:main": {
+      "path": "tmux",
+      "args": ["new-session", "-A", "-s", "main"],
+      "icon": "terminal-tmux",
+      "overrideName": true
+    },
+    "tmux:new": {
+      "path": "tmux",
+      "icon": "terminal-tmux",
+      "overrideName": true
+    },
+    "pwsh": {
+      "path": "pwsh",
+      "icon": "terminal-powershell"
+    }
+  },
+  "terminal.integrated.defaultProfile.osx": "tmux",
+  "terminal.integrated.automationProfile.osx": {
+    "path": "zsh",
+    "args": ["-l"]
+  },
+  "terminal.integrated.macOptionClickForcesSelection": true,
+
+  "typescript.updateImportsOnFileMove.enabled": "always",
+
+  "vim.debug.loggingLevelForConsole": "warn",
+  "vim.leader": "<space>",
+  "vim.normalModeKeyBindings": [
+    {
+      "before": ["<leader>", "<leader>"],
+      "commands": ["workbench.action.quickOpen"]
+    },
+    {
+      "after": ["git.stageSelectedRanges"],
+      "before": ["<leader>", "g", "s"]
+    }
+  ],
+  "vim.visualModeKeyBindings": [
+    {
+      "after": ["git.stageSelectedRanges"],
+      "before": ["<leader>", "s"]
+    }
+  ],
+
+  "git.autofetch": true,
+
+  "gitlens.hovers.currentLine.over": "line",
+
+  "githubPullRequests.queries": [
+    {
+      "label": "Waiting For My Review",
+      "query": "is:open review-requested:${user}"
+    },
+    {
+      "label": "Assigned To Me",
+      "query": "is:open assignee:${user}"
+    },
+    {
+      "label": "Created By Me",
+      "query": "is:open author:${user}"
+    },
+    {
+      "label": "App Infrastructure",
+      "query": "is:open author:amcoder author:therealparmesh author:tylermmorton author:ericskwon-fs author:Christian0411"
+    }
+  ],
+  "diffEditor.renderSideBySide": false,
+  "githubPullRequests.pullBranch": "never",
+  "window.customTitleBarVisibility": "auto",
+  "window.commandCenter": false,
+  "workbench.layoutControl.enabled": false,
+  "workbench.editor.showTabs": "single"
+}
