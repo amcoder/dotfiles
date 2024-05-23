@@ -148,7 +148,7 @@ if command -v direnv &> /dev/null; then
 fi
 
 # NVM
-[ -s "$NVM_DIR/nvm.sh" ] && zsh-defer \. "$NVM_DIR/nvm.sh"
+source "$ZDOTDIR/nvm.zsh"
 
 # dot command
 [ -f "$ZDOTDIR/dot.zsh" ] && source "$ZDOTDIR/dot.zsh"
