@@ -17,5 +17,5 @@ dot-add() {
     git -C "$DOTFILES_DIR" add "$dotfile"
     gitchanges=1
   done
-  [ $gitchanges ] && git -C "$DOTFILES_DIR" commit -m "Add files: ${(F)files}"
+  [ $gitchanges ] && git -C "$DOTFILES_DIR" commit -m "Add files" -m "${(F)files}"
 }
