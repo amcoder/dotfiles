@@ -8,6 +8,33 @@ cd ~/.dotfiles
 ./install
 ```
 
+## Themes
+
+### Theme files
+
+How do I make these configurable?
+
+- GTK: .config/gtk-{3,4}.0
+  - .themes
+  - Gradience?
+- QT: .config/qt5ct
+- Sway: .config/sway (colors)
+  - .config/sway/wallpaper
+- Terminal: .config/alacritty/colors.yml
+- Neovim: .config/nvim/lua/plugins/style
+- zsh: .config/zsh/p10k.zsh
+  - zsh-syntax-highlighting
+
+### Links to themes
+
+- [Nord](https://www.nordtheme.com/ports)
+- [Catpuccin](https://github.com/catppuccin/catppuccin)
+- [Rosé Pine](https://rosepinetheme.com/themes/)
+- [Dracula](https://draculatheme.com/)
+- [Everblush](https://github.com/Everblush)
+- [Ayu](https://github.com/Shatur/neovim-ayu)
+- [Base16](https://github.com/chriskempson/base16)
+
 ## Sway run
 
 This will handle setting up the environment for sway.
