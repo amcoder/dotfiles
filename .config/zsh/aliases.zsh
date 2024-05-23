@@ -52,4 +52,11 @@ if command -v just &> /dev/null; then
   alias jc='just clean'
 fi
 
-[ -f "$ZDOTDIR/.aliases.local" ] && source "$ZDOTDIR/.aliases.local"
+# Named directories
+if [ -d "$HOME/projects/transact" ]; then
+  for dir in $HOME/projects/transact/*/; do
+    hash -d "${${dir:t}##(bb-ea-|eaevo-(ui-|api-|))}"="${dir%/}"
+  done
+fi
+
+[ -f "$ZDOTDIR/aliases.local.zsh" ] && source "$ZDOTDIR/aliases.local.zsh"

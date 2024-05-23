@@ -52,22 +52,6 @@ else
   [[ ! -f "$ZDOTDIR/p10k.zsh" ]] || source "$ZDOTDIR/p10k.zsh"
 fi
 
-# Keybindings
-bindkey -v
-bindkey "$key[Up]" history-substring-search-up
-bindkey "$key[Down]" history-substring-search-down
-bindkey -M vicmd 'k' history-substring-search-up
-bindkey -M vicmd 'j' history-substring-search-down
-
-# Edit command line
-autoload -Uz edit-command-line
-zle -N edit-command-line
-bindkey -M vicmd 'vv' edit-command-line
-bindkey -rM viins '^[^['
-bindkey -rM vicmd '^[^['
-bindkey -M viins '^[s' sudo-command-line
-bindkey -M vicmd '^[s' sudo-command-line
-
 # History
 HISTSIZE=100000
 HISTFILE="${ZSH_STATE_DIR}/history"
@@ -102,58 +86,23 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 _comp_options+=(globdots)
 
-# Named directories
-if [ -d "$HOME/projects/transact" ]; then
-  for dir in $HOME/projects/transact/*/; do
-    hash -d "${${dir:t}##(bb-ea-|eaevo-(ui-|api-|))}"="${dir%/}"
-  done
-fi
+# Keybindings
+bindkey -v
+bindkey "$key[Up]" history-substring-search-up
+bindkey "$key[Down]" history-substring-search-down
+bindkey -M vicmd 'k' history-substring-search-up
+bindkey -M vicmd 'j' history-substring-search-down
+bindkey -rM viins '^[^['
+bindkey -rM vicmd '^[^['
+bindkey -M viins '^[s' sudo-command-line
+bindkey -M vicmd '^[s' sudo-command-line
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey -M vicmd 'vv' edit-command-line
 
-# FZF
-if command -v fzf &> /dev/null; then
-  # export FZF_TMUX_OPTS='-p80%,60%'
-  export FZF_CTRL_T_OPTS="
-    --walker-skip .git,node_modules,target
-    --preview 'bat -n --color=always {}'
-    --bind 'ctrl-/:change-preview-window(down|hidden|)'"
-  export FZF_CTRL_R_OPTS="
-    --preview 'echo {}' --preview-window up:3:hidden:wrap
-    --bind 'ctrl-/:toggle-preview'
-    --bind 'ctrl-y:execute-silent(echo -n {2..} | pbcopy)+abort'
-    --color header:italic
-    --header 'Press CTRL-Y to copy command into clipboard'"
-  export FZF_ALT_C_OPTS="
-    --walker-skip .git,node_modules,target
-    --preview 'tree -C {}'"
-
-  [ fzf --zsh &> /dev/null ] \
-    && source <(fzf --zsh) \
-    || source "$XDG_CONFIG_HOME/fzf/fzf.zsh"
-fi
-
-# Zoxide
-if command -v zoxide &> /dev/null; then
-  eval "$(zoxide init --cmd cd zsh)"
-fi
-
-# 1Password
-if command -v op &> /dev/null; then
-  eval "$(op completion zsh)"
-  compdef _op op
-fi
-
-# direnv
-if command -v direnv &> /dev/null; then
-  eval "$(direnv hook zsh)"
-fi
-
-# NVM
+source "$ZDOTDIR/integration.zsh"
 source "$ZDOTDIR/nvm.zsh"
-
-# dot command
-[ -f "$ZDOTDIR/dot.zsh" ] && source "$ZDOTDIR/dot.zsh"
-
-# Aliases
-[ -f "$ZDOTDIR/.aliases" ] && source "$ZDOTDIR/.aliases"
+source "$ZDOTDIR/dot.zsh"
+source "$ZDOTDIR/aliases.zsh"
 
 [ -f "$ZDOTDIR/.zshrc.local" ] && source "$ZDOTDIR/.zshrc.local" || true
