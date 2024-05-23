@@ -31,11 +31,11 @@ source "${ZINIT_HOME}/zinit.zsh"
 # Plugins
 zinit light romkatv/zsh-defer
 zinit ice depth=1; zinit light romkatv/powerlevel10k
-zinit light zdharma-continuum/fast-syntax-highlighting
 zinit light zsh-users/zsh-completions
 zinit light zsh-users/zsh-autosuggestions
 zinit light zsh-users/zsh-history-substring-search
 zinit light Aloxaf/fzf-tab
+zinit light zdharma-continuum/fast-syntax-highlighting
 
 # Snippets
 zinit snippet OMZP::sudo
