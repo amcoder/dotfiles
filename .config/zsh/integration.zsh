@@ -15,7 +15,7 @@ if command -v fzf &> /dev/null; then
     --walker-skip .git,node_modules,target
     --preview 'tree -C {}'"
 
-  [ fzf --zsh &> /dev/null ] \
+  fzf --zsh &> /dev/null \
     && source <(fzf --zsh) \
     || source "$XDG_CONFIG_HOME/fzf/fzf.zsh"
 fi
