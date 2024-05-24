@@ -23,6 +23,10 @@ else
   alias lla='ls -lAh --color'
 fi
 
+if ! command -v fd &> /dev/null && command -v fdfind &> /dev/null; then
+  alias fd='fdfind'
+fi
+
 # tmux
 tms() {
   tmux new-session -As ${1:-default}
