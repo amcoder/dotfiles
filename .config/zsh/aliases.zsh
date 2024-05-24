@@ -37,13 +37,11 @@ colormap() {
   for i in {0..15}; do print -Pn "%K{$i}      %k%F{$i}${(l:3::0:)i}%f " ${${(M)$((i%8)):#7}:+$'\n'}; done
 }
 
-if command -v vim &> /dev/null; then
-  alias vi='vim'
-fi
-
 if command -v nvim &> /dev/null; then
   alias vim='nvim'
   alias vi='nvim'
+elif command -v vim &> /dev/null; then
+  alias vi='vim'
 fi
 
 if command -v just &> /dev/null; then
