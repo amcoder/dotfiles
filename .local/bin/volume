@@ -17,7 +17,7 @@ case $1 in
         fi
         ;;
     *)
-        echo "Usage: $0 {up|down|mute} [mic]"
+        echo "Usage: $(basename $0) {up|down|mute} [mic]"
         exit 1
         ;;
 esac

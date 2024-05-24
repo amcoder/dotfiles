@@ -16,7 +16,7 @@ case $1 in
         scale=${defaultScales[$output]:-1}
         ;;
     *)
-        echo "Usage: $0 {up|down|default}"
+        echo "Usage: $(basename $0) {up|down|default}"
         exit 1
         ;;
 esac
