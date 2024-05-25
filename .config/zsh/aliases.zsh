@@ -13,9 +13,14 @@ alias more='less'
 # Aliases for ls
 if [ $TERM != "linux" ] && command -v eza &> /dev/null; then
   alias ls='eza --icons --classify'
+  alias lst='eza --icons --classify --tree --level=2'
   alias la='eza --icons --classify --all'
-  alias ll='eza --icons --classify --long --group --header --links '
-  alias lla='eza --icons --classify --long --group --header --links --all'
+  alias lat='eza --icons --classify --all --tree --level=2'
+  alias ll='eza --icons --classify --long --group --header --links --git'
+  alias llt='eza --icons --classify --long --group --header --links --git --tree --level=2'
+  alias lla='eza --icons --classify --long --group --header --links --git --all'
+  alias llat='eza --icons --classify --long --group --header --links --git --tree --level=2 --all'
+  alias tree='eza --icons --classify --tree'
 else
   alias ls='ls --color'
   alias la='ls -A --color'
