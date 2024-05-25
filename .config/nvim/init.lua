@@ -121,6 +121,8 @@ vim.keymap.set('n', 'j', "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = tr
 
 -- Remap C-a because tmux
 vim.keymap.set('n', '<C-z>', '<C-a>', { noremap = true })
+vim.keymap.set('v', '<C-z>', '<C-a>', { noremap = true })
+vim.keymap.set('v', 'g<C-z>', 'g<C-a>', { noremap = true })
 
 -- Stay centered
 vim.keymap.set('n', '<C-d>', '<C-d>zz')
