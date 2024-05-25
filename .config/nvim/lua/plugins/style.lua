@@ -16,7 +16,20 @@ return {
     },
     config = function(_, opts)
       require('nightfox').setup(opts)
-      vim.cmd.colorscheme('nordfox')
+      -- vim.cmd.colorscheme('nordfox')
+    end,
+  },
+
+  {
+    'catppuccin/nvim',
+    name = 'catppuccin',
+    priority = 1000,
+    opts = {
+      flavour = 'macchiato',
+    },
+    config = function(_, opts)
+      require('catppuccin').setup(opts)
+      vim.cmd.colorscheme('catppuccin')
     end,
   },
 
@@ -26,7 +39,7 @@ return {
     -- See `:help lualine.txt`
     opts = {
       options = {
-        theme = 'nordfox',
+        theme = 'catppuccin',
         component_separators = { left = '', right = '' },
         section_separators = { left = '', right = '' },
         ignore_focus = {

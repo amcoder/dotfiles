@@ -1,6 +1,11 @@
 # FZF
 if command -v fzf &> /dev/null; then
   # export FZF_TMUX_OPTS='-p80%,60%'
+  # Catppuccin theme
+  export FZF_DEFAULT_OPTS=" \
+    --color=bg+:#363a4f,bg:#24273a,spinner:#f4dbd6,hl:#ed8796 \
+    --color=fg:#cad3f5,header:#ed8796,info:#c6a0f6,pointer:#f4dbd6 \
+    --color=marker:#f4dbd6,fg+:#cad3f5,prompt:#c6a0f6,hl+:#ed8796"
   export FZF_CTRL_T_OPTS="
     --walker-skip .git,node_modules,target
     --preview 'bat -n --color=always {}'

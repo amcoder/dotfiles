@@ -84,10 +84,10 @@
 
     # Defines width in pixels of frame around the notification window.
     # Set to 0 to disable.
-    frame_width = 0
+    frame_width = 1
 
     # Defines color of the frame around the notification window.
-    frame_color = "#5E81AC"
+    frame_color = "#181926"
 
     # Size of gap to display between notifications - requires a compositor.
     # If value is greater than 0, separator_height will be ignored and a border
@@ -202,7 +202,7 @@
     # Set icon theme (only used for recursive icon lookup)
     # You can also set multiple icon themes, with the leftmost one being used first.
     # icon_theme = "Adwaita, breeze"
-    icon_theme = Adwaita
+    # icon_theme = Adwaita
 
     # Align icons left/right/off
     icon_position = left
@@ -320,24 +320,27 @@
     enable_recursive_icon_lookup = true
 
 [urgency_low]
-    background = "#3B4252"
-    foreground = "#D8DEE9"
-    highlight = "#5E81AC"
+    background = "#24273a"
+    foreground = "#cad3f5"
+    frame_color = "#363a4f"
+    highlight = "#8aadf4"
     timeout = 5
     default_icon = dialog-information
 
 [urgency_normal]
-    background = "#3B4252"
-    foreground = "#D8DEE9"
-    highlight = "#5E81AC"
+    background = "#24273a"
+    foreground = "#cad3f5"
+    frame_color = "#363a4f"
+    highlight = "#8aadf4"
     timeout = 10 
     override_pause_level = 30
     default_icon = dialog-information
 
 [urgency_critical]
-    background = "#3B4252"
-    foreground = "#BF616A"
-    highlight = "#5E81AC"
+    background = "#24273a"
+    foreground = "#cad3f5"
+    frame_color = "#ed8796"
+    highlight = "#8aadf4"
     timeout = 0 
     override_pause_level = 60
     default_icon = dialog-error

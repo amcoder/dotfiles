@@ -25,27 +25,7 @@ set $menu wofi --allow-images --no-actions --width=25\% --insensitive --show=dru
 set $run wofi --allow-images --no-actions --width=25\% --show=run | xargs swaymsg exec --
 
 # Colors
-set $color_base03   #2E3440
-set $color_base02   #3B4252
-set $color_base01   #434C5E
-set $color_base00   #7B8394
-set $color_base0    #D8DEE9
-set $color_base1    #E5E9F0
-set $color_base2    #ECEFF4
-set $color_base3    #ECEFF4
-set $color_yellow   #EBCB8B
-set $color_orange   #D08770
-set $color_red      #BF616A
-set $color_magenta  #5E81AC
-set $color_violet   #B48EAD
-set $color_blue     #5E81AC
-set $color_lblue    #81A1C1
-set $color_cyan     #88C0D0
-set $color_green    #A3BE8C
-set $color_nord4    #4C566A
-
-# Wallpaper
-output * bg ~/.config/sway/debian.png center $color_base03
+include catppuccin.conf
 
 # Enable/disable laptop screen based on lid position
 set $laptop eDP-1
@@ -137,25 +117,25 @@ bindsym $mod+Shift+Right move right
 
 # Workspace definitions
 # Note:   is the font awesome icon for a hexagon
-set  $ws1  1: 1  <span foreground='#5E81AC'> </span>
-set  $ws2  2: 2  <span foreground='#88C0D0'> </span>
-set  $ws3  3: 3  <span foreground='#A3BE8C'> </span>
-set  $ws4  4: 4  <span foreground='#EBCB8B'> 󰅩 </span>
-set  $ws5  5: 5  <span foreground='#D08770'> 󰅩 </span>
-set  $ws6  6: 6  <span foreground='#BF616A'> 󰅩 </span>
-set  $ws7  7: 7  <span foreground='#B48EAD'> </span>
-set  $ws8  8: 8  <span foreground='#8FBCBB'> </span>
-set  $ws9  9: 9  <span foreground='#5E81AC'> </span>
-set $ws10 10: 10 <span foreground='#88C0D0'>󰝚 </span>
-set $ws11 11: 11 <span foreground='#A3BE8C'> </span>
-set $ws12 12: 12 <span foreground='#EBCB8B'> </span>
-set $ws13 13: 13 <span foreground='#D08770'> </span>
-set $ws14 14: 14 <span foreground='#BF616A'> </span>
-set $ws15 15: 15 <span foreground='#B48EAD'> </span>
-set $ws16 16: 16 <span foreground='#8FBCBB'> </span>
-set $ws17 17: 17 <span foreground='#5E81AC'> </span>
-set $ws18 18: 18 <span foreground='#88C0D0'> </span>
-set $ws19 19: 19 <span foreground='#A3BE8C'> </span>
+set  $ws1  1: 1  <span foreground='$accent01'> </span>
+set  $ws2  2: 2  <span foreground='$accent02'> </span>
+set  $ws3  3: 3  <span foreground='$accent03'> </span>
+set  $ws4  4: 4  <span foreground='$accent04'> 󰅩 </span>
+set  $ws5  5: 5  <span foreground='$accent05'> 󰅩 </span>
+set  $ws6  6: 6  <span foreground='$accent06'> 󰅩 </span>
+set  $ws7  7: 7  <span foreground='$accent07'> </span>
+set  $ws8  8: 8  <span foreground='$accent08'> </span>
+set  $ws9  9: 9  <span foreground='$accent09'> </span>
+set $ws10 10: 10 <span foreground='$accent10'>󰝚 </span>
+set $ws11 11: 11 <span foreground='$accent11'> </span>
+set $ws12 12: 12 <span foreground='$accent12'> </span>
+set $ws13 13: 13 <span foreground='$accent13'> </span>
+set $ws14 14: 14 <span foreground='$accent14'> </span>
+set $ws15 15: 15 <span foreground='$accent01'> </span>
+set $ws16 16: 16 <span foreground='$accent02'> </span>
+set $ws17 17: 17 <span foreground='$accent03'> </span>
+set $ws18 18: 18 <span foreground='$accent04'> </span>
+set $ws19 19: 19 <span foreground='$accent05'> </span>
 
 # Switch to workspace
 bindsym $mod+1      workspace number $ws1
@@ -368,12 +348,6 @@ smart_gaps on
 gaps inner 0
 gaps outer 0
 
-#                       Border        Background    Foreground    Indicator     Child Border
-client.focused          $color_lblue  $color_base01 $color_base3  $color_lblue  $color_lblue
-client.focused_inactive $color_base01 $color_base03 $color_base00 $color_base02 $color_base03
-client.unfocused        $color_base01 $color_base03 $color_base00 $color_base02 $color_base03
-client.urgent           $color_base03 $color_red    $color_base3  $color_red    $color_base03
-
 # Status Bar:
 bar {
     font pango:FontAwesome, Cantarell 20px
@@ -392,15 +366,14 @@ bar {
     status_command i3blocks
 
     colors {
-        background $color_base02
-        statusline $color_base1
-        # separator  $color_blue
+        background $bar_background
+        statusline $bar_statusline
+        separator  $bar_separator
 
-        #                  Border         Backgnd        Foregnd
-        focused_workspace  $color_base03  $color_base03  $color_base2
-        active_workspace   $color_base03  $color_base03  $color_base00
-        inactive_workspace $color_base02  $color_base02  $color_base00
-        urgent_workspace   $color_red     $color_red     $color_base3
-        binding_mode       $color_yellow  $color_yellow  $color_base03
+        focused_workspace  $bar_focused_workspace
+        active_workspace   $bar_active_workspace
+        inactive_workspace $bar_inactive_workspace
+        urgent_workspace   $bar_urgent_workspace
+        binding_mode       $bar_binding_mode
     }
 }
