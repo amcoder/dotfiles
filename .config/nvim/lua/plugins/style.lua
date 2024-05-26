@@ -45,6 +45,13 @@ return {
         overseer = true,
         which_key = true,
       },
+      custom_highlights = function(C)
+        return {
+          ['@lsp.type.property.cs'] = { fg = C.blue },
+          ['@lsp.type.constantName'] = { link = '@constant' },
+          ['@lsp.type.fieldName'] = { link = '@variable.member' },
+        }
+      end,
     },
     config = function(_, opts)
       require('catppuccin').setup(opts)
