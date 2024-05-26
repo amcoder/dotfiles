@@ -26,6 +26,25 @@ return {
     priority = 1000,
     opts = {
       flavour = 'macchiato',
+      integrations = {
+        diffview = true,
+        fidget = true,
+        mason = true,
+        neotree = true,
+        neotest = true,
+        native_lsp = {
+          enabled = true,
+          underlines = {
+            errors = { 'undercurl' },
+            hints = { 'undercurl' },
+            warnings = { 'undercurl' },
+            information = { 'undercurl' },
+          },
+        },
+        notify = true,
+        overseer = true,
+        which_key = true,
+      },
     },
     config = function(_, opts)
       require('catppuccin').setup(opts)
