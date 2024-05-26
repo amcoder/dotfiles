@@ -21,8 +21,8 @@ set $browser google-chrome --ozone-platform=wayland
 # Your preferred application launcher
 # Note: pass the final command to swaymsg so that the resulting window can be opened
 # on the original workspace that the command was run on.
-set $menu wofi --allow-images --no-actions --width=25\% --insensitive --show=drun | xargs swaymsg exec --
-set $run wofi --allow-images --no-actions --width=25\% --show=run | xargs swaymsg exec --
+set $menu wofi --show=drun | xargs swaymsg exec --
+set $run wofi --show=run | xargs swaymsg exec --
 
 # Colors
 include catppuccin.conf

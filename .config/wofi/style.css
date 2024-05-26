@@ -1,0 +1,27 @@
+window {
+  font-size: 1.5em;
+  background: transparent;
+  /* border: 2px solid #363a4f; */
+}
+
+#input {
+  margin: 1em;
+  padding: 0.25em 0.5em;
+}
+
+#outer-box {
+  /* padding: 1px; */
+}
+
+#scroll {
+  border: 2px solid #363a4f;
+  background-color: #24273a;
+}
+
+#entry {
+  padding: 0.25em 0.5em;
+}
+
+#img {
+  margin-right: 0.5em;
+}
