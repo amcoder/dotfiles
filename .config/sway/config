@@ -218,7 +218,8 @@ bindsym $mod+Shift+minus move scratchpad
 bindsym $mod+minus scratchpad show
 
 # Resize mode
-mode "resize" {
+set $resize --pango_markup ' Resize'
+mode $resize {
     # left will shrink the containers width
     # right will grow the containers width
     # up will shrink the containers height
@@ -238,7 +239,7 @@ mode "resize" {
     bindsym Return mode "default"
     bindsym Escape mode "default"
 }
-bindsym $mod+r mode "resize"
+bindsym $mod+r mode $resize
 
 # Scale output
 bindsym $mod+Ctrl+equal exec sway-scale up
@@ -248,16 +249,25 @@ bindsym $mod+Ctrl+0 exec sway-scale default
 # Session Management
 bindsym $mod+Escape exec loginctl lock-session
 
-set $session "Session Mode: [l]ock, log[o]ut, [s]uspend, [h]ibernate, [r]eboot, [p]ower off, reload [c]onfig"
+set $session --pango_markup 'Session Mode: \
+     <span weight="bold">l</span>ock \
+     log <span weight="bold">o</span>ut \
+     <span weight="bold">s</span>uspend \
+     <span weight="bold">h</span>ibernate \
+     <span weight="bold">r</span>eboot \
+     <span weight="bold">p</span>ower off \
+     reload <span weight="bold">c</span>onfig'
+
 mode $session {
   bindsym c reload, mode "default"
-  bindsym o exit, mode "default"
   bindsym l exec loginctl lock-session, mode "default"
-  bindsym r exec systemctl reboot, mode "default"
-  bindsym p exec systemctl poweroff, mode "default"
-  bindsym s exec systemctl suspend-then-hibernate, mode "default"
-  bindsym h exec systemctl hibernate, mode "default"
+  bindsym o exec zenity --question --title="Log Out" --text="Are you sure you want to log out?" --icon=system-log-out --default-cancel --timeout=10 && swaymsg exit, mode "default"
+  bindsym r exec zenity --question --title="Reboot" --text="Are you sure you want to reboot?" --icon=system-reboot --default-cancel --timeout=10 && systemctl reboot, mode "default"
+  bindsym p exec zenity --question --title="Power Off" --text="Are you sure you want to power off?" --icon=system-shutdown --default-cancel --timeout=10 && systemctl poweroff, mode "default"
+  bindsym s exec zenity --question --title="Suspend" --text="Are you sure you want to suspend?" --icon=system-suspend --default-cancel --timeout=10 && systemctl suspend-then-hibernate, mode "default"
+  bindsym h exec zenity --question --title="Hibernate" --text="Are you sure you want to hibernate?" --icon=system-hibernate --default-cancel --timeout=10 && systemctl hibernate, mode "default"
 
+  bindsym Return mode "default"
   bindsym Escape mode "default"
 }
 bindsym $mod+Shift+Escape mode $session
