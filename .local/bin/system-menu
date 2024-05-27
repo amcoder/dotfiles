@@ -1,0 +1,51 @@
+#!/usr/bin/env zsh
+
+actions=(
+    "Reload Sway"
+    "Lock"
+    "Logout"
+    "Reboot"
+    "Shutdown"
+    "Suspend"
+    "Hibernate"
+)
+
+icons=($(get-icon \
+    configurator \
+    system-lock-screen \
+    system-log-out \
+    system-reboot \
+    system-shutdown \
+    system-suspend \
+    system-hibernate))
+
+for i in {1..7}; do
+  echo "img:${icons[$i]}:text:${actions[$i]}"
+done \
+  | wofi --show=dmenu \
+    --define dmenu-print_line_num=true \
+  | read -r selection
+
+case $selection in
+    0)
+        swaymsg reload
+        ;;
+    1)
+        loginctl lock-session
+        ;;
+    2)
+        zenity --question --title="Log Out" --text="Are you sure you want to log out?" --icon=system-log-out --timeout=10 && swaymsg exit
+        ;;
+    3)
+        zenity --question --title="Reboot" --text="Are you sure you want to reboot?" --icon=system-reboot --timeout=10 && systemctl reboot
+        ;;
+    4)
+        zenity --question --title="Power Off" --text="Are you sure you want to power off?" --icon=system-shutdown --timeout=10 && systemctl poweroff
+        ;;
+    5)
+        zenity --question --title="Suspend" --text="Are you sure you want to suspend?" --icon=system-suspend --timeout=10 && systemctl suspend-then-hibernate
+        ;;
+    6)
+        zenity --question --title="Hibernate" --text="Are you sure you want to hibernate?" --icon=system-hibernate --timeout=10 && systemctl hibernate
+        ;;
+esac

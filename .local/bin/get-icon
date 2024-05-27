@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import gi
+import argparse
+
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+
+parser = argparse.ArgumentParser(description='Get the filename of an icon')
+parser.add_argument('icon_names', metavar='icon', nargs='+', help='The name of the icon')
+parser.add_argument('--size', type=int, default=32, help='The size of the icon')
+args = parser.parse_args()
+
+icon_theme = Gtk.IconTheme.get_default()
+
+icon_paths = [];
+
+for icon_name in args.icon_names:
+    icon = icon_theme.lookup_icon(icon_name, args.size, 0)
+    if icon:
+        print(icon.get_filename())
+    else:
+        print(icon_name)

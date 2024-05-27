@@ -270,7 +270,7 @@ mode $session {
   bindsym Return mode "default"
   bindsym Escape mode "default"
 }
-bindsym $mod+Shift+Escape mode $session
+bindsym $mod+Shift+Escape exec system-menu
 
 # Media Keys
 bindsym XF86AudioRaiseVolume exec volume up 5
