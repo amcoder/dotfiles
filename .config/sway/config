@@ -87,7 +87,7 @@ bindsym $mod+Shift+q kill
 # Start your launcher
 bindsym $mod+Space exec $menu
 bindsym $mod+Shift+Space exec $run
-bindsym $mod+Alt+Space exec sway-select-window
+bindsym $mod+Alt+Space exec window-switcher.py
 
 # Drag floating windows by holding down $mod and left mouse button.
 # Resize them with right mouse button + $mod.
