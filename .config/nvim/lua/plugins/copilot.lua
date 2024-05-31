@@ -3,7 +3,18 @@ vim.g.copilot_assume_mapped = true
 
 return {
   {
+    'supermaven-inc/supermaven-nvim',
+    opts = {
+      keymaps = {
+        accept_suggestion = '<C-c>',
+        clear_suggestions = '<C-]>',
+        accept_word = '<M-Right>',
+      },
+    },
+  },
+  {
     'github/copilot.vim',
+    enabled = false,
     config = function()
       vim.cmd('imap <silent><script><expr> <C-c> copilot#Accept("<CR>")')
       vim.keymap.set('n', '<leader>cp', ':Copilot<cr>', { desc = 'Open Copilot' })
@@ -11,6 +22,7 @@ return {
   },
   {
     'CopilotC-Nvim/CopilotChat.nvim',
+    enabled = false,
     branch = 'canary',
     dependencies = {
       { 'github/copilot.vim' }, -- or github/copilot.vim
