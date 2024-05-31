@@ -298,7 +298,7 @@ bindsym $mod+Shift+Return exec $browser
 bindsym $mod+backslash exec 1password --quick-access
 bindsym $mod+Shift+backslash exec 1password
 bindsym $mod+Shift+n exec nautilus
-bindsym $mod+Shift+e exec bemoji -t
+bindsym $mod+Shift+e exec bemoji -c -n && wtype -M ctrl -k v -m ctrl
 
 # notifications
 bindsym $mod+n exec dunstctl action
