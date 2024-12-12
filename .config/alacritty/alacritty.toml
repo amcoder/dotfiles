@@ -1,3 +1,4 @@
+[general]
 live_config_reload = true
 
 # Import configs. Later configs override earlier ones.
