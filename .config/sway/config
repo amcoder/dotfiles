@@ -24,6 +24,10 @@ set $browser google-chrome --ozone-platform=wayland
 set $menu wofi --show=drun | xargs swaymsg exec --
 set $run wofi --show=run | xargs swaymsg exec --
 
+# Output configuration
+set $samsung HDMI-A-1
+output $samsung mode 5120x1440
+
 # Colors
 include catppuccin.conf
 
