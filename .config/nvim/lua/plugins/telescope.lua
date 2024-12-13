@@ -24,7 +24,7 @@ return {
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     config = function()
-      local trouble = require('trouble.providers.telescope')
+      local trouble = require('trouble.sources.telescope')
 
       -- [[ Configure Telescope ]]
       -- See `:help telescope` and `:help telescope.setup()`
@@ -50,8 +50,8 @@ return {
             '!node_modules',
           },
           mappings = {
-            i = { ['<c-t>'] = trouble.open_with_trouble },
-            n = { ['<c-t>'] = trouble.open_with_trouble },
+            i = { ['<c-t>'] = trouble.open },
+            n = { ['<c-t>'] = trouble.open },
           },
         },
         pickers = {

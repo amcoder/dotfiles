@@ -183,7 +183,7 @@ return {
         docker_compose_language_service = {},
         rust_analyzer = {},
         gopls = {},
-        tsserver = {
+        ts_ls = {
           settings = {
             diagnostics = {
               ignoredCodes = { 6133 },
