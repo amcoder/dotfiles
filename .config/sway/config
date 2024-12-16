@@ -50,6 +50,9 @@ exec_always swayidle -w \
 seat * hide_cursor 5000
 seat * hide_cursor when-typing enable
 
+# Set the cursor theme
+seat * xcursor_theme Adwaita 24
+
 ### Input configuration
 input type:touchpad {
     dwt enabled
