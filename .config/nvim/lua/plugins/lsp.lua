@@ -20,7 +20,7 @@ return {
       },
 
       -- Extend omnisharp
-      'Hoffs/omnisharp-extended-lsp.nvim',
+      -- 'Hoffs/omnisharp-extended-lsp.nvim',
     },
     config = function()
       --  This function gets run when an LSP attaches to a particular buffer.
@@ -190,90 +190,92 @@ return {
             },
           },
         },
-        omnisharp = {
-          handlers = {
-            ['textDocument/publishDiagnostics'] = vim.lsp.with(function(err, result, ctx, config)
-              -- Remove duplicates
-              local hash = {}
-              local deduped = {}
-              for _, diagnostic in ipairs(result.diagnostics) do
-                local key = vim.inspect(diagnostic)
-                if not hash[key] then
-                  table.insert(deduped, diagnostic)
-                  hash[key] = true
-                end
-              end
-              result.diagnostics = deduped
-
-              -- Override severity
-              for i, diagnostic in ipairs(result.diagnostics) do
-                if config.diagnostics[diagnostic.code] then
-                  if config.diagnostics[diagnostic.code] == 0 then
-                    result.diagnostics[i] = nil
-                  else
-                    diagnostic.severity = config.diagnostics[diagnostic.code]
-                  end
-                end
-              end
-
-              -- Remove diagnostics that we don't care about
-              result.diagnostics = vim.tbl_filter(function(diagnostic)
-                return diagnostic ~= nil
-              end, result.diagnostics)
-
-              vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
-            end, {
-              -- Roslyn hidden analytics come in as hints, so make then a bit quieter.
-              underline = {
-                severity = { min = vim.diagnostic.severity.INFO },
-              },
-              virtual_text = {
-                severity = { min = vim.diagnostic.severity.INFO },
-              },
-              diagnostics = {
-                IDE0008 = 0,
-                IDE0046 = 0,
-                IDE0058 = 0,
-                IDE0160 = 0,
-                IDE0022 = 0,
-                RemoveUnnecessaryImportsFixable = 0,
-                CS8019 = vim.diagnostic.severity.WARN,
-              },
-            }),
-          },
-          settings = {
-            FormattingOptions = {
-              EnableEditorConfigSupport = true,
-              OrganizeImports = true,
-            },
-            RoslynExtensionsOptions = {
-              EnableAnalyzersSupport = true,
-              EnableImportCompletion = true,
-              EnableDecompilationSupport = true,
-            },
-            Sdk = {
-              -- Specifies whether to include preview versions of the .NET SDK when
-              -- determining which version to use for project loading.
-              IncludePrereleases = true,
-            },
-          },
-          keymaps = {
-            { 'gd', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition (omnisharp)' },
-            { '<C-]>', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition (omnisharp)' },
-            {
-              '<C-LeftMouse>',
-              "<LeftMouse><cmd>lua require('omnisharp_extended').telescope_lsp_definition()<CR>",
-              '[G]oto [D]efinition (omnisharp)',
-            },
-            { 'gr', require('omnisharp_extended').telescope_lsp_references, '[G]oto [R]eferences (omnisharp)' },
-            { 'gi', require('omnisharp_extended').telescope_lsp_implementation, '[G]oto [I]mplementation (omnisharp)' },
-            {
-              'gt',
-              require('omnisharp_extended').telescope_lsp_type_definition,
-              '[G]oto [T]ype Definition (omnisharp)',
-            },
-          },
-        },
+        -- omnisharp = {
+        --   handlers = {
+        --     ['textDocument/publishDiagnostics'] = vim.lsp.with(function(err, result, ctx, config)
+        --       -- Remove duplicates
+        --       local hash = {}
+        --       local deduped = {}
+        --       for _, diagnostic in ipairs(result.diagnostics) do
+        --         local key = vim.inspect(diagnostic)
+        --         if not hash[key] then
+        --           table.insert(deduped, diagnostic)
+        --           hash[key] = true
+        --         end
+        --       end
+        --       result.diagnostics = deduped
+        --
+        --       -- Override severity
+        --       for i, diagnostic in ipairs(result.diagnostics) do
+        --         if config.diagnostics[diagnostic.code] then
+        --           if config.diagnostics[diagnostic.code] == 0 then
+        --             result.diagnostics[i] = nil
+        --           else
+        --             diagnostic.severity = config.diagnostics[diagnostic.code]
+        --           end
+        --         end
+        --       end
+        --
+        --       -- Remove diagnostics that we don't care about
+        --       result.diagnostics = vim.tbl_filter(function(diagnostic)
+        --         return diagnostic ~= nil
+        --       end, result.diagnostics)
+        --
+        --       vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
+        --     end, {
+        --       -- Roslyn hidden analytics come in as hints, so make then a bit quieter.
+        --       underline = {
+        --         severity = { min = vim.diagnostic.severity.INFO },
+        --       },
+        --       virtual_text = {
+        --         severity = { min = vim.diagnostic.severity.INFO },
+        --       },
+        --       diagnostics = {
+        --         IDE0008 = 0,
+        --         IDE0046 = 0,
+        --         IDE0058 = 0,
+        --         IDE0160 = 0,
+        --         IDE0022 = 0,
+        --         RemoveUnnecessaryImportsFixable = 0,
+        --         CS8019 = vim.diagnostic.severity.WARN,
+        --       },
+        --     }),
+        --   },
+        --   settings = {
+        --     enable = false,
+        --     FormattingOptions = {
+        --       EnableEditorConfigSupport = true,
+        --       OrganizeImports = true,
+        --     },
+        --     RoslynExtensionsOptions = {
+        --       EnableAnalyzersSupport = true,
+        --       EnableImportCompletion = true,
+        --       EnableDecompilationSupport = true,
+        --     },
+        --     Sdk = {
+        --       -- Specifies whether to include preview versions of the .NET SDK when
+        --       -- determining which version to use for project loading.
+        --       IncludePrereleases = true,
+        --     },
+        --   },
+        --   enable = false,
+        --   keymaps = {
+        --     { 'gd', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition (omnisharp)' },
+        --     { '<C-]>', require('omnisharp_extended').telescope_lsp_definition, '[G]oto [D]efinition (omnisharp)' },
+        --     {
+        --       '<C-LeftMouse>',
+        --       "<LeftMouse><cmd>lua require('omnisharp_extended').telescope_lsp_definition()<CR>",
+        --       '[G]oto [D]efinition (omnisharp)',
+        --     },
+        --     { 'gr', require('omnisharp_extended').telescope_lsp_references, '[G]oto [R]eferences (omnisharp)' },
+        --     { 'gi', require('omnisharp_extended').telescope_lsp_implementation, '[G]oto [I]mplementation (omnisharp)' },
+        --     {
+        --       'gt',
+        --       require('omnisharp_extended').telescope_lsp_type_definition,
+        --       '[G]oto [T]ype Definition (omnisharp)',
+        --     },
+        --   },
+        -- },
         lua_ls = {
           settings = {
             Lua = {
@@ -313,7 +315,12 @@ return {
       --    :Mason
       --
       --  You can press `g?` for help in this menu
-      require('mason').setup()
+      require('mason').setup({
+        registries = {
+          'github:mason-org/mason-registry',
+          'github:crashdummyy/mason-registry',
+        },
+      })
 
       -- You can add other tools here that you want Mason to install
       -- for you, so that they are available from within Neovim.
@@ -336,6 +343,12 @@ return {
         },
       })
     end,
+  },
+
+  {
+    'seblj/roslyn.nvim',
+    ft = 'cs',
+    opts = {},
   },
 
   {

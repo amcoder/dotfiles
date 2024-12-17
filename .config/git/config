@@ -37,3 +37,5 @@
             | xargs git branch -D
 [includeIf "gitdir:~/projects/transact/"]
   path = ~/projects/transact/.gitconfig
+[credential]
+	helper = store
