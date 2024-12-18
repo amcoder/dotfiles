@@ -347,6 +347,9 @@ for_window {
     [app_id="org.kde.kdeconnect.handler"] floating enable
     [app_id="org.kde.kdeconnect.app"] floating enable
 
+    [app_id="nm-connection-editor"] floating enable
+    [app_id="nm-openconnect-auth-dialog"] floating enable
+
     [window_role="pop-up"] floating enable
     [window_role="bubble"] floating enable
     [window_role="dialog"] floating enable
