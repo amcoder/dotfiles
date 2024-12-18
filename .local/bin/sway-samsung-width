@@ -1,0 +1,17 @@
+#!/usr/bin/env zsh
+
+swaymsg -t get_outputs | jq -r '.[] | select(.name == "HDMI-A-1") | .current_mode | .width' | read -r width
+
+case $width in
+    5120)
+        width=2560
+        ;;
+    2560)
+        width=5120
+        ;;
+    default)
+        exit 0
+        ;;
+esac
+
+swaymsg output HDMI-A-1 mode "$width"x1440
