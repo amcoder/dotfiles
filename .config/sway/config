@@ -319,6 +319,9 @@ bindsym $mod+Shift+i [con_mark="no idle"] inhibit_idle none; [con_mark="no idle"
                 mark --toggle "no idle"; \
                 [con_mark="no idle"] inhibit_idle open; [con_mark="no idle"] border normal 2
 
+# Toggle title bar
+bindsym $mod+Shift+t exec sway-toggle-title
+
 # Window overrides
 for_window {
     [shell="xwayland"] title_format "[XW] %title"

@@ -1,0 +1,14 @@
+#!/usr/bin/env zsh
+
+swaymsg -t get_tree | jq -r '.. | select(.type?) | select(.focused==true) | .border' | read -r border
+
+case $border in
+    normal)
+        swaymsg border pixel
+        ;;
+    pixel)
+        swaymsg border normal
+        ;;
+esac
+
+
