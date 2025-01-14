@@ -363,6 +363,9 @@ for_window {
     [window_role="dialog"] floating enable
     [window_type="dialog"] floating enable
 
+    [title="^meeting bottombar popup$"] floating enable
+    [title="^menu window$"] floating enable
+
     [title="(?:Open|Save) (?:File|Folder|As)"] floating enable
     [title="^Select path to save file$"] floating enable
 }
