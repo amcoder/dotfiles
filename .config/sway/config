@@ -69,12 +69,12 @@ focus_follows_mouse no
 
 input type:keyboard {
     xkb_numlock enabled
-    xkb_options caps:ctrl_modifier
+    xkb_options caps:ctrl_modifier,compose:ralt
 }
 
 # settings for x1 keyboard
 input "1:1:AT_Translated_Set_2_keyboard" {
-    xkb_options caps:ctrl_modifier,altwin:swap_lalt_lwin
+    xkb_options caps:ctrl_modifier,altwin:swap_lalt_lwin,compose:ralt
 }
 
 # Autostart apps
