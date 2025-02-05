@@ -70,6 +70,17 @@ else
   export VISUAL=vi
 fi
 
+# Add kubeconfigs to KUBECONFIG
+while read -r p; do
+  [ -d "$p" ] && KUBECONFIG="$p:$KUBECONFIG"
+done <<EOF
+$HOME/.kube/config
+$HOME/.kube/homelab.config
+$HOME/.kube/lytx.config
+EOF
+
+export KUBECONFIG
+
 trap logout HUP
 
 [ -f "$HOME/.profile.local" ] && . "$HOME/.profile.local"
