@@ -46,6 +46,7 @@ $XDG_DATA_HOME/fzf/bin
 $XDG_DATA_HOME/go/bin
 $CARGO_HOME/bin
 $XDG_DATA_HOME/Rider/bin
+$XDG_DATA_HOME/DataGrip/bin
 EOF
 
 export PATH
