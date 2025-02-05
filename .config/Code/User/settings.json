@@ -183,5 +183,6 @@
   "window.commandCenter": false,
   "workbench.layoutControl.enabled": false,
   "workbench.editor.showTabs": "single",
-  "terminal.integrated.minimumContrastRatio": 1
+  "terminal.integrated.minimumContrastRatio": 1,
+  "workbench.startupEditor": "none"
 }
