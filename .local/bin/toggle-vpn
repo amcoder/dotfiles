@@ -1,0 +1,12 @@
+#!/usr/bin/env zsh
+
+vpn_connection_name="$1"
+
+if nmcli connection show --active "$vpn_connection_name" | grep connection.id > /dev/null; then
+    nmcli connection down "$vpn_connection_name" 
+    echo "VPN disconnected"
+else
+    nmcli connection up "$vpn_connection_name" 
+    echo "VPN connected"
+fi
+
