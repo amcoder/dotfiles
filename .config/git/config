@@ -2,12 +2,23 @@
 [user]
   name = Andy Miller
   email = amcoder@gmail.com
+  signingKey = key::ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGlIeKjQcBbi9h02L2WfY3NXzr5FdauWvI4iq2Va0Xwi
+[credential]
+  helper = store
+[gpg]
+  format = ssh
+[gpg.ssh]
+  allowedSignersFile = ~/.ssh/allowed_signers
 [core]
   autocrlf = false
   fsmonitor = true
   untrackedcache = true
 [init]
   defaultBranch = main
+[commit]
+  gpgSign = true
+[tag]
+  gpgSign = true
 [pull]
   rebase = true
 [push]
