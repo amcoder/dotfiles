@@ -6,8 +6,8 @@
 # 5 years
 
 #-- begin of user configuration
-backup_server=beedle.local
-backup_user=amcoder
+backup_server=beedle-back
+backup_user=backup
 user=$(whoami)
 sourcedir=/home/$user/
 targetdir=/volume1/backup/$(hostname)/$user
@@ -18,7 +18,7 @@ num=$2
 
 timestamp=`date "+%Y-%m-%dT%H-%M-%S"`
 
-tempfile=$targetdir/$INTERVAL-tmp-$timestamp
+tempfile=$targetdir/$interval-tmp-$timestamp
 
 # Create new backup using rsync and output to log
 rsync -avzPh --delete --delete-excluded -e ssh \
