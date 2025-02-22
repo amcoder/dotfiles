@@ -35,7 +35,5 @@
         && git for-each-ref --format '%(refname:strip=2) %(upstream:track)' refs/heads \
             | awk '$2 == \"[gone]\" { print $1 }' \
             | xargs git branch -D
-[includeIf "gitdir:~/projects/transact/"]
-  path = ~/projects/transact/.gitconfig
-[credential]
-	helper = store
+[includeIf "gitdir:~/projects/lytx/"]
+  path = ~/projects/lytx/.gitconfig
