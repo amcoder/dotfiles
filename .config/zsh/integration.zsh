@@ -40,3 +40,8 @@ fi
 if command -v direnv &> /dev/null; then
   eval "$(direnv hook zsh)"
 fi
+
+# flux
+if command -v flux &> /dev/null; then
+  eval "$(flux completion zsh)"
+fi
