@@ -27,6 +27,12 @@ rsync -avzPh --delete --delete-excluded -e ssh \
   $sourcedir \
   $backup_user@$backup_server:$tempfile
 
+code=$?
+if [ "$code" != 0 ]; then
+  printf "rsync failed with code $code\n"
+  exit $code
+fi
+
 # check exit status to see if backup failed
 if [ "$?" = 0 ]; then
   # Rotate backups
