@@ -19,9 +19,9 @@
 
     ### Geometry ###
     width = 400
-    height = 200
+    height = (100, 200)
     origin = bottom-right
-    offset = 24x24
+    offset = (24, 24)
     scale = 0
 
     # Maximum number of notification (0 means no limit)
@@ -215,8 +215,6 @@
     # Scale larger icons down to this size, set to 0 to disable
     max_icon_size = 48
 
-    icon_size = 48
-
     # Paths to default icons.
     # icon_path = /usr/share/icons/Papirus-Dark/48x48/status/:/usr/share/icons/48x48/16x16/devices/
     icon_theme = Papirus-Dark
@@ -317,7 +315,6 @@
     # using the resolution and physical size. This might be useful in setups
     # where there are multiple screens with very different dpi values.
     per_monitor_dpi = false
-    enable_recursive_icon_lookup = true
 
 [urgency_low]
     background = "#24273a"
