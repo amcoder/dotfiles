@@ -65,7 +65,7 @@ return {
     -- See `:help lualine.txt`
     opts = {
       options = {
-        theme = 'catppuccin',
+        -- theme = 'catppuccin',
         component_separators = { left = '', right = '' },
         section_separators = { left = '', right = '' },
         ignore_focus = {
