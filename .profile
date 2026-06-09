@@ -47,6 +47,7 @@ $XDG_DATA_HOME/go/bin
 $CARGO_HOME/bin
 $XDG_DATA_HOME/Rider/bin
 $XDG_DATA_HOME/DataGrip/bin
+/opt/nvim-linux-x86_64/bin
 EOF
 
 export PATH
