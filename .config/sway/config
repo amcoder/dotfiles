@@ -38,8 +38,7 @@ bindswitch --reload --locked lid:off output $laptop enable
 exec_always ~/bin/sway-laptop-lid
 
 ### Idle configuration
-exec_always killall swayidle
-exec_always swayidle -w \
+exec_always killall swayidle; swayidle -w \
         idlehint 120 \
         lock 'swaylock -f' \
         timeout 300 'loginctl lock-session' \
