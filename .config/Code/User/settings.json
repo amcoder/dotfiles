@@ -162,19 +162,19 @@
   "githubPullRequests.queries": [
     {
       "label": "Waiting For My Review",
-      "query": "is:open review-requested:${user}"
+      "query": "repo:${owner}/${repository} is:open review-requested:${user}"
     },
     {
       "label": "Assigned To Me",
-      "query": "is:open assignee:${user}"
+      "query": "repo:${owner}/${repository} is:open assignee:${user}"
     },
     {
       "label": "Created By Me",
-      "query": "is:open author:${user}"
+      "query": "repo:${owner}/${repository} is:open author:${user}"
     },
     {
       "label": "App Infrastructure",
-      "query": "is:open author:amcoder author:therealparmesh author:tylermmorton author:ericskwon-fs author:Christian0411"
+      "query": "repo:${owner}/${repository} is:open author:amcoder author:therealparmesh author:tylermmorton author:ericskwon-fs author:Christian0411"
     }
   ],
   "diffEditor.renderSideBySide": false,
@@ -184,5 +184,30 @@
   "workbench.layoutControl.enabled": false,
   "workbench.editor.showTabs": "single",
   "terminal.integrated.minimumContrastRatio": 1,
-  "workbench.startupEditor": "none"
+  "workbench.startupEditor": "none",
+  "mssql.connectionGroups": [
+    {
+      "name": "ROOT",
+      "id": "ROOT"
+    }
+  ],
+  "mssql.connections": [
+    {
+      "authenticationType": "SqlLogin",
+      "connectTimeout": 30,
+      "applicationName": "vscode-mssql",
+      "applicationIntent": "ReadWrite",
+      "server": ".",
+      "database": "",
+      "user": "sgvadmin",
+      "password": "",
+      "commandTimeout": 30,
+      "encrypt": "Mandatory",
+      "groupId": "ROOT",
+      "profileName": "local",
+      "savePassword": true,
+      "trustServerCertificate": true,
+      "id": "bf1ed828-5eeb-4981-a0be-8d74bde402ae"
+    }
+  ]
 }
