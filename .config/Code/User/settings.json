@@ -161,6 +161,10 @@
 
   "githubPullRequests.queries": [
     {
+      "label": "Local Pull Request Branches",
+      "query": "default"
+    },
+    {
       "label": "Waiting For My Review",
       "query": "repo:${owner}/${repository} is:open review-requested:${user}"
     },
@@ -175,6 +179,10 @@
     {
       "label": "App Infrastructure",
       "query": "repo:${owner}/${repository} is:open author:amcoder author:therealparmesh author:tylermmorton author:ericskwon-fs author:Christian0411"
+    },
+    {
+      "label": "All Open",
+      "query": "default"
     }
   ],
   "diffEditor.renderSideBySide": false,
