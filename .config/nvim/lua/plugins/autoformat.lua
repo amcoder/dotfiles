@@ -32,14 +32,14 @@ return {
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        typescript = { { 'prettierd', 'prettier' } },
-        typescriptreact = { { 'prettierd', 'prettier' } },
-        javascript = { { 'prettierd', 'prettier' } },
-        javascriptreact = { { 'prettierd', 'prettier' } },
-        json = { { 'prettierd', 'prettier' } },
-        css = { { 'prettierd', 'prettier' } },
-        yaml = { { 'prettierd', 'prettier' } },
-        markdown = { { 'prettierd', 'prettier' } },
+        typescript = { 'prettierd', 'prettier', stop_after_firest = true },
+        typescriptreact = { 'prettierd', 'prettier', stop_after_firest = true },
+        javascript = { 'prettierd', 'prettier', stop_after_firest = true },
+        javascriptreact = { 'prettierd', 'prettier', stop_after_firest = true },
+        json = { 'prettierd', 'prettier', stop_after_firest = true },
+        css = { 'prettierd', 'prettier', stop_after_firest = true },
+        yaml = { 'prettierd', 'prettier', stop_after_firest = true },
+        markdown = { 'prettierd', 'prettier', stop_after_firest = true },
       },
       formatters = {
         jq = {
