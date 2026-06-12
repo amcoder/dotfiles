@@ -1,0 +1,7 @@
+{
+    "closeAppOnCross": true,
+    "trayIconEnabled": true,
+    "idleDetection": {
+        "forceState": true
+    }
+}
