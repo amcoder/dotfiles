@@ -63,15 +63,15 @@ export MANPATH
 export PAGER=less
 export MANPAGER=less
 if command -v nvim > /dev/null; then
-  export EDITOR=nvim
-  export VISUAL=nvim
+  export EDITOR=$(command -v nvim)
+  export VISUAL=$(command -v nvim)
   export MANPAGER='nvim +Man!'
 elif command -v vim > /dev/null; then
-  export EDITOR=vim
-  export VISUAL=vim
+  export EDITOR=$(command -v vim)
+  export VISUAL=$(command -v vim)
 else
-  export EDITOR=vi
-  export VISUAL=vi
+  export EDITOR=$(command -v vi)
+  export VISUAL=$(command -v vi)
 fi
 
 # Add kubeconfigs to KUBECONFIG
