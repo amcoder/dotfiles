@@ -52,9 +52,12 @@ $XDG_DATA_HOME/DataGrip/bin
 EOF
 export PATH
 
-[ -z "$MANPATH" ] && MANPATH=$(manpath)
-[ -d "$HOME/.local/share/man" ] && MANPATH="$HOME/.local/share/man:$MANPATH"
-[ -d "$HOME/.local/man" ] && MANPATH="$HOME/.local/man:$MANPATH"
+while read -r p; do
+  [ -d "$p" ] && MANPATH="$p:$MANPATH"
+done <<EOF
+$HOME/.local/share/man
+$HOME/.local/man
+EOF
 export MANPATH
 
 export PAGER=less
