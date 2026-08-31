@@ -76,6 +76,16 @@ input "1:1:AT_Translated_Set_2_keyboard" {
     xkb_options caps:ctrl_modifier,altwin:swap_lalt_lwin,compose:ralt
 }
 
+# Status bar
+exec_always killall quickshell; quickshell
+
+# The quickshell bar hides itself and watches for these bindings to know when
+# $mod is held. See .config/quickshell/BarVisibility.qml.
+bindsym --no-repeat Super_L nop bar reveal
+bindsym --no-repeat Super_R nop bar reveal
+bindsym --release Super_L nop bar conceal
+bindsym --release Super_R nop bar conceal
+
 # Autostart apps
 exec pasystray
 exec nm-applet
@@ -377,33 +387,3 @@ smart_borders on
 smart_gaps on
 gaps inner 0
 gaps outer 0
-
-# Status Bar:
-bar {
-    font pango:FontAwesome, Cantarell 20px
-    pango_markup enabled
-
-    mode hide
-    position bottom
-
-    strip_workspace_numbers yes
-    workspace_min_width 50
-
-    status_edge_padding 100
-    tray_padding 2
-    icon_theme Papirus-Dark
-
-    status_command i3blocks
-
-    colors {
-        background $bar_background
-        statusline $bar_statusline
-        separator  $bar_separator
-
-        focused_workspace  $bar_focused_workspace
-        active_workspace   $bar_active_workspace
-        inactive_workspace $bar_inactive_workspace
-        urgent_workspace   $bar_urgent_workspace
-        binding_mode       $bar_binding_mode
-    }
-}

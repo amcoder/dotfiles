@@ -1,0 +1,50 @@
+import QtQuick
+import Quickshell
+import Quickshell.Services.SystemTray
+import Quickshell.Widgets
+
+Row {
+    id: root
+
+    required property var window
+
+    spacing: 8
+
+    Repeater {
+        model: SystemTray.items
+
+        MouseArea {
+            id: item
+
+            required property SystemTrayItem modelData
+
+            implicitWidth: Theme.trayIconSize
+            height: root.height
+            acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+
+            onClicked: event => {
+                if (event.button === Qt.MiddleButton) {
+                    item.modelData.secondaryActivate();
+                } else if (event.button === Qt.RightButton || item.modelData.onlyMenu) {
+                    const pos = item.mapToItem(null, 0, 0);
+                    item.modelData.display(root.window, pos.x, pos.y);
+                } else {
+                    item.modelData.activate();
+                }
+            }
+
+            onWheel: event => {
+                if (event.angleDelta.y !== 0)
+                    item.modelData.scroll(event.angleDelta.y, false);
+                if (event.angleDelta.x !== 0)
+                    item.modelData.scroll(event.angleDelta.x, true);
+            }
+
+            IconImage {
+                anchors.centerIn: parent
+                implicitSize: Theme.trayIconSize
+                source: item.modelData.icon
+            }
+        }
+    }
+}
