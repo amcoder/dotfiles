@@ -17,7 +17,8 @@ How do I make these configurable?
 - GTK: .config/gtk-{3,4}.0
   - .themes
   - Gradience?
-- QT: .config/qt5ct
+- QT/KDE: .config/kdeglobals
+  - .config/qt5ct (Qt5 apps only, needs `QT_QPA_PLATFORMTHEME=qt5ct`)
 - Sway: .config/sway (colors)
   - .config/sway/wallpaper
 - Terminal: .config/alacritty/colors.yml
