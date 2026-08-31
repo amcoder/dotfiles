@@ -18,7 +18,7 @@ PanelWindow {
     anchors.bottom: true
     anchors.left: true
     anchors.right: true
-    implicitHeight: 31
+    implicitHeight: 31 + Theme.barBorderWidth
     exclusionMode: ExclusionMode.Ignore
 
     // The idle inhibitor only counts while its surface is mapped, so hiding
@@ -34,9 +34,20 @@ PanelWindow {
         anchors.fill: parent
         visible: bar.shown
 
+        Rectangle {
+            id: topBorder
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            height: Theme.barBorderWidth
+
+            color: Theme.barBorder
+        }
+
         Workspaces {
             anchors.left: parent.left
-            anchors.top: parent.top
+            anchors.top: topBorder.bottom
             anchors.bottom: parent.bottom
             anchors.leftMargin: 4
             anchors.topMargin: 3
@@ -47,7 +58,7 @@ PanelWindow {
 
         Row {
             anchors.right: parent.right
-            anchors.top: parent.top
+            anchors.top: topBorder.bottom
             anchors.bottom: parent.bottom
             anchors.rightMargin: 8
 
