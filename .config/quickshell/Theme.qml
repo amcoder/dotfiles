@@ -36,6 +36,13 @@ Singleton {
     readonly property color barStatusline: text
     readonly property color barSeparator: blue
 
+    readonly property color popupBackground: mantle
+    readonly property color popupBorder: surface1
+    readonly property color popupText: text
+    readonly property color popupSubtext: subtext0
+    readonly property color popupHover: surface0
+    readonly property color popupSelection: surface1
+
     readonly property string fontFamily: "Cantarell"
     readonly property int fontSize: 20
     readonly property int smallFontSize: 15
