@@ -2,6 +2,8 @@
 import Quickshell
 
 ShellRoot {
+    Polkit {}
+
     Variants {
         model: Quickshell.screens
 

@@ -87,9 +87,6 @@ exec 1password --silent
 exec kdeconnect-indicator
 exec calibre --start-in-tray
 
-# Polkit agent for admin auth dialogs. The gnome one is broken, but we should check if it's fixed.
-exec /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1
-
 # Kill focused window
 bindsym $mod+Shift+q kill
 
@@ -349,7 +346,6 @@ for_window {
     [app_id="blueman-services"] floating enable
     [app_id="blueman-sendto"] floating enable
 
-    [app_id="org.kde.polkit-kde-authentication-agent-1"] floating enable
     [app_id="org.kde.kdeconnect-settings"] floating enable
     [app_id="org.kde.kdeconnect-indicator"] floating enable
     [app_id="org.kde.kdeconnect.handler"] floating enable

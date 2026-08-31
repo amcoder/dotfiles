@@ -43,9 +43,12 @@ Singleton {
     readonly property color popupHover: surface0
     readonly property color popupSelection: surface1
 
+    readonly property color overlayScrim: Qt.rgba(crust.r, crust.g, crust.b, 0.65)
+
     readonly property string fontFamily: "Cantarell"
     readonly property int fontSize: 20
     readonly property int smallFontSize: 15
+    readonly property int headingFontSize: 28
     readonly property int iconSize: 25
     readonly property int trayIconSize: 25
 }
