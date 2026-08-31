@@ -39,9 +39,8 @@ Singleton {
     readonly property int barBorderWidth: 2
 
     readonly property string fontFamily: "Cantarell"
-    readonly property string iconFontFamily: "SauceCodePro Nerd Font"
     readonly property int fontSize: 20
     readonly property int smallFontSize: 15
-    readonly property int iconSize: 20
+    readonly property int iconSize: 25
     readonly property int trayIconSize: 25
 }

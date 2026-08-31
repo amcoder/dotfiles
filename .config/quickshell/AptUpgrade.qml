@@ -39,12 +39,10 @@ MouseArea {
         anchors.centerIn: parent
         spacing: 6
 
-        Text {
+        Icon {
             anchors.verticalCenter: parent.verticalCenter
-            text: "󰏕"
+            name: "package"
             color: Theme.barStatusline
-            font.family: Theme.iconFontFamily
-            font.pixelSize: Theme.iconSize
         }
 
         Text {

@@ -8,13 +8,11 @@ MouseArea {
 
     onClicked: InsomniaService.cycle()
 
-    Text {
+    Icon {
         id: label
 
         anchors.centerIn: parent
-        text: InsomniaService.mode.icon
+        name: InsomniaService.mode.icon
         color: InsomniaService.mode.color
-        font.family: Theme.iconFontFamily
-        font.pixelSize: Theme.iconSize
     }
 }

@@ -9,19 +9,19 @@ Singleton {
 
     readonly property var modes: [
         {
-            icon: "",
+            icon: "moon",
             color: Theme.surface1,
             inhibitSleep: false,
             inhibitIdle: false
         },
         {
-            icon: "",
+            icon: "eye",
             color: Theme.yellow,
             inhibitSleep: true,
             inhibitIdle: false
         },
         {
-            icon: "",
+            icon: "sun",
             color: Theme.peach,
             inhibitSleep: true,
             inhibitIdle: true

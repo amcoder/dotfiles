@@ -55,12 +55,10 @@ MouseArea {
         anchors.centerIn: parent
         spacing: 6
 
-        Text {
+        Icon {
             anchors.verticalCenter: parent.verticalCenter
-            text: root.paused ? "" : ""
+            name: root.paused ? "bell-slash" : "bell"
             color: root.paused ? Theme.yellow : Theme.barStatusline
-            font.family: Theme.iconFontFamily
-            font.pixelSize: Theme.iconSize
         }
 
         Text {

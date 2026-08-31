@@ -33,13 +33,11 @@ MouseArea {
         onTriggered: check.running = true
     }
 
-    Text {
+    Icon {
         id: label
 
         anchors.centerIn: parent
-        text: ""
+        name: "envelope"
         color: Theme.barStatusline
-        font.family: Theme.iconFontFamily
-        font.pixelSize: Theme.iconSize
     }
 }

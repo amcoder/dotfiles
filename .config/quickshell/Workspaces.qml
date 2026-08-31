@@ -11,9 +11,9 @@ Row {
 
     spacing: 4
 
-    // Sway workspace names look like "3: 3 <span foreground='#eed49f'> </span>":
+    // Sway workspace names look like "3: 3 <span foreground='#eed49f'>terminal-window</span>":
     // the leading "N:" is the sort key sway strips from the bar, the rest is the
-    // label followed by a pango-coloured icon.
+    // label followed by a coloured span naming an icon in icons/.
     function parseName(name) {
         const stripped = name.replace(/^\s*\d+\s*:\s*/, "");
         const span = /<span[^>]*foreground='([^']*)'[^>]*>(.*?)<\/span>/.exec(stripped);
@@ -76,13 +76,11 @@ Row {
                     font.pixelSize: Theme.fontSize
                 }
 
-                Text {
+                Icon {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: item.parsed.icon !== ""
-                    text: item.parsed.icon
+                    name: item.parsed.icon
                     color: item.modelData.urgent ? Theme.base : item.parsed.iconColor
-                    font.family: Theme.iconFontFamily
-                    font.pixelSize: Theme.iconSize
                 }
             }
 

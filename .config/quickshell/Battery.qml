@@ -28,33 +28,33 @@ Row {
 
     function deviceIcon(device: UPowerDevice): string {
         if (device.isLaptopBattery)
-            return "";
+            return "laptop";
 
         switch (device.type) {
         case UPowerDeviceType.Mouse:
-            return "";
+            return "mouse";
         case UPowerDeviceType.Keyboard:
-            return "";
+            return "keyboard";
         case UPowerDeviceType.Headset:
         case UPowerDeviceType.Headphones:
-            return "";
+            return "headphones";
         case UPowerDeviceType.Phone:
-            return "";
+            return "device-mobile";
         default:
-            return "?";
+            return "question";
         }
     }
 
     function chargeIcon(percent: int): string {
         if (percent >= 90)
-            return "";
+            return "battery-full";
         if (percent >= 65)
-            return "";
+            return "battery-high";
         if (percent >= 40)
-            return "";
+            return "battery-medium";
         if (percent >= 15)
-            return "";
-        return "";
+            return "battery-low";
+        return "battery-empty";
     }
 
     function chargeColor(percent: int): color {
@@ -103,26 +103,20 @@ Row {
                 anchors.centerIn: parent
                 spacing: 6
 
-                Text {
-                    text: root.deviceIcon(entry.modelData)
+                Icon {
+                    name: root.deviceIcon(entry.modelData)
                     color: Theme.barStatusline
-                    font.family: Theme.iconFontFamily
-                    font.pixelSize: Theme.iconSize
                 }
 
-                Text {
+                Icon {
                     visible: entry.charging
-                    text: ""
+                    name: "lightning"
                     color: Theme.barStatusline
-                    font.family: Theme.iconFontFamily
-                    font.pixelSize: Theme.iconSize
                 }
 
-                Text {
-                    text: root.chargeIcon(entry.percent)
+                Icon {
+                    name: root.chargeIcon(entry.percent)
                     color: root.chargeColor(entry.percent)
-                    font.family: Theme.iconFontFamily
-                    font.pixelSize: Theme.iconSize
                 }
 
                 Text {
