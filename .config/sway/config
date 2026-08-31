@@ -79,13 +79,6 @@ input "1:1:AT_Translated_Set_2_keyboard" {
 # Status bar
 exec_always killall quickshell; quickshell
 
-# The quickshell bar hides itself and watches for these bindings to know when
-# $mod is held. See .config/quickshell/BarVisibility.qml.
-bindsym --no-repeat Super_L nop bar reveal
-bindsym --no-repeat Super_R nop bar reveal
-bindsym --release Super_L nop bar conceal
-bindsym --release Super_R nop bar conceal
-
 # Autostart apps
 exec pasystray
 exec nm-applet

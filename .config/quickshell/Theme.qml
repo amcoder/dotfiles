@@ -35,8 +35,6 @@ Singleton {
     readonly property color barBackground: base
     readonly property color barStatusline: text
     readonly property color barSeparator: blue
-    readonly property color barBorder: blue
-    readonly property int barBorderWidth: 2
 
     readonly property string fontFamily: "Cantarell"
     readonly property int fontSize: 20
