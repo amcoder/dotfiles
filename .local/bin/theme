@@ -17,12 +17,20 @@ import sys
 HOME = os.path.expanduser("~")
 CONFIG = os.environ.get("XDG_CONFIG_HOME") or os.path.join(HOME, ".config")
 CACHE = os.environ.get("XDG_CACHE_HOME") or os.path.join(HOME, ".cache")
+DATA = os.environ.get("XDG_DATA_HOME") or os.path.join(HOME, ".local", "share")
 STATE = os.path.join(
     os.environ.get("XDG_STATE_HOME") or os.path.join(HOME, ".local", "state"), "theme"
 )
 CURRENT_FILE = os.path.join(STATE, "current")
 MANIFEST_FILE = os.path.join(STATE, "generated")
 DEFAULT_THEME = "catppuccin-macchiato"
+
+# GTK3 loads ~/.config/gtk-3.0/gtk.css once at startup and never again, so the
+# palette rides in a generated GTK theme instead: that one GTK re-reads from
+# disk whenever the theme name is set, which is what lets a running app --
+# Chrome above all -- repaint on a theme switch.
+GTK3_THEME_NAME = "dotfiles"
+GTK3_THEME_DIR = os.path.join(DATA, "themes", GTK3_THEME_NAME)
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 THEMES_DIR = os.path.join(REPO, "themes")
@@ -86,14 +94,22 @@ def is_dark(theme):
     return theme.get("appearance", "dark") != "light"
 
 
-def gtk_theme_installed(name):
-    data_home = os.environ.get("XDG_DATA_HOME") or os.path.join(HOME, ".local", "share")
+def gtk_theme_dir(name):
+    """Where GTK would find the named theme, or None if it is not installed."""
     roots = [
         os.path.join(HOME, ".themes"),
-        os.path.join(data_home, "themes"),
+        os.path.join(DATA, "themes"),
         "/usr/share/themes",
     ]
-    return any(os.path.isdir(os.path.join(root, name)) for root in roots)
+    for root in roots:
+        path = os.path.join(root, name)
+        if os.path.isdir(path):
+            return path
+    return None
+
+
+def gtk_theme_installed(name):
+    return gtk_theme_dir(name) is not None
 
 
 def rgb(hex_color):
@@ -147,6 +163,7 @@ def substitutions(theme):
             subs.setdefault(key, value)
 
     subs["prefersDark"] = "1" if is_dark(theme) else "0"
+    subs["gtkThemeName"] = GTK3_THEME_NAME
 
     return subs
 
@@ -201,6 +218,34 @@ def swatch(theme):
     return [colors[role] for role in theme["accents"][:5]]
 
 
+def gtk3_base_url(theme, variant):
+    """URL of the stylesheet the generated GTK theme builds its palette on."""
+    base = gtk_theme_dir(theme.get("gtkTheme", "adw-gtk3-dark"))
+    if base:
+        for candidate in (variant, "gtk.css"):
+            path = os.path.join(base, "gtk-3.0", candidate)
+            if os.path.isfile(path):
+                return f"file://{path}"
+
+    builtin = "gtk-contained-dark.css" if is_dark(theme) else "gtk-contained.css"
+    return f"resource:///org/gtk/libgtk/theme/Adwaita/{builtin}"
+
+
+def write_gtk3_theme(theme, palette):
+    """Generate the GTK theme: the base theme's rules, then our colours.
+
+    A @define-color after the @import wins, and the theme provider sits below
+    ~/.config/gtk-3.0/gtk.css in the cascade -- so that file must not also
+    carry the palette, or a stale copy of it would mask this one.
+    """
+    written = []
+    for variant in ("gtk.css", "gtk-dark.css"):
+        path = os.path.join(GTK3_THEME_DIR, "gtk-3.0", variant)
+        write(path, f'@import url("{gtk3_base_url(theme, variant)}");\n' + palette)
+        written.append(path)
+    return written
+
+
 def generate(theme):
     subs = substitutions(theme)
     written = []
@@ -212,9 +257,11 @@ def generate(theme):
 
     gtk = render(os.path.join(TEMPLATES_DIR, "gtk.css.tmpl"), subs)
     gtk4_extra = render(os.path.join(TEMPLATES_DIR, "gtk4-extra.css.tmpl"), subs)
+    written += write_gtk3_theme(theme, gtk)
+
+    # libadwaita ignores GTK themes entirely and reads only this file, so GTK4
+    # keeps its palette in ~/.config -- and keeps needing an app restart.
     for destination, content in (
-        ("gtk-3.0/gtk.css", gtk),
-        ("gtk-3.0/gtk-dark.css", gtk),
         ("gtk-4.0/gtk.css", gtk + gtk4_extra),
         ("gtk-4.0/gtk-dark.css", gtk + gtk4_extra),
     ):
@@ -338,22 +385,54 @@ def apply_appearance(theme):
     run(interface + ["color-scheme", "prefer-dark" if dark else "prefer-light"])
     run(interface + ["icon-theme", theme.get("iconTheme", "Papirus-Dark")])
 
-    # GTK re-reads gtk.css only when the theme name changes, so bounce it --
-    # via a theme of the same appearance, so an interrupted run can never leave
-    # the desktop in the opposite mode.
-    gtk_theme = theme.get("gtkTheme", "adw-gtk3-dark")
+    # The generated theme's name never changes, so setting it again is a no-op
+    # that GTK never hears about; bounce through another theme to make every
+    # running app re-read it. The detour is via a theme of the same appearance,
+    # so an interrupted run can never leave the desktop in the opposite mode.
+    base = theme.get("gtkTheme", "adw-gtk3-dark")
 
-    # A name GTK cannot resolve falls back to plain Adwaita, which is light --
-    # silently dragging every app that follows the system preference with it.
-    if not gtk_theme_installed(gtk_theme):
+    # Without the base theme the generated one is a palette with no widget
+    # rules, and GTK falls back to its built-in Adwaita.
+    if not gtk_theme_installed(base):
         print(
-            f"theme: GTK theme '{gtk_theme}' is not installed; GTK will fall back "
-            "to Adwaita (light)",
+            f"theme: GTK theme '{base}' is not installed; the generated theme "
+            "will fall back to GTK's built-in Adwaita",
             file=sys.stderr,
         )
 
     run(interface + ["gtk-theme", "Adwaita-dark" if dark else "Adwaita"])
-    run(interface + ["gtk-theme", gtk_theme])
+    run(interface + ["gtk-theme", GTK3_THEME_NAME])
+
+
+def notify_kde():
+    """Tell running Qt/KDE apps to re-read the kdeglobals we just wrote.
+
+    plasma-integration's platform theme repaints on the legacy
+    KGlobalSettings signal; kconfig's own ConfigChanged alone does nothing.
+    `plasma-apply-colorscheme` sends both, and so do we -- 0, 2 and 4 are
+    PaletteChanged, StyleChanged and IconChanged.
+    """
+    if not have("gdbus"):
+        return
+
+    run(
+        [
+            "gdbus", "emit", "--session",
+            "--object-path", "/kdeglobals",
+            "--signal", "org.kde.kconfig.notify.ConfigChanged",
+            "{'General': [b'ColorScheme'], 'KDE': [b'widgetStyle'],"
+            " 'Icons': [b'Theme']}",
+        ]
+    )
+    for change in (0, 2, 4):
+        run(
+            [
+                "gdbus", "emit", "--session",
+                "--object-path", "/KGlobalSettings",
+                "--signal", "org.kde.KGlobalSettings.notifyChange",
+                str(change), "0",
+            ]
+        )
 
 
 def reload_tmux():
@@ -379,6 +458,7 @@ def reload_all(theme):
     if have("dunstctl"):
         run(["dunstctl", "reload"])
 
+    notify_kde()
     clear_p10k_instant_prompt()
     reload_tmux()
     rename_workspaces(theme)
@@ -390,7 +470,7 @@ def reload_all(theme):
                 "-a",
                 "theme",
                 f"Theme: {theme.get('label', theme['name'])}",
-                "Qt/KDE apps and Neovim pick this up on restart.",
+                "Neovim picks this up on restart.",
             ]
         )
 
