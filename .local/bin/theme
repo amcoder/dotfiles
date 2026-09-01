@@ -16,6 +16,7 @@ import sys
 
 HOME = os.path.expanduser("~")
 CONFIG = os.environ.get("XDG_CONFIG_HOME") or os.path.join(HOME, ".config")
+CACHE = os.environ.get("XDG_CACHE_HOME") or os.path.join(HOME, ".cache")
 STATE = os.path.join(
     os.environ.get("XDG_STATE_HOME") or os.path.join(HOME, ".local", "state"), "theme"
 )
@@ -364,10 +365,21 @@ def reload_tmux():
     run(["tmux", "source-file", os.path.join(CONFIG, "tmux", "tmux.conf")])
 
 
+def clear_p10k_instant_prompt():
+    """Drop powerlevel10k's prompt snapshot; it bakes in the old palette.
+
+    Powerlevel10k regenerates it on the next shell start.
+    """
+    for name in os.listdir(CACHE):
+        if name.startswith("p10k-instant-prompt-") and name.endswith(".zsh"):
+            os.unlink(os.path.join(CACHE, name))
+
+
 def reload_all(theme):
     if have("dunstctl"):
         run(["dunstctl", "reload"])
 
+    clear_p10k_instant_prompt()
     reload_tmux()
     rename_workspaces(theme)
 
@@ -378,7 +390,7 @@ def reload_all(theme):
                 "-a",
                 "theme",
                 f"Theme: {theme.get('label', theme['name'])}",
-                "Qt/KDE apps, Neovim and open shells pick this up on restart.",
+                "Qt/KDE apps and Neovim pick this up on restart.",
             ]
         )
 

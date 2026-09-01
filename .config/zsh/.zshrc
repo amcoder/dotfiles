@@ -21,7 +21,24 @@ ZSH_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/zsh"
 [ -d "$ZSH_STATE_DIR" ] || mkdir -p "$ZSH_STATE_DIR"
 
 # Colors, written by `theme apply`. Must load before p10k.zsh and integration.zsh.
-[[ ! -f "$ZDOTDIR/theme.zsh" ]] || source "$ZDOTDIR/theme.zsh"
+zmodload -F zsh/stat b:zstat
+THEME_FILE="$ZDOTDIR/theme.zsh"
+THEME_MTIME=
+
+# Re-source theme.zsh and everything derived from it when `theme apply` rewrites
+# it, so a theme switch reaches shells that are already running.
+theme-reload() {
+  local -a stat
+  zstat -A stat +mtime "$THEME_FILE" 2>/dev/null || return
+  [[ $stat[1] == $THEME_MTIME ]] && return
+  local -i initial=${${THEME_MTIME:+0}:-1}
+  THEME_MTIME=$stat[1]
+  source "$THEME_FILE"
+  (( initial )) && return
+  [[ -z $FZF_DEFAULT_OPTS ]] || export FZF_DEFAULT_OPTS="$THEME_FZF_COLORS"
+  [[ ! -f $P10K_CONFIG ]] || source "$P10K_CONFIG"
+}
+theme-reload
 
 # Setup zinit
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
@@ -50,10 +67,11 @@ zinit cdreplay -q
 
 # Powerlevel10k
 if [ $TERM = "linux" ]; then
-  [[ ! -f "$ZDOTDIR/p10k.pure.zsh" ]] || source "$ZDOTDIR/p10k.pure.zsh"
+  P10K_CONFIG="$ZDOTDIR/p10k.pure.zsh"
 else
-  [[ ! -f "$ZDOTDIR/p10k.zsh" ]] || source "$ZDOTDIR/p10k.zsh"
+  P10K_CONFIG="$ZDOTDIR/p10k.zsh"
 fi
+[[ ! -f "$P10K_CONFIG" ]] || source "$P10K_CONFIG"
 
 # History
 HISTSIZE=100000
@@ -107,5 +125,8 @@ source "$ZDOTDIR/integration.zsh"
 source "$ZDOTDIR/nvm.zsh"
 source "$ZDOTDIR/dot.zsh"
 source "$ZDOTDIR/aliases.zsh"
+
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd theme-reload
 
 [ -f "$ZDOTDIR/.zshrc.local" ] && source "$ZDOTDIR/.zshrc.local" || true

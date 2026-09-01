@@ -167,9 +167,16 @@
     typeset -g POWERLEVEL9K_EMPTY_LINE_RIGHT_PROMPT_FIRST_SEGMENT_START_SYMBOL='%{%}'
   fi
 
-  local edge=${THEME_P10K_EDGE:-#24273a}
-  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_LEFT_WHITESPACE="%S%F{$edge}\uE0B6%s"
-  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_RIGHT_WHITESPACE="%S%F{$edge}%K{0}\uE0B4%s"
+  # The rounded caps are drawn in reverse video, so the colour behind them has
+  # to be named explicitly; it must match the terminal background. Without a
+  # theme to name it, draw square caps rather than caps in the wrong colour.
+  if [[ -n $THEME_P10K_EDGE ]]; then
+    typeset -g POWERLEVEL9K_{LEFT,RIGHT}_LEFT_WHITESPACE="%S%F{$THEME_P10K_EDGE}\uE0B6%s"
+    typeset -g POWERLEVEL9K_{LEFT,RIGHT}_RIGHT_WHITESPACE="%S%F{$THEME_P10K_EDGE}%K{0}\uE0B4%s"
+  else
+    typeset -g POWERLEVEL9K_{LEFT,RIGHT}_LEFT_WHITESPACE=' '
+    typeset -g POWERLEVEL9K_{LEFT,RIGHT}_RIGHT_WHITESPACE=' '
+  fi
   typeset -g POWERLEVEL9K_{LEFT,RIGHT}_MIDDLE_WHITESPACE='%S\u258d'
 
   # Separator between same-color segments on the left.
