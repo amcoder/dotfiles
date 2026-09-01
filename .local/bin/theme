@@ -284,6 +284,7 @@ def generate(theme):
                         "name": name,
                         "label": t.get("label", name),
                         "swatch": swatch(t),
+                        "wallpaper": t.get("wallpaper", ""),
                         "colors": t["colors"],
                     }
                     for name, t in ((n, load_theme(n)) for n in theme_names())

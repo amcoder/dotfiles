@@ -22,6 +22,7 @@ Singleton {
 
     function hide(): void {
         Theme.preview = null;
+        Theme.previewWallpaper = "";
         root.active = false;
     }
 
@@ -32,8 +33,12 @@ Singleton {
             root.show();
     }
 
+    // The preview deliberately outlives the commit: clearing it here would drop
+    // back to the old theme for as long as `theme set` takes to write the new
+    // palette, which for the wallpaper is a full-screen flash. Theme clears it
+    // when that palette lands.
     function commit(name: string): void {
-        root.hide();
+        root.active = false;
         apply.command = ["theme", "set", name];
         apply.running = true;
     }

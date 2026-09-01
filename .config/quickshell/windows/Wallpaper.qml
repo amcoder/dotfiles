@@ -22,6 +22,12 @@ PanelWindow {
     readonly property url wallpaper: Theme.wallpaper ? `${Paths.wallpapers}/${Theme.wallpaper}` : ""
     readonly property int fadeDuration: 300
 
+    // The picker previews colours instantly, so a wallpaper that fades falls
+    // out of step with them -- a light-to-dark step spends the whole fade as a
+    // grey belonging to neither theme. The crossfade is for changes nobody
+    // watched happen.
+    readonly property bool previewing: Theme.previewWallpaper !== ""
+
     // Hand the outgoing image to `previous` and fade the incoming one in over
     // it. Both ends animate because the wallpapers are not all the same size:
     // a smaller incoming image would not cover the one it replaces.
@@ -91,14 +97,14 @@ PanelWindow {
             target: previous
             property: "opacity"
             to: 0
-            duration: root.fadeDuration
+            duration: root.previewing ? 0 : root.fadeDuration
         }
 
         NumberAnimation {
             target: current
             property: "opacity"
             to: 1
-            duration: root.fadeDuration
+            duration: root.previewing ? 0 : root.fadeDuration
         }
 
         // Drop the outgoing pixmap once it is no longer drawn.

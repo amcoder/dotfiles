@@ -87,11 +87,12 @@ Singleton {
 
     readonly property color overlayScrim: Qt.rgba(crust.r, crust.g, crust.b, 0.65)
 
-    // The theme's wallpaper, a bare filename under Paths.wallpapers. Unlike the
-    // colours it does not follow `preview`: arrowing through the picker would
-    // decode a full-resolution image per row, so it changes on commit like
-    // everything else outside quickshell.
-    readonly property string wallpaper: root.loaded?.wallpaper ?? ""
+    // The theme's wallpaper, a bare filename under Paths.wallpapers. It follows
+    // the picker like the colours do, on its own preview channel because the
+    // colour preview carries a whole palette object.
+    property string previewWallpaper: ""
+
+    readonly property string wallpaper: root.previewWallpaper || (root.loaded?.wallpaper ?? "")
 
     FileView {
         id: view
@@ -104,6 +105,11 @@ Singleton {
         onLoaded: {
             try {
                 root.loaded = JSON.parse(view.text());
+
+                // A freshly written palette supersedes whatever was being
+                // previewed; this is what ends the preview a commit started.
+                root.preview = null;
+                root.previewWallpaper = "";
             } catch (error) {
                 root.loaded = null;
             }

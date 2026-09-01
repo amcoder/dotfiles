@@ -619,10 +619,9 @@ The other divergences:
 - The fade starts on any `Image.status` that is not `Loading` — `Null` for a theme naming no
   wallpaper, `Error` for one naming a missing file — so neither strands the previous image at
   full opacity.
-- **The wallpaper is not previewed by `ThemePicker`.** `Theme.preview` still carries colours only.
-  Arrowing through the picker would decode a full-resolution image and run a fade per keypress, and
-  the picker's whole point (`dim: false`) is watching the *bar* repaint. It commits with everything
-  else.
+- **The wallpaper was initially not previewed by `ThemePicker`**, on the grounds that arrowing
+  through it would decode a full-resolution image per row. That was measured afterwards and is
+  wrong by more than an order of magnitude — see the follow-up below, which reverses it.
 
 **Verified:** the desktop is pixel-identical to swaybg's output — image centred at native size,
 `#181926` either side of a 3840-wide image on a 5120 output. `theme set nord` →
@@ -637,6 +636,34 @@ pruned the five dangling `sway/*.png` links, `journalctl --user -u quickshell` i
 
 Note for Phase 7: the lock surface will want the same image, and `Paths.wallpapers` +
 `Theme.wallpaper` are already the whole interface for it.
+
+**Follow-up: the picker previews the wallpaper after all.** The cost argument above was never
+measured, only asserted, and measuring it inverted the decision. Cold decodes of the 3840x2160
+PNGs are 13-43ms (`nord-debian` 13, `cat-blue-eye` 18, `cat-waves` 32, `catppuccin-latte-debian`
+36, `catppuccin-debian` 43), and a re-visited wallpaper costs *nothing*: a cached image produces
+no `Image.status` transition at all, which is why `crossfade()` calls `settle()` itself rather
+than relying on `onStatusChanged`. The 1.4s figure that motivated the original decision was a
+single sample taken during shell startup, where the image loader is contending with the tray and
+the `DesktopEntries` scan.
+
+Two things came out of building it, both worth more than the preview itself:
+
+- **The crossfade has to be suppressed while previewing.** Colours preview instantly and cannot be
+  animated in step, so a fading wallpaper desynchronises from them: caught mid-step on a
+  light-to-dark row change, the whole screen is a grey belonging to neither theme, under a card
+  already repainted in the new one. `Wallpaper.previewing` is `Theme.previewWallpaper !== ""` and
+  zeroes the durations. The rule that falls out is a good one — **the crossfade is for changes
+  nobody watched happen**: committing from the picker is instant because you already saw it, and a
+  `theme set` from a terminal still fades.
+- **`ThemeService.commit()` was clearing the preview too early, and had been since Phase 2.** It
+  called `hide()`, which drops `Theme.preview` before `theme set` has written the new palette, so
+  the desktop falls back to the *old* theme for the length of that subprocess. For colours that is
+  a blink nobody had noticed; for a full-screen wallpaper it is a flash. `commit()` now only sets
+  `active = false`, and `Theme` clears the preview when the new `palette.json` loads. Verified
+  frame by frame across a light-to-dark commit: the mean is identical at +80ms, +400ms and settled.
+
+`themes.json` gained a `wallpaper` key per entry to feed this; `theme apply` regenerates it, which
+`install` already runs.
 
 ### Phase 7 — Lock screen and idle
 

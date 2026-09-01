@@ -16,6 +16,7 @@ Scope {
     function preview(index: int): void {
         const theme = ThemeService.themes[index];
         Theme.preview = theme ? theme.colors : null;
+        Theme.previewWallpaper = theme?.wallpaper ?? "";
     }
 
     function commit(index: int): void {
