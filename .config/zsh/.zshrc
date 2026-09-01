@@ -20,6 +20,9 @@ ZSH_DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/zsh"
 ZSH_STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/zsh"
 [ -d "$ZSH_STATE_DIR" ] || mkdir -p "$ZSH_STATE_DIR"
 
+# Colors, written by `theme apply`. Must load before p10k.zsh and integration.zsh.
+[[ ! -f "$ZDOTDIR/theme.zsh" ]] || source "$ZDOTDIR/theme.zsh"
+
 # Setup zinit
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 if [ ! -d "$ZINIT_HOME" ]; then

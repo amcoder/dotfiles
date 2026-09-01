@@ -1,0 +1,464 @@
+#!/usr/bin/env python3
+"""Apply a desktop-wide colour theme.
+
+Palettes live in the dotfiles repo under themes/; every app-specific config is
+rendered from them into the machine's ~/.config. The selection itself is stored
+in $XDG_STATE_HOME/theme/current so it never enters the repo.
+"""
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+
+HOME = os.path.expanduser("~")
+CONFIG = os.environ.get("XDG_CONFIG_HOME") or os.path.join(HOME, ".config")
+STATE = os.path.join(
+    os.environ.get("XDG_STATE_HOME") or os.path.join(HOME, ".local", "state"), "theme"
+)
+CURRENT_FILE = os.path.join(STATE, "current")
+MANIFEST_FILE = os.path.join(STATE, "generated")
+DEFAULT_THEME = "catppuccin-macchiato"
+
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
+THEMES_DIR = os.path.join(REPO, "themes")
+TEMPLATES_DIR = os.path.join(THEMES_DIR, "templates")
+
+PLACEHOLDER = re.compile(r"\{\{(\w+)\}\}")
+
+# (template, destination) pairs rendered for every theme. A destination is
+# always machine-local -- nothing here is ever written back into the repo.
+TARGETS = [
+    ("sway.conf.tmpl", "sway/theme.conf"),
+    ("alacritty.toml.tmpl", "alacritty/theme.toml"),
+    ("kdeglobals.tmpl", "kdeglobals"),
+    ("qtct-colors.conf.tmpl", "qt5ct/colors/theme.conf"),
+    ("qtct-colors.conf.tmpl", "qt6ct/colors/theme.conf"),
+    ("gtk3-settings.ini.tmpl", "gtk-3.0/settings.ini"),
+    ("gtk4-settings.ini.tmpl", "gtk-4.0/settings.ini"),
+    ("dunst.conf.tmpl", "dunst/dunstrc.d/90-theme.conf"),
+    ("wofi.css.tmpl", "wofi/style.css"),
+    ("swaylock.conf.tmpl", "swaylock/config"),
+    ("tmux.tmpl", "tmux/theme.tmux"),
+    ("zsh.tmpl", "zsh/theme.zsh"),
+    ("nvim.lua.tmpl", "nvim/lua/theme.lua"),
+]
+
+
+def die(message):
+    print(f"theme: {message}", file=sys.stderr)
+    sys.exit(1)
+
+
+def theme_names():
+    if not os.path.isdir(THEMES_DIR):
+        die(f"no themes directory at {THEMES_DIR}")
+    names = [
+        f[:-5] for f in os.listdir(THEMES_DIR) if f.endswith(".json")
+    ]
+    return sorted(names)
+
+
+def load_theme(name):
+    path = os.path.join(THEMES_DIR, f"{name}.json")
+    if not os.path.isfile(path):
+        die(f"unknown theme '{name}' (have: {', '.join(theme_names())})")
+    with open(path) as f:
+        theme = json.load(f)
+    theme["name"] = name
+    return theme
+
+
+def current_theme():
+    try:
+        with open(CURRENT_FILE) as f:
+            name = f.read().strip()
+    except OSError:
+        return DEFAULT_THEME
+    return name or DEFAULT_THEME
+
+
+def is_dark(theme):
+    return theme.get("appearance", "dark") != "light"
+
+
+def gtk_theme_installed(name):
+    data_home = os.environ.get("XDG_DATA_HOME") or os.path.join(HOME, ".local", "share")
+    roots = [
+        os.path.join(HOME, ".themes"),
+        os.path.join(data_home, "themes"),
+        "/usr/share/themes",
+    ]
+    return any(os.path.isdir(os.path.join(root, name)) for root in roots)
+
+
+def rgb(hex_color):
+    h = hex_color.lstrip("#")
+    return ",".join(str(int(h[i : i + 2], 16)) for i in (0, 2, 4))
+
+
+def substitutions(theme):
+    """Build the {{placeholder}} table.
+
+    Every colour role is available in three forms: `role` (#rrggbb), `role_raw`
+    (rrggbb, for swaylock and Qt ARGB strings) and `role_rgb` (r,g,b, for
+    kdeglobals).
+    """
+    subs = {}
+    colors = theme["colors"]
+
+    for role, value in colors.items():
+        subs[role] = value
+        subs[f"{role}_raw"] = value.lstrip("#")
+        subs[f"{role}_rgb"] = rgb(value)
+
+    for index, role in enumerate(theme["accents"], start=1):
+        if role not in colors:
+            die(f"{theme['name']}: accent {index} names unknown role '{role}'")
+        subs[f"accent{index:02d}"] = colors[role]
+        subs[f"accent{index:02d}_raw"] = colors[role].lstrip("#")
+
+    for key, value in theme["ansi"].items():
+        subs[f"ansi_{key}"] = value
+
+    for key, value in theme.items():
+        if isinstance(value, str):
+            subs.setdefault(key, value)
+
+    subs["prefersDark"] = "1" if is_dark(theme) else "0"
+
+    return subs
+
+
+def render(template_path, subs):
+    with open(template_path) as f:
+        text = f.read()
+
+    missing = []
+
+    def replace(match):
+        key = match.group(1)
+        if key not in subs:
+            missing.append(key)
+            return match.group(0)
+        return subs[key]
+
+    result = PLACEHOLDER.sub(replace, text)
+    if missing:
+        die(
+            f"{os.path.basename(template_path)}: unknown placeholder(s) "
+            + ", ".join(sorted(set(missing)))
+        )
+    return result
+
+
+def write(path, content):
+    """Write a generated file, replacing a repo symlink if one is in the way."""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    if os.path.islink(path):
+        os.unlink(path)
+    with open(path, "w") as f:
+        f.write(content)
+
+
+def read_manifest():
+    try:
+        with open(MANIFEST_FILE) as f:
+            return [line.strip() for line in f if line.strip()]
+    except OSError:
+        return []
+
+
+def prune(previous, written):
+    for path in previous:
+        if path not in written and os.path.isfile(path) and not os.path.islink(path):
+            os.unlink(path)
+
+
+def swatch(theme):
+    colors = theme["colors"]
+    return [colors[role] for role in theme["accents"][:5]]
+
+
+def generate(theme):
+    subs = substitutions(theme)
+    written = []
+
+    for template, destination in TARGETS:
+        path = os.path.join(CONFIG, destination)
+        write(path, render(os.path.join(TEMPLATES_DIR, template), subs))
+        written.append(path)
+
+    gtk = render(os.path.join(TEMPLATES_DIR, "gtk.css.tmpl"), subs)
+    gtk4_extra = render(os.path.join(TEMPLATES_DIR, "gtk4-extra.css.tmpl"), subs)
+    for destination, content in (
+        ("gtk-3.0/gtk.css", gtk),
+        ("gtk-3.0/gtk-dark.css", gtk),
+        ("gtk-4.0/gtk.css", gtk + gtk4_extra),
+        ("gtk-4.0/gtk-dark.css", gtk + gtk4_extra),
+    ):
+        path = os.path.join(CONFIG, destination)
+        write(path, content)
+        written.append(path)
+
+    # Quickshell reads these directly and watches them for changes, so the bar
+    # repaints without a restart.
+    palette = os.path.join(CONFIG, "quickshell", "palette.json")
+    write(palette, json.dumps(theme, indent=2) + "\n")
+    written.append(palette)
+
+    catalog = os.path.join(CONFIG, "quickshell", "themes.json")
+    write(
+        catalog,
+        json.dumps(
+            {
+                "current": theme["name"],
+                "themes": [
+                    {
+                        "name": name,
+                        "label": t.get("label", name),
+                        "swatch": swatch(t),
+                        "colors": t["colors"],
+                    }
+                    for name, t in ((n, load_theme(n)) for n in theme_names())
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
+    written.append(catalog)
+
+    prune(read_manifest(), written)
+    os.makedirs(STATE, exist_ok=True)
+    with open(MANIFEST_FILE, "w") as f:
+        f.write("\n".join(written) + "\n")
+
+    return written
+
+
+def run(command, **kwargs):
+    try:
+        return subprocess.run(
+            command, capture_output=True, text=True, check=False, **kwargs
+        )
+    except FileNotFoundError:
+        return None
+
+
+def have(program):
+    return shutil.which(program) is not None
+
+
+def workspace_names(theme):
+    """Map sway workspace number -> its name under the new palette.
+
+    Sway only applies renamed workspaces to newly created ones, so existing
+    workspaces keep the old accent colours until they are renamed explicitly.
+    """
+    config = os.path.join(CONFIG, "sway", "config")
+    subs = substitutions(theme)
+    names = {}
+    pattern = re.compile(r"^set\s+\$ws(\d+)\s+(.*?)\s*$")
+
+    try:
+        with open(config) as f:
+            lines = f.readlines()
+    except OSError:
+        return names
+
+    for line in lines:
+        match = pattern.match(line)
+        if not match:
+            continue
+        number = int(match.group(1))
+        name = re.sub(
+            r"\$accent(\d\d)",
+            lambda m: subs.get(f"accent{m.group(1)}", m.group(0)),
+            match.group(2),
+        )
+        names[number] = name
+
+    return names
+
+
+def rename_workspaces(theme):
+    if not have("swaymsg"):
+        return
+    result = run(["swaymsg", "-t", "get_workspaces", "-r"])
+    if not result or result.returncode != 0:
+        return
+    try:
+        workspaces = json.loads(result.stdout)
+    except ValueError:
+        return
+
+    names = workspace_names(theme)
+    for workspace in workspaces:
+        new = names.get(workspace.get("num"))
+        if new and new != workspace.get("name"):
+            run(["swaymsg", "rename", "workspace", workspace["name"], "to", new])
+
+
+def apply_appearance(theme):
+    """Put the desktop into the theme's dark or light mode.
+
+    Durable state rather than a reload, so this runs even under --no-reload.
+    Apps that follow the system preference read it from xdg-desktop-portal's
+    org.freedesktop.appearance, which mirrors `color-scheme`; without this they
+    sit in the opposite mode no matter how the rest of the theme looks.
+    """
+    if not have("gsettings"):
+        return
+
+    dark = is_dark(theme)
+    interface = ["gsettings", "set", "org.gnome.desktop.interface"]
+
+    run(interface + ["color-scheme", "prefer-dark" if dark else "prefer-light"])
+    run(interface + ["icon-theme", theme.get("iconTheme", "Papirus-Dark")])
+
+    # GTK re-reads gtk.css only when the theme name changes, so bounce it --
+    # via a theme of the same appearance, so an interrupted run can never leave
+    # the desktop in the opposite mode.
+    gtk_theme = theme.get("gtkTheme", "adw-gtk3-dark")
+
+    # A name GTK cannot resolve falls back to plain Adwaita, which is light --
+    # silently dragging every app that follows the system preference with it.
+    if not gtk_theme_installed(gtk_theme):
+        print(
+            f"theme: GTK theme '{gtk_theme}' is not installed; GTK will fall back "
+            "to Adwaita (light)",
+            file=sys.stderr,
+        )
+
+    run(interface + ["gtk-theme", "Adwaita-dark" if dark else "Adwaita"])
+    run(interface + ["gtk-theme", gtk_theme])
+
+
+def reload_tmux():
+    if not have("tmux"):
+        return
+    result = run(["tmux", "list-sessions"])
+    if not result or result.returncode != 0:
+        return
+    run(["tmux", "source-file", os.path.join(CONFIG, "tmux", "tmux.conf")])
+
+
+def reload_all(theme):
+    if have("dunstctl"):
+        run(["dunstctl", "reload"])
+
+    reload_tmux()
+    rename_workspaces(theme)
+
+    if have("notify-send"):
+        run(
+            [
+                "notify-send",
+                "-a",
+                "theme",
+                f"Theme: {theme.get('label', theme['name'])}",
+                "Qt/KDE apps, Neovim and open shells pick this up on restart.",
+            ]
+        )
+
+    # Last: reloading sway restarts quickshell, via `exec_always killall
+    # quickshell; quickshell`. When the picker started this run, that kills our
+    # own parent, so nothing may depend on the steps after it.
+    if have("swaymsg"):
+        run(["swaymsg", "reload"])
+
+
+def cmd_list(args):
+    current = current_theme()
+    themes = [load_theme(name) for name in theme_names()]
+
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "current": current,
+                    "themes": [
+                        {
+                            "name": t["name"],
+                            "label": t.get("label", t["name"]),
+                            "swatch": swatch(t),
+                        }
+                        for t in themes
+                    ],
+                },
+                indent=2,
+            )
+        )
+        return
+
+    for theme in themes:
+        marker = "*" if theme["name"] == current else " "
+        print(f"{marker} {theme['name']:<24} {theme.get('label', '')}")
+
+
+def cmd_current(args):
+    print(current_theme())
+
+
+def cmd_apply(args):
+    theme = load_theme(current_theme())
+    written = generate(theme)
+    if args.verbose:
+        for path in written:
+            print(f"wrote {path}")
+    apply_appearance(theme)
+    if not args.no_reload:
+        reload_all(theme)
+
+
+def cmd_set(args):
+    theme = load_theme(args.name)
+    os.makedirs(STATE, exist_ok=True)
+    with open(CURRENT_FILE, "w") as f:
+        f.write(theme["name"] + "\n")
+
+    written = generate(theme)
+    if args.verbose:
+        for path in written:
+            print(f"wrote {path}")
+    apply_appearance(theme)
+    if not args.no_reload:
+        reload_all(theme)
+
+
+def main():
+    parser = argparse.ArgumentParser(prog="theme", description=__doc__)
+    parser.add_argument("-v", "--verbose", action="store_true")
+    subparsers = parser.add_subparsers(dest="command")
+
+    p_list = subparsers.add_parser("list", help="list available themes")
+    p_list.add_argument("--json", action="store_true")
+    p_list.set_defaults(func=cmd_list)
+
+    p_current = subparsers.add_parser("current", help="print the selected theme")
+    p_current.set_defaults(func=cmd_current)
+
+    p_apply = subparsers.add_parser(
+        "apply", help="regenerate configs for the selected theme"
+    )
+    p_apply.add_argument("--no-reload", action="store_true")
+    p_apply.set_defaults(func=cmd_apply)
+
+    p_set = subparsers.add_parser("set", help="select and apply a theme")
+    p_set.add_argument("name")
+    p_set.add_argument("--no-reload", action="store_true")
+    p_set.set_defaults(func=cmd_set)
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

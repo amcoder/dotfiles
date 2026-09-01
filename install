@@ -33,6 +33,10 @@ set +f
 # Set DOTFILES_DIR
 echo "export DOTFILES_DIR=$dir" > "$ZDOTDIR/dotfiles-dir.zsh"
 
+# Generate the themed configs for the selected theme (catppuccin-macchiato by
+# default). The selection lives in $XDG_STATE_HOME/theme, never in the repo.
+"$dir/.local/bin/theme" apply --no-reload
+
 if [ "$1" = "--deps" ]; then
   if [ $(uname) = "Darwin" ]; then
     echo "MacOS detected"

@@ -167,8 +167,9 @@
     typeset -g POWERLEVEL9K_EMPTY_LINE_RIGHT_PROMPT_FIRST_SEGMENT_START_SYMBOL='%{%}'
   fi
 
-  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_LEFT_WHITESPACE='%S%F{#24273a}\uE0B6%s'
-  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_RIGHT_WHITESPACE='%S%F{#24273a}%K{0}\uE0B4%s'
+  local edge=${THEME_P10K_EDGE:-#24273a}
+  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_LEFT_WHITESPACE="%S%F{$edge}\uE0B6%s"
+  typeset -g POWERLEVEL9K_{LEFT,RIGHT}_RIGHT_WHITESPACE="%S%F{$edge}%K{0}\uE0B4%s"
   typeset -g POWERLEVEL9K_{LEFT,RIGHT}_MIDDLE_WHITESPACE='%S\u258d'
 
   # Separator between same-color segments on the left.

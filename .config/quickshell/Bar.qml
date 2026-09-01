@@ -79,6 +79,12 @@ PanelWindow {
 
             Separator {}
 
+            ThemeToggle {
+                height: parent.height
+            }
+
+            Separator {}
+
             Insomnia {
                 height: parent.height
             }

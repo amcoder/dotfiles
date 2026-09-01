@@ -4,8 +4,7 @@ live_config_reload = true
 # Import configs. Later configs override earlier ones.
 # local config should go last so it can override any other config.
 import = [
-  "~/.config/alacritty/colors-catppuccin-macchiato.toml",
-  # "~/.config/alacritty/colors-nord.toml",
+  "~/.config/alacritty/theme.toml",
   "~/.config/alacritty/font.toml",
   "~/.config/alacritty/window.toml",
   "~/.config/alacritty/local.toml",

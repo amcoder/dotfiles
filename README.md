@@ -10,21 +10,54 @@ cd ~/.dotfiles
 
 ## Themes
 
-### Theme files
+One palette drives the whole desktop. Pick a theme from the bar's palette icon
+or with `$mod+Ctrl+t`, or from a shell:
 
-How do I make these configurable?
+```sh
+theme list
+theme set nord
+theme current
+```
 
-- GTK: .config/gtk-{3,4}.0
-  - .themes
-  - Gradience?
-- QT/KDE: .config/kdeglobals
-  - .config/qt5ct (Qt5 apps only, needs `QT_QPA_PLATFORMTHEME=qt5ct`)
-- Sway: .config/sway (colors)
-  - .config/sway/wallpaper
-- Terminal: .config/alacritty/colors.yml
-- Neovim: .config/nvim/lua/plugins/style
-- zsh: .config/zsh/p10k.zsh
-  - zsh-syntax-highlighting
+The selection is stored in `$XDG_STATE_HOME/theme/current`, on the machine
+rather than in this repo, so switching themes leaves `git status` clean.
+
+### How it works
+
+`themes/<name>.json` holds a theme's colours, whether the desktop should be in
+`"appearance": "dark"` or `"light"` mode, and its per-app choices (wallpaper,
+GTK and icon themes, bat theme, nvim colorscheme). The appearance is applied as
+a real system setting, so apps that follow the system dark/light preference —
+Electron ones like the Claude desktop app read it through xdg-desktop-portal —
+switch with the theme. `themes/templates/` holds one template
+per app, written against a shared set of colour role names. `.local/bin/theme`
+renders the templates into `~/.config` and then reloads what can be reloaded.
+`./install` runs `theme apply` at the end, so a fresh machine comes up themed
+(catppuccin-macchiato by default).
+
+To add a theme, write one JSON file. To bring another app under theming, add a
+template and list it in `TARGETS` in `.local/bin/theme`.
+
+### Touchpoints
+
+| Generated file | App | Picks the change up |
+| --- | --- | --- |
+| `sway/theme.conf` | sway colors + wallpaper | `swaymsg reload` |
+| `quickshell/palette.json` | status bar | live, file is watched |
+| `alacritty/theme.toml` | terminal | live |
+| `gtk-{3,4}.0/gtk{,-dark}.css` | GTK apps | gsettings nudge |
+| `gtk-{3,4}.0/settings.ini` | GTK theme + dark/light preference | app restart |
+| `kdeglobals` | Qt/KDE apps | app restart |
+| `qt{5,6}ct/colors/theme.conf` | Qt5 apps (VLC) | app restart |
+| `dunst/dunstrc.d/90-theme.conf` | notifications | `dunstctl reload` |
+| `wofi/style.css` | launcher | next launch |
+| `swaylock/config` | lock screen | next lock |
+| `tmux/theme.tmux` | tmux palette (layout is in the tracked `tmux/statusline.conf`) | `tmux source-file` |
+| `zsh/theme.zsh` | fzf, bat, p10k | new shell |
+| `nvim/lua/theme.lua` | Neovim | restart |
+
+VS Code is not covered — it has no include mechanism and its `settings.json`
+holds unrelated settings, so switch its theme in the app.
 
 ### Links to themes
 

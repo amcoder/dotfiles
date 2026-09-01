@@ -87,7 +87,7 @@
     frame_width = 1
 
     # Defines color of the frame around the notification window.
-    frame_color = "#181926"
+    # Colors come from the generated dunstrc.d/90-theme.conf drop-in.
 
     # Size of gap to display between notifications - requires a compositor.
     # If value is greater than 0, separator_height will be ignored and a border
@@ -316,29 +316,18 @@
     # where there are multiple screens with very different dpi values.
     per_monitor_dpi = false
 
+# Per-urgency colors come from the generated dunstrc.d/90-theme.conf drop-in.
 [urgency_low]
-    background = "#24273a"
-    foreground = "#cad3f5"
-    frame_color = "#363a4f"
-    highlight = "#8aadf4"
     timeout = 5
     default_icon = dialog-information
 
 [urgency_normal]
-    background = "#24273a"
-    foreground = "#cad3f5"
-    frame_color = "#363a4f"
-    highlight = "#8aadf4"
-    timeout = 10 
+    timeout = 10
     override_pause_level = 30
     default_icon = dialog-information
 
 [urgency_critical]
-    background = "#24273a"
-    foreground = "#cad3f5"
-    frame_color = "#ed8796"
-    highlight = "#8aadf4"
-    timeout = 0 
+    timeout = 0
     override_pause_level = 60
     default_icon = dialog-error
 

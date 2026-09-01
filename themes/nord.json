@@ -1,0 +1,65 @@
+{
+  "label": "Nord",
+  "appearance": "dark",
+  "wallpaper": "nord-debian.png",
+  "gtkTheme": "adw-gtk3-dark",
+  "gtk4Theme": "Adwaita-dark",
+  "iconTheme": "Papirus-Dark",
+  "qtStyle": "Breeze",
+  "kdeColorScheme": "Nord",
+  "batTheme": "Nord",
+  "nvimColorscheme": "nordfox",
+
+  "colors": {
+    "rosewater": "#e5e9f0",
+    "flamingo": "#d8a08c",
+    "pink": "#c89cc0",
+    "mauve": "#b48ead",
+    "red": "#bf616a",
+    "maroon": "#cf7982",
+    "peach": "#d08770",
+    "yellow": "#ebcb8b",
+    "green": "#a3be8c",
+    "teal": "#8fbcbb",
+    "sky": "#88c0d0",
+    "sapphire": "#5e81ac",
+    "blue": "#81a1c1",
+    "lavender": "#9aaecb",
+    "text": "#d8dee9",
+    "subtext1": "#c2cad6",
+    "subtext0": "#a8b1c0",
+    "overlay2": "#9099a5",
+    "overlay1": "#7f8896",
+    "overlay0": "#6e7887",
+    "surface2": "#5b6478",
+    "surface1": "#4c566a",
+    "surface0": "#434c5e",
+    "base": "#3b4252",
+    "mantle": "#353e4e",
+    "crust": "#2e3440"
+  },
+
+  "accents": [
+    "blue", "sky", "yellow", "peach", "red", "mauve", "teal",
+    "pink", "green", "sapphire", "lavender", "rosewater", "flamingo", "maroon"
+  ],
+
+  "ansi": {
+    "black": "#3b4252",
+    "red": "#bf616a",
+    "green": "#a3be8c",
+    "yellow": "#ebcb8b",
+    "blue": "#81a1c1",
+    "magenta": "#b48ead",
+    "cyan": "#88c0d0",
+    "white": "#e5e9f0",
+    "bright_black": "#4c566a",
+    "bright_red": "#bf616a",
+    "bright_green": "#a3be8c",
+    "bright_yellow": "#ebcb8b",
+    "bright_blue": "#81a1c1",
+    "bright_magenta": "#b48ead",
+    "bright_cyan": "#8fbcbb",
+    "bright_white": "#eceff4"
+  }
+}

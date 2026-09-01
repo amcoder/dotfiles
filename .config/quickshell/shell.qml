@@ -4,6 +4,8 @@ import Quickshell
 ShellRoot {
     Polkit {}
 
+    ThemePicker {}
+
     Variants {
         model: Quickshell.screens
 
