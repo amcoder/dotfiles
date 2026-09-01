@@ -4,7 +4,7 @@
 > ("let's do Phase 3") and it stands alone, with its own files, sway edits,
 > verification and rollback. Tick phases off here as they land.
 >
-> - [ ] 0 De-risk  · [ ] 1 systemd  · [ ] 2 Layout  · [ ] 3 Notifications
+> - [x] 0 De-risk  · [ ] 1 systemd  · [ ] 2 Layout  · [ ] 3 Notifications
 > - [ ] 4 Launcher/switcher/power  · [ ] 5 OSD  · [ ] 6 Wallpaper
 > - [ ] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
 

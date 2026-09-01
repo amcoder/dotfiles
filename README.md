@@ -42,7 +42,7 @@ template and list it in `TARGETS` in `.local/bin/theme`.
 
 | Generated file | App | Picks the change up |
 | --- | --- | --- |
-| `sway/theme.conf` | sway colors + wallpaper | `swaymsg reload` |
+| `sway/theme.conf` | sway colors + wallpaper | `swaymsg client.*` / `output bg` |
 | `quickshell/palette.json` | status bar | live, file is watched |
 | `alacritty/theme.toml` | terminal | live |
 | `gtk-{3,4}.0/gtk{,-dark}.css` | GTK apps | gsettings nudge |

@@ -31,12 +31,9 @@ Singleton {
             root.show();
     }
 
-    // `theme set` reloads sway, which kills this process; setsid keeps the
-    // switch running to completion. Preview state is dropped up front for the
-    // same reason.
     function commit(name: string): void {
         root.hide();
-        apply.command = ["setsid", "--fork", "theme", "set", name];
+        apply.command = ["theme", "set", name];
         apply.running = true;
     }
 

@@ -368,6 +368,52 @@ def rename_workspaces(theme):
             run(["swaymsg", "rename", "workspace", workspace["name"], "to", new])
 
 
+def sway_theme_commands():
+    """The lines of the generated sway/theme.conf that sway also takes at runtime.
+
+    `set $var` lines exist only to feed later expansions, so they are resolved
+    here rather than sent; what sway accepts directly is the client.* colours
+    and the wallpaper.
+    """
+    path = os.path.join(CONFIG, "sway", "theme.conf")
+    try:
+        with open(path) as f:
+            lines = f.readlines()
+    except OSError:
+        return []
+
+    reference = re.compile(r"\$(\w+)")
+    variables = {}
+    commands = []
+
+    def expand(text):
+        return reference.sub(lambda m: variables.get(m.group(1), m.group(0)), text)
+
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        assignment = re.match(r"^set\s+\$(\w+)\s+(.*)$", line)
+        if assignment:
+            variables[assignment.group(1)] = expand(assignment.group(2).strip())
+        elif line.startswith("client.") or line.startswith("output "):
+            commands.append(expand(line))
+
+    return commands
+
+
+def apply_sway_colors():
+    """Push the generated sway colours and wallpaper over IPC.
+
+    `swaymsg reload` would apply the same file, but re-runs the whole config
+    and forces a modeset; these commands change only what the theme touches.
+    """
+    if not have("swaymsg"):
+        return
+    for command in sway_theme_commands():
+        run(["swaymsg", command])
+
+
 def apply_appearance(theme):
     """Put the desktop into the theme's dark or light mode.
 
@@ -461,6 +507,7 @@ def reload_all(theme):
     notify_kde()
     clear_p10k_instant_prompt()
     reload_tmux()
+    apply_sway_colors()
     rename_workspaces(theme)
 
     if have("notify-send"):
@@ -473,12 +520,6 @@ def reload_all(theme):
                 "Neovim picks this up on restart.",
             ]
         )
-
-    # Last: reloading sway restarts quickshell, via `exec_always killall
-    # quickshell; quickshell`. When the picker started this run, that kills our
-    # own parent, so nothing may depend on the steps after it.
-    if have("swaymsg"):
-        run(["swaymsg", "reload"])
 
 
 def cmd_list(args):
