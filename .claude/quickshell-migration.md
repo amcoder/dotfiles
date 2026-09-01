@@ -5,7 +5,7 @@
 > verification and rollback. Tick phases off here as they land.
 >
 > - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
-> - [x] 4 Launcher/switcher/power  · [x] 5 OSD  · [ ] 6 Wallpaper
+> - [x] 4 Launcher/switcher/power  · [x] 5 OSD  · [x] 6 Wallpaper
 > - [ ] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
 
@@ -583,6 +583,61 @@ crossfade so a theme switch does not flash. **`sourceSize` must be bound to the 
 `/etc/sway/config.d/40-sway-background.conf` (finding 6) *and* leaves a themed backstop under
 quickshell's layer, so a shell restart shows a matching colour rather than black or Debian blue.
 
+**Landed.** `windows/Wallpaper.qml`, `Paths.wallpapers`, `Theme.wallpaper`, the five PNGs moved
+into `.config/quickshell/wallpapers/`, and `sway.conf.tmpl` ending at
+`output * bg $background solid_color`. swaybg is still forked by sway — it is now the solid-colour
+backstop only, and nothing calls it directly.
+
+The theme JSONs did **not** change: the `wallpaper` key was already a bare filename and only the
+directory it resolves against moved, which is now `Paths.wallpapers` in one place.
+
+The plan's layer choice is wrong, and it fails in exactly the way the plan tries to prevent:
+
+- **`WlrLayer.Background` puts the wallpaper *under* swaybg, not over it.** Sway draws same-layer
+  surfaces in creation order, and swaybg is a background-layer client like any other. At sway
+  startup it is created first, so a `Background` surface does sit on top — but `theme set` pushes
+  `output * bg` over IPC (`apply_sway_colors` matches `output ` lines), which kills that swaybg and
+  forks a **new** one, now newer than the shell and drawn above it. Measured: with both on
+  `Background` the whole screen went solid `#00ff00` and the wallpaper disappeared. So the plan's
+  "themed backstop *under* quickshell's layer" is backwards, and the failure only shows up after
+  the first theme switch — not at startup, where it would have been noticed.
+- **`WlrLayer.Bottom` is the fix**, and needs nothing else: it is above every background surface
+  whenever each was created, and still below every window. Both halves were measured — the image
+  survived a swaybg re-forked after the shell, and a workspace with three tiled windows showed the
+  windows, not the wallpaper.
+
+The other divergences:
+
+- **`sourceSize` is deliberately left unset**, against the plan. swaybg's mode here is `center`,
+  which means *no scaling*: the image at native size, centred, clipped, with `$crust` filling the
+  rest. Binding `sourceSize` to the screen would resample and silently change the rendering. The
+  QML equivalent of `center` is a clipped `Item` holding an `anchors.centerIn` `Image` at its
+  implicit size.
+- **Both ends of the crossfade animate**, not just the incoming one. nord's wallpaper is 1920×1080
+  and the rest are 3840×2160, so a smaller incoming image cannot cover the one it replaces; fading
+  only the new one in would leave the old visible around the edges forever.
+- The fade starts on any `Image.status` that is not `Loading` — `Null` for a theme naming no
+  wallpaper, `Error` for one naming a missing file — so neither strands the previous image at
+  full opacity.
+- **The wallpaper is not previewed by `ThemePicker`.** `Theme.preview` still carries colours only.
+  Arrowing through the picker would decode a full-resolution image and run a fade per keypress, and
+  the picker's whole point (`dim: false`) is watching the *bar* repaint. It commits with everything
+  else.
+
+**Verified:** the desktop is pixel-identical to swaybg's output — image centred at native size,
+`#181926` either side of a 3840-wide image on a 5120 output. `theme set nord` →
+`catppuccin-latte` → `catppuccin-macchiato` swaps the image live with the bar, each over a swaybg
+forked *after* the shell. The crossfade was proved by temporarily raising `fadeDuration` to 3000ms
+and sampling eight frames across one switch: the mean of a fixed region drifts 28,28,42 → 34,36,53
+→ 46,52,64 (nord crust) rather than jumping, so it is a blend and not a cut. Input still reaches
+windows (`swaymsg seat - cursor set 4500 800` + `press button1` moved focus between two tiled
+Chromes). `find ~/.config/quickshell ~/.config/sway -xtype l` prints nothing after `./install`
+pruned the five dangling `sway/*.png` links, `journalctl --user -u quickshell` is clean, and
+`Failed to disable CRTC` is still 0.
+
+Note for Phase 7: the lock surface will want the same image, and `Paths.wallpapers` +
+`Theme.wallpaper` are already the whole interface for it.
+
 ### Phase 7 — Lock screen and idle
 
 **Gate on a `PamContext` spike first** — a plain `PanelWindow`, no `WlSessionLock` anywhere,
@@ -766,7 +821,7 @@ Insomnia, then separately play a fullscreen video, and confirm `isIdle` stays fa
 establishes whether `respectInhibitors` honours *other clients'* inhibitors or only quickshell's own.
 
 **Click-through:** with the OSD and wallpaper visible, click where they are and confirm the click
-reaches the window underneath.
+reaches the window underneath. (Done for both — the OSD in Phase 5, the wallpaper in Phase 6.)
 
 **After every phase:** `theme set nord`, `theme set catppuccin-latte` (light — exercises `isDark`),
 `theme set catppuccin-macchiato`; the new surface repaints live; `journalctl --user -u quickshell`

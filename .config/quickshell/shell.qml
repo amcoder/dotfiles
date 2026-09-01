@@ -8,6 +8,7 @@ import qs.modules.polkit
 import qs.modules.power
 import qs.modules.switcher
 import qs.modules.theme
+import qs.windows
 
 ShellRoot {
     NotificationPopups {}
@@ -25,6 +26,16 @@ ShellRoot {
     WindowSwitcher {}
 
     PowerMenu {}
+
+    Variants {
+        model: Quickshell.screens
+
+        Wallpaper {
+            required property var modelData
+
+            screen: modelData
+        }
+    }
 
     Variants {
         model: Quickshell.screens

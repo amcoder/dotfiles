@@ -7,4 +7,6 @@ Singleton {
 
     readonly property string home: Quickshell.env("HOME")
     readonly property string config: Quickshell.env("XDG_CONFIG_HOME") || `${root.home}/.config`
+
+    readonly property url wallpapers: `file://${root.config}/quickshell/wallpapers`
 }

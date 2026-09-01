@@ -87,6 +87,12 @@ Singleton {
 
     readonly property color overlayScrim: Qt.rgba(crust.r, crust.g, crust.b, 0.65)
 
+    // The theme's wallpaper, a bare filename under Paths.wallpapers. Unlike the
+    // colours it does not follow `preview`: arrowing through the picker would
+    // decode a full-resolution image per row, so it changes on commit like
+    // everything else outside quickshell.
+    readonly property string wallpaper: root.loaded?.wallpaper ?? ""
+
     FileView {
         id: view
 

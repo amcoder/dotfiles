@@ -46,8 +46,8 @@ template and list it in `TARGETS` in `.local/bin/theme`.
 
 | Generated file | App | Picks the change up |
 | --- | --- | --- |
-| `sway/theme.conf` | sway colors + wallpaper | `swaymsg client.*` / `output bg` |
-| `quickshell/palette.json` | status bar, notifications, launcher, switcher, session menu | live, file is watched |
+| `sway/theme.conf` | sway colors + the solid-colour desktop backstop | `swaymsg client.*` / `output bg` |
+| `quickshell/palette.json` | status bar, notifications, launcher, switcher, session menu, wallpaper | live, file is watched |
 | `alacritty/theme.toml` | terminal | live |
 | `gtk-{3,4}.0/gtk{,-dark}.css` | GTK apps | gsettings nudge |
 | `gtk-{3,4}.0/settings.ini` | GTK theme + dark/light preference | app restart |

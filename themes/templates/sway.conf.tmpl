@@ -53,5 +53,7 @@ client.urgent            $red      $base   $red       $overlay0  $peach
 client.placeholder       $overlay0 $base   $text      $overlay0  $overlay0
 client.background        $base
 
-# Wallpaper
-output * bg ~/.config/sway/{{wallpaper}} center $background
+# Wallpaper -- quickshell draws the image on the bottom layer, above this. The
+# solid colour overrides the Debian default in /etc/sway/config.d/ and is what
+# shows while the shell restarts.
+output * bg $background solid_color
