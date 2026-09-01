@@ -76,8 +76,10 @@ input "1:1:AT_Translated_Set_2_keyboard" {
     xkb_options caps:ctrl_modifier,altwin:swap_lalt_lwin,compose:ralt
 }
 
-# Status bar
-exec quickshell
+# Session services: quickshell, poweralertd, wayland-pipewire-idle-inhibit.
+# Quoted so the whole chain reaches one shell -- the environment import must
+# finish before the target starts.
+exec "systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP && systemctl --user start sway-session.target"
 
 # Autostart apps
 exec pasystray

@@ -1,0 +1,21 @@
+[Unit]
+Description=Quickshell desktop shell
+Documentation=https://quickshell.outfoxxed.me/
+PartOf=graphical-session.target
+After=graphical-session.target
+StartLimitIntervalSec=30
+StartLimitBurst=5
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/quickshell -p %h/.config/quickshell/shell.qml
+Restart=always
+RestartSec=1
+
+# XDG_* and ~/.local/bin come from ../environment.d/10-xdg.conf, which covers
+# every user unit. Only what is specific to rendering this shell lives here.
+Environment=QT_QPA_PLATFORM=wayland
+Environment=QT_QPA_PLATFORMTHEME=kde
+
+[Install]
+WantedBy=graphical-session.target

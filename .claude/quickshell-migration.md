@@ -4,9 +4,10 @@
 > ("let's do Phase 3") and it stands alone, with its own files, sway edits,
 > verification and rollback. Tick phases off here as they land.
 >
-> - [x] 0 De-risk  · [ ] 1 systemd  · [ ] 2 Layout  · [ ] 3 Notifications
+> - [x] 0 De-risk  · [x] 1 systemd  · [ ] 2 Layout  · [ ] 3 Notifications
 > - [ ] 4 Launcher/switcher/power  · [ ] 5 OSD  · [ ] 6 Wallpaper
 > - [ ] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
+> - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
 
 ## Context
 
@@ -189,10 +190,51 @@ New tracked files under `.config/systemd/user/` (already covered by `install`'s
 `/usr/local/bin/sway-run` (system file, documented in README): drop the `exec` and append
 `systemctl --user stop sway-session.target`, or quickshell outlives sway and `Restart=always` spins.
 
-Decide what to do about the two resurrected units — `wayland-pipewire-idle-inhibit` will start
-inhibiting idle during audio playback, which is an improvement but a behaviour change.
+**Landed.** Both resurrected units were kept (decision: yes to both). `ThemeService.commit()`
+already used a plain `Process`, so nothing to drop there.
 
-`ThemeService.commit()` can now drop `setsid --fork` for a plain `Process` and surface stderr.
+Three things the plan did not anticipate:
+
+- **`BindsTo=` does not propagate stop in the direction the teardown needs.** `BindsTo=B` on A
+  means A stops when B stops — not the reverse. So `systemctl --user stop sway-session.target`
+  left `graphical-session.target` active and quickshell running, making the `sway-run` teardown a
+  no-op. Verified by measurement, fixed with `PropagatesStopTo=graphical-session.target` on
+  `sway-session.target`, which keeps `start`/`stop` symmetric on one unit name. The alternative —
+  tearing down via `stop graphical-session.target` — also works but is asymmetric with the start.
+
+- The sway `exec` chains the environment import into the same shell command,
+  `exec "systemctl --user import-environment ... && systemctl --user start sway-session.target"`.
+  `/etc/sway/config.d/50-systemd-user.conf` does its own import as a separate `exec`, and sway
+  launches execs asynchronously, so the target could otherwise start before `SWAYSOCK` is imported.
+  The quoting is what keeps `&&` from being parsed as a second sway command.
+- `install` gained a `systemctl --user daemon-reload` plus a `systemctl --user enable` of both
+  tracked units, guarded on `-d /run/systemd/system` so macOS skips it. Symlinking a unit is not
+  enough — `WantedBy=` only takes effect once the unit is enabled.
+
+The `XDG_*` vars and `~/.local/bin` ended up in `.config/environment.d/10-xdg.conf` rather than in
+`Environment=` lines on the unit, which is where the plan put them. `environment.d` reaches *every*
+user unit, expands `${HOME}` and `${PATH}`, and applies on a plain `daemon-reload` — confirmed with
+`systemd-run --user`, which now finds `theme` on `PATH` with nothing declared unit-locally, so
+Phase 7's `quickshell-lock.service` inherits it instead of duplicating five lines. Ordering caveat:
+files are merged by filename across all `environment.d` directories, so nix's unprefixed
+`nix-daemon.conf` sorts after `10-xdg.conf` and re-prepends its own paths; `~/.local/bin` still
+lands ahead of `/usr/bin`, which is all that matters.
+
+The unit keeps only `QT_QPA_PLATFORM=wayland` and `QT_QPA_PLATFORMTHEME=kde` — about how this shell
+renders, not about the session. Both came from `sway-run`/`sway/profile` via inheritance, and
+dropping the latter would silently change `Quickshell.iconPath()` icon-theme resolution.
+
+`wayland-pipewire-idle-inhibit.service` moved from untracked machine state into the repo, gaining
+the `PartOf=graphical-session.target` it was missing: with only `WantedBy=` it started with the
+session but never stopped with it, and `Restart=always` would have spun it against a dead
+compositor for the whole logout window. `install` backs the old real file up and symlinks over it.
+
+Watch item, pre-existing and not introduced here: `systemd-analyze --user verify` reports ordering
+cycles through `foot-server.socket`, which is both `WantedBy`/`After` `graphical-session.target`
+and (being a socket unit) ordered `Before=sockets.target`, closing a loop back through
+`basic.target`. The real start hits none of it — the journal is clean and all three services came
+up — because systemd only pulls the whole graph into one transaction under `verify`. If a session
+service ever fails to start with a broken-cycle message, `foot-server.socket` is the unit to mask.
 
 **Verify:** `systemctl --user restart quickshell` leaves sway untouched; `swaymsg reload` no
 longer restarts the bar; `journalctl --user -u quickshell -f` shows the shell's own log (today
@@ -353,6 +395,51 @@ New Phosphor icons to vendor (regular weight; `fill="currentColor"` → `#ffffff
 MPRIS media widget (retires `playerctl`, `config:295-297`); calendar popup on the clock
 (hand-rolled 7×6 grid from `Date`, ~40 lines, rather than pulling in `QtQuick.Controls`); emoji
 picker on `FilterList` (retires `bemoji`, keeps `wtype`).
+
+### Phase 10 — Move the session under uwsm
+
+Numbered 10 because 8 and 9 were already taken; it is genuinely last, and unlike every other phase
+it is about the session rather than the shell. Do it **after Phase 7**, when the lock service makes
+session lifecycle the interesting part and there is something to gain.
+
+Today the compositor starts the session manager: greetd autologins `sway-run`, a shell script that
+exports Wayland env vars, and sway's own config does
+`exec "systemctl --user import-environment ... && systemctl --user start sway-session.target"`.
+That is the traditional sway-wiki arrangement and it works, but the dependency runs backwards —
+systemd learns the session exists only once sway is already up, so unit ordering against the
+compositor is approximate and every environment variable has to be hand-carried across the boundary
+by `import-environment`.
+
+[uwsm](https://github.com/Vladimir-csp/uwsm) inverts it: the compositor runs *inside*
+`wayland-wm@sway.service`, and `graphical-session-pre.target` / `graphical-session.target` /
+`graphical-session-post.target` become real ordering barriers rather than labels. Packaged on this
+machine as `uwsm` 0.26.7+ds-2, not installed.
+
+What it would replace:
+
+- **`sway-run` entirely.** greetd's `initial_session` and `/etc/greetd/sway-config`'s gtkgreet line
+  both become `uwsm start -- sway.desktop`. The env exports move to `~/.config/uwsm/env` (or stay in
+  `environment.d`, which uwsm also honours), and the `.profile` sourcing is uwsm's job.
+- **The `import-environment` dance**, which uwsm does itself, in the right order, before any unit
+  that needs it starts.
+- **The `PropagatesStopTo` teardown**, and with it the reason `sway-run` cannot be `exec`'d — uwsm
+  owns shutdown, so a crashed compositor tears the session down deterministically instead of
+  leaving `Restart=always` units spinning against a dead display.
+- `sway-session.target`, replaced by uwsm's own target tree. `quickshell.service` keeps its
+  `PartOf=`/`WantedBy=graphical-session.target` unchanged — that is the whole point of having
+  targeted it rather than a sway-specific unit.
+
+**Gate it on:** greetd + uwsm autologin working (uwsm expects a `.desktop` session entry and is
+usually driven from a display manager's session list, which `initial_session` is not); and
+`/etc/greetd/sway-config`'s gtkgreet path, which is a *second* consumer of the same launcher.
+
+**Risk: high — it is the boot path.** Rehearse from a second VT with a root shell logged in, and
+keep `sway-run` on disk until a full reboot has succeeded. **Rollback:** point greetd's
+`initial_session` back at `sway-run`; nothing in `.config/` needs reverting, since the units are
+already written against `graphical-session.target` rather than against sway.
+
+**Not a prerequisite for anything.** Phases 2-9 are indifferent to which of the two arrangements is
+in place, so this can be dropped entirely if the current one keeps working.
 
 ### Staying external, deliberately
 

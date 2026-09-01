@@ -69,6 +69,31 @@ holds unrelated settings, so switch its theme in the app.
 - [Ayu](https://github.com/Shatur/neovim-ayu)
 - [Base16](https://github.com/chriskempson/base16)
 
+## Session services
+
+The desktop shell runs as a systemd user service, not as a sway `exec`. The sway
+config starts `sway-session.target`, which `BindsTo` `graphical-session.target`
+and `PropagatesStopTo` it, and so pulls in `quickshell.service`, `poweralertd.service` and
+`wayland-pipewire-idle-inhibit.service` — and takes them down again on logout.
+
+```sh
+systemctl --user restart quickshell     # reload the bar; sway is untouched
+journalctl --user -u quickshell -f      # the shell's own log
+systemctl --user status sway-session.target
+```
+
+`swaymsg reload` no longer restarts the bar, and a QML edit that kills the shell
+is recovered by `Restart=always` (capped at `StartLimitBurst=5`). Every escape
+hatch — `$mod+Return`, `$mod+Shift+q`, workspace switching, lock — is a sway
+keybind and keeps working with quickshell stopped.
+
+The user manager never sources `~/.profile`, so the XDG base directories and
+`~/.local/bin` come from `.config/environment.d/10-xdg.conf`; without them
+`theme` and the `sway-*` scripts are unreachable from any user unit.
+
+`./install` runs `systemctl --user daemon-reload` and enables the unit. Editing
+an existing unit needs a `daemon-reload` of its own.
+
 ## Sway run
 
 This will handle setting up the environment for sway.
@@ -95,11 +120,10 @@ if [ -f ~/.config/sway/profile ]; then
     . ~/.config/sway/profile
 fi
 
-# exec sway "$@"
+# Not exec'd -- the teardown below runs when sway exits. Output goes to the
+# journal under the `sway` identifier.
+systemd-cat --identifier=sway sway "$@"
 
-#
-# If you use systemd and want sway output to go to the journal, use this
-# instead of the `exec sway "$@"` above:
-#
-exec systemd-cat --identifier=sway sway "$@"
+# Without this quickshell outlives the compositor and Restart=always spins.
+systemctl --user stop sway-session.target
 ```

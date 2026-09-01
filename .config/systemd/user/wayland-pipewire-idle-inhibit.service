@@ -1,0 +1,14 @@
+[Unit]
+Description=Inhibit Wayland idling when media is played through pipewire
+Documentation=https://github.com/rafaelrc7/wayland-pipewire-idle-inhibit
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/share/cargo/bin/wayland-pipewire-idle-inhibit
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=graphical-session.target

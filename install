@@ -33,6 +33,13 @@ set +f
 # Set DOTFILES_DIR
 echo "export DOTFILES_DIR=$dir" > "$ZDOTDIR/dotfiles-dir.zsh"
 
+# Register the systemd user units symlinked above. Editing an existing unit
+# still needs `systemctl --user daemon-reload`; this covers a fresh machine.
+if command -v systemctl > /dev/null && [ -d /run/systemd/system ]; then
+  systemctl --user daemon-reload
+  systemctl --user enable quickshell.service wayland-pipewire-idle-inhibit.service
+fi
+
 # Generate the themed configs for the selected theme (catppuccin-macchiato by
 # default). The selection lives in $XDG_STATE_HOME/theme, never in the repo.
 "$dir/.local/bin/theme" apply --no-reload
