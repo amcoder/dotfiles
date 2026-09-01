@@ -195,19 +195,10 @@ Rectangle {
             font.pixelSize: Appearance.smallFontSize
         }
 
-        Rectangle {
+        LevelBar {
             width: parent.width
             visible: root.progress >= 0
-            height: 8
-            radius: 4
-            color: Theme.surface0
-
-            Rectangle {
-                width: parent.width * Math.min(100, Math.max(0, root.progress)) / 100
-                height: parent.height
-                radius: parent.radius
-                color: Theme.blue
-            }
+            value: root.progress / 100
         }
 
         Row {

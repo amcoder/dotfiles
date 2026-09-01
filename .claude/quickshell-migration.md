@@ -5,7 +5,7 @@
 > verification and rollback. Tick phases off here as they land.
 >
 > - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
-> - [x] 4 Launcher/switcher/power  · [ ] 5 OSD  · [ ] 6 Wallpaper
+> - [x] 4 Launcher/switcher/power  · [x] 5 OSD  · [ ] 6 Wallpaper
 > - [ ] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
 
@@ -509,6 +509,66 @@ Depends on Phase 3, or volume keypresses flood the new notification centre.
 notify-send-as-OSD pattern, which is why volume changes currently pollute notification history.
 **Sway:** 289-294 → `qs ipc call audio up|down|mute|micMute` and `brightness up|down`.
 
+**Landed.** `services/{AudioService,BrightnessService,OsdService}`, `modules/osd/Osd.qml`,
+`widgets/LevelBar.qml` and seven vendored Phosphor icons (`speaker-{high,low,none,slash}`,
+`microphone{,-slash}`, `sun-dim`). `.local/bin/{volume,brightness}` are gone; pamixer and
+brightnessctl stay installed but unreferenced, as wofi and zenity did.
+
+The planned `widgets/Slider` landed as `widgets/LevelBar` — a read-only fill bar, because nothing
+that draws one is interactive yet and an interactive slider written against no caller is a guess
+(the same reason `FilterList` waited for Phase 4). It has two consumers: the OSD and
+`NotificationCard`, whose hand-rolled `-h int:value:` bar it replaces.
+
+**One surface, not one per source.** The plan's `windows/Osd` chrome plus `{Volume,Brightness}Osd`
+would have let a volume keypress and a brightness keypress a moment apart stack on top of each
+other. Instead `OsdService` holds only `active` and a `source` name, and `Osd.qml` owns the three
+descriptors (icon, label, value, off). It also sits bottom **centre** rather than bottom right,
+where the notification stack lives.
+
+The findings, each settled by spike:
+
+- **A QML singleton is created when it is first referenced**, so a service reached only over IPC
+  never registers its `IpcHandler`. A first cut with `AudioService`/`BrightnessService` instantiated
+  nowhere loaded clean and did nothing: `qs ipc show` listed neither target. Referencing them from
+  inside the `content` switch is not enough either — JS short-circuits, and with `source` still `""`
+  neither branch runs. `Osd.qml`'s three descriptors are therefore unconditional bindings, evaluated
+  at completion, which is what brings both services to life. This generalises to every future
+  IPC-only service.
+- **`Pipewire.defaultAudioSink` is null at `Component.onCompleted`** and `Pipewire.ready` is false,
+  so every read has to be `?.`-guarded. And the `PwObjectTracker` is not optional: without it the
+  node reports its defaults rather than real values — the mistake the plan flagged, confirmed.
+- **`PwNodeAudio.volume` (0..1) is the same scale pamixer printed**, so `0.05` is exactly the old
+  `pamixer -i 5`. Measured 50 → 55 → 60 → 65 and back, and 5 rapid-fire calls move it 50 → 75 with
+  no steps lost to the round trip.
+- **sysfs takes the write with `atomicWrites: false`**, and `watchChanges` + `onFileChanged: reload()`
+  picks the file back up — which is also what the firmware's own hotkeys go through. `set()` sets
+  `level` optimistically, so `onSaveFailed: reload()` is what stops the UI lying when a write is
+  refused; a refused write leaves the file unchanged and nothing else would correct it.
+- **A `FileView` with `path: ""` is silent** — no load, no error — which is what lets the backlight
+  device be discovered asynchronously (`ls -1 /sys/class/backlight | head -1`) with the two views
+  bound to a path that starts empty. `available` is false until `max_brightness` loads, and the
+  keybinds then do nothing rather than showing a meaningless OSD.
+- The brightness floor is **one raw unit, not zero**, a deliberate divergence from brightnessctl: a
+  panel at zero is indistinguishable from a session that has died. The step stays brightnessctl's
+  `10%` of the full range (50 of 496 here).
+
+The plan's "fall back to `brightnessctl` on write error" was **not** built. The direct write is
+proven, the no-device case is already handled by `available`, and a fallback path that never runs is
+untested code.
+
+**Verified:** volume up/down step 5 points and unmute first, as the script did; mute draws
+`speaker-slash` dimmed at 0%; mic mute draws a bar-less card; brightness moves 174 → 124 → 174 and
+reports 25%/35%. Ten volume keypresses and four brightness ones add **nothing** to notification
+history (2 entries before, 2 after) — the whole point of the phase. Click-through was proved with
+sway's own pointer: with the OSD drawn across the split between two tiled terminals and the right
+one focused, `seat - cursor set 2450 1300` + `press button1` moved focus to the terminal
+*underneath*. `quickshell ipc call` costs ~31ms a call (20 sequential in 0.62s) against sway's
+default 40ms key repeat, so repeat keeps up and no `SocketServer` is needed — the Phase 4 watch item
+closed. Cards repaint live across `theme set nord` → `catppuccin-latte` → `catppuccin-macchiato`;
+the six sway keybinds were installed with `swaymsg bindsym` rather than a reload;
+`journalctl --user -u quickshell` clean, `find ~/.config/quickshell -xtype l` empty, and
+`Failed to disable CRTC` still 0.
+
 ### Phase 6 — Wallpaper
 
 `windows/Wallpaper.qml` — `PanelWindow`, `WlrLayer.Background`, `ExclusionMode.Ignore`,
@@ -715,7 +775,7 @@ is clean; `journalctl -b | grep -c 'Failed to disable CRTC'` is still 0.
 ## Open questions to settle during execution
 
 - Does `respectInhibitors` see other clients' idle inhibitors? (Phase 7 gate.)
-- Is `qs ipc call` latency acceptable on volume key repeat? If not, add `SocketServer` +
-  `.local/bin/qs-send`. (Fine on `$mod+Space`, measured in Phase 4.)
+- ~~Is `qs ipc call` latency acceptable on volume key repeat?~~ Yes: ~31ms a call against sway's
+  40ms repeat, measured in Phase 5. No `SocketServer` needed.
 - Does `Quickshell.Bluetooth.pair()` register an `org.bluez.Agent1`? (Phase 8 scope.)
 - Does clipboard ownership survive the emoji picker closing, given the process stays alive?

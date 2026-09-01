@@ -261,12 +261,12 @@ bindsym $mod+Shift+Escape exec quickshell ipc call power toggle
 bindsym $mod+Ctrl+t exec quickshell ipc call theme toggle
 
 # Media Keys
-bindsym XF86AudioRaiseVolume exec volume up 5
-bindsym XF86AudioLowerVolume exec volume down 5
-bindsym XF86AudioMute exec volume mute
-bindsym XF86AudioMicMute exec volume mute mic
-bindsym XF86MonBrightnessDown exec brightness 10%-
-bindsym XF86MonBrightnessUp exec brightness 10%+
+bindsym XF86AudioRaiseVolume exec quickshell ipc call audio up
+bindsym XF86AudioLowerVolume exec quickshell ipc call audio down
+bindsym XF86AudioMute exec quickshell ipc call audio mute
+bindsym XF86AudioMicMute exec quickshell ipc call audio micMute
+bindsym XF86MonBrightnessDown exec quickshell ipc call brightness down
+bindsym XF86MonBrightnessUp exec quickshell ipc call brightness up
 bindsym XF86AudioPlay exec playerctl play-pause
 bindsym XF86AudioNext exec playerctl next
 bindsym XF86AudioPrev exec playerctl previous

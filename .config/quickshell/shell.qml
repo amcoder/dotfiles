@@ -3,6 +3,7 @@ import Quickshell
 import qs.modules.bar
 import qs.modules.launcher
 import qs.modules.notifications
+import qs.modules.osd
 import qs.modules.polkit
 import qs.modules.power
 import qs.modules.switcher
@@ -12,6 +13,8 @@ ShellRoot {
     NotificationPopups {}
 
     NotificationCentre {}
+
+    Osd {}
 
     PolkitDialog {}
 
