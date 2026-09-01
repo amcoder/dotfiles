@@ -5,7 +5,7 @@
 > verification and rollback. Tick phases off here as they land.
 >
 > - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
-> - [ ] 4 Launcher/switcher/power  · [ ] 5 OSD  · [ ] 6 Wallpaper
+> - [x] 4 Launcher/switcher/power  · [ ] 5 OSD  · [ ] 6 Wallpaper
 > - [ ] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
 
@@ -399,6 +399,93 @@ them the last PyGObject/GTK dependency.
 **Watch:** `qs ipc call` costs a process spawn per `$mod+Space`. Measure it. If perceptible, the
 fallback is a long-lived `SocketServer` in the shell plus a tiny `.local/bin/qs-send`.
 
+**Landed.** `widgets/{Fuzzy,FilterList}`, `windows/CountdownDialog`, three services
+(`LauncherService`, `WindowService`, `PowerService`) and three modules (`modules/launcher`,
+`modules/switcher`, `modules/power`), plus five vendored Phosphor icons (`magnifying-glass`,
+`sign-out`, `arrows-clockwise`, `power`, `snowflake`). wofi, zenity,
+`.local/bin/{system-menu,window-switcher.py,get-icon}`, `.config/wofi/` and `wofi.css.tmpl` are
+gone; `TARGETS` is 12 → 11. The binaries stay installed but unreferenced, as dunst's did.
+
+The planned `widgets/ConfirmDialog` landed as `windows/CountdownDialog`. `windows/` because it is
+built on `ModalOverlay` and a widget may import only `config/`; *Countdown* because it **inverts**
+the planned zenity `--timeout=10` — the countdown fires `accepted`, not `rejected`, so waiting goes
+ahead with the action, and the `ConfirmDialog` name is left free for an ordinary
+wait-for-an-answer dialog. That inversion is why the actions carry a `confirm` flag instead of a
+question string: a dialog that proceeds on its own is announcing, not asking, and "Are you sure you
+want to reboot?" sitting above "Reboot in 8 seconds" reads as a question the dialog answers for
+you.
+
+Focus sits on the **accept** button, so choosing an action and pressing Return again confirms
+immediately — zenity's `--default-cancel` does not survive, because a dialog that proceeds on its
+own gains nothing from defaulting to the abort. The consequence is subtle and worth keeping:
+`widgets/Button` had to start ignoring `event.isAutoRepeat`. The dialog opens *under* the Return
+that chose the action, and at sway's default 600ms repeat delay a held key would otherwise repeat
+straight into the newly focused button and skip the countdown. The first attempt to test this was
+itself wrong — holding Return over an already-open dialog proves nothing, since the initial press
+is a genuine activation; the test has to start with the *menu* focused so only a repeat can reach
+the dialog.
+
+Everything below was settled by spike rather than reasoned about, and several answers inverted
+the plan:
+
+- **`DesktopEntries` scans lazily and asynchronously.** The scan starts on the *first read* of
+  `applications`, then fills the model in entry by entry. A first read inside `show()` returns an
+  empty array, so the first `$mod+Space` of the session would open an empty launcher; the service
+  holds a plain binding, and instantiating `Launcher` in `shell.qml` is what warms it. This also
+  answers the open question below: new `.desktop` files *are* picked up at runtime.
+- **`entry.command` is already the `%`-code-stripped, shell-unquoted argv**, so the plan's "strip
+  `%f %F %u %U %i %c %k`" step does not exist. `NoDisplay` entries are already excluded too (277
+  files, 228 in the model), so `!noDisplay` is a no-op.
+- **Apps launch through `I3.dispatch("exec …")`, not `swaymsg exec --`** — one fewer process spawn
+  and no `swaymsg` dependency, with the same guarantee: verified by `/proc/<pid>/cgroup` that a
+  launched app lands in sway's `session-*.scope`, and by watching one survive `systemctl --user
+  restart quickshell`. Sway's `exec` takes no `--`; `dispatch("exec -- cmd")` silently does nothing.
+- **The switcher needs no MRU bookkeeping and no `ToplevelManager`.** `Quickshell.I3.rawEvent`
+  carries only `workspace`/`output` events, so `WindowService` runs its own
+  `swaymsg -r -t subscribe -m '["window","workspace"]'` (`-r` gives one JSON object per line, which
+  `SplitParser` wants) — but sway's per-container `focus` arrays *are* the focus history, so a
+  plain `get_tree` re-read on every event yields the MRU list directly. The plan's
+  "`ToplevelManager.activeToplevel` changes maintain the MRU order" is unnecessary, and the tree
+  is what carries the workspace the plan wanted `ToplevelManager` for anyway.
+- **`StdioCollector.data` is a byte array; the string is `text`.** `JSON.parse(data)` coerces and
+  works, so the `get_tree` collector looked fine while `data.split("\n")` in the PATH scan threw
+  `Property 'split' … is not a function` and left run mode empty.
+- **`Keys.forwardTo` on the inner `TextInput` is the only way to reach Home and End** — a
+  `TextInput` accepts them for cursor movement, so a handler further up the focus chain never sees
+  them. `TextField` gained a `keyHandlers` property for it. Up/Down/PageUp/PageDown/Ctrl-N/Ctrl-P
+  bubble on their own.
+
+Two ranking corrections, both found by typing `chr` and watching the wrong thing win:
+
+- The per-field penalty has to be **multiplicative** (0.55 per position), not a small subtraction:
+  a prefix hit in a long `comment` outscores a mid-word hit in `name`, so a fixed penalty put a
+  screensaver's description above Google Chrome.
+- `weight` had to become **additive rather than a tie-break**. Scores are rarely equal, so a
+  tie-break never fires where it matters — a stray "Chompy Tower" prefix hit beat Google Chrome no
+  matter how often Chrome was launched. Adding frecency fixes it and leaves the empty-query
+  behaviour (all scores 0, so `weight` alone orders) unchanged. It does make *source* order the
+  last fallback, which is why `Launcher` sorts by name: unsorted, an untrained launcher lists apps
+  in `DesktopEntries` scan order.
+
+The power menu is the one place the plan's "all three sit on `FilterList`" fought the plan's own
+mnemonics: a search field owns bare letters. `FilterList` gained `searchable: false`, which hides
+the field and gives the list focus — same nav, same delegate contract, letters free for
+`l`/`o`/`s`/`h`/`r`/`p`. Six fixed actions never wanted a search box anyway.
+
+`qs ipc call` latency was not measurable by hand at `$mod+Space`, so no `SocketServer`.
+
+**Verified:** launcher renders 228 apps alphabetically, ranks `chr` → Chrome/Google Chrome above
+comment matches, shows `Chrome: App Settings`-style action sub-rows only when querying, records
+frecency to `launcher.json` and reorders on the next open; run mode lists 3274 PATH executables
+and ranks `bto` → btop first; the switcher lists windows in MRU order with icons and workspace
+numbers, preselects row 1, and Return focuses it; the power menu's `r` opens the Reboot
+confirmation, which counts down and goes ahead at zero with Cancel focused throughout, resetting
+to a full 10s on each open (proved end to end by temporarily pointing the Reboot action at a
+`touch`, rather than by reasoning about the timer). Sway keybinds were
+installed with five `swaymsg bindsym` commands rather than `swaymsg reload` (lockup trigger #1).
+`journalctl --user -u quickshell` clean, `find ~/.config/quickshell -xtype l` empty, and
+`Failed to disable CRTC` still 0 across `theme set nord` → `catppuccin-macchiato`.
+
 ### Phase 5 — Volume and brightness OSD
 
 Depends on Phase 3, or volume keypresses flood the new notification centre.
@@ -537,7 +624,7 @@ and `swaylock` as the emergency lock.
 
 ## Theming changes
 
-`TARGETS` goes 13 → 11: `dunst.conf.tmpl` deleted in Phase 3 (done — 12 now), `wofi.css.tmpl` in Phase 4.
+`TARGETS` goes 13 → 11: `dunst.conf.tmpl` deleted in Phase 3, `wofi.css.tmpl` in Phase 4 — both done, 11 now.
 `swaylock.conf.tmpl` **stays** — one render, and it keeps the emergency lock themed.
 `sway.conf.tmpl` shrinks to `client.*` colours, `set $accentNN`, and the solid-colour bg.
 
@@ -622,8 +709,7 @@ is clean; `journalctl -b | grep -c 'Failed to disable CRTC'` is still 0.
 ## Open questions to settle during execution
 
 - Does `respectInhibitors` see other clients' idle inhibitors? (Phase 7 gate.)
-- Does `DesktopEntries` pick up newly installed `.desktop` files at runtime, or is a restart needed?
-- Is `qs ipc call` latency acceptable on `$mod+Space` and on volume key repeat? If not, add
-  `SocketServer` + `.local/bin/qs-send`.
+- Is `qs ipc call` latency acceptable on volume key repeat? If not, add `SocketServer` +
+  `.local/bin/qs-send`. (Fine on `$mod+Space`, measured in Phase 4.)
 - Does `Quickshell.Bluetooth.pair()` register an `org.bluez.Agent1`? (Phase 8 scope.)
 - Does clipboard ownership survive the emoji picker closing, given the process stays alive?

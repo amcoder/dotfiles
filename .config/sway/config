@@ -18,12 +18,6 @@ set $term alacritty
 # Your preferred browser
 set $browser google-chrome --ozone-platform=wayland
 
-# Your preferred application launcher
-# Note: pass the final command to swaymsg so that the resulting window can be opened
-# on the original workspace that the command was run on.
-set $menu wofi --show=drun | xargs swaymsg exec --
-set $run wofi --show=run | xargs swaymsg exec --
-
 # Output configuration
 set $samsung HDMI-A-1
 output $samsung mode 5120x1440
@@ -92,10 +86,10 @@ exec calibre --start-in-tray
 # Kill focused window
 bindsym $mod+Shift+q kill
 
-# Start your launcher
-bindsym $mod+Space exec $menu
-bindsym $mod+Shift+Space exec $run
-bindsym $mod+Alt+Space exec window-switcher.py
+# Launcher, run prompt and window switcher (drawn by quickshell)
+bindsym $mod+Space exec quickshell ipc call launcher toggle
+bindsym $mod+Shift+Space exec quickshell ipc call launcher run
+bindsym $mod+Alt+Space exec quickshell ipc call windows toggle
 
 # Drag floating windows by holding down $mod and left mouse button.
 # Resize them with right mouse button + $mod.
@@ -260,7 +254,8 @@ bindsym $mod+Ctrl+backslash exec sway-samsung-width
 # Session Management
 bindsym $mod+Escape exec loginctl lock-session
 
-bindsym $mod+Shift+Escape exec system-menu
+# Session menu (drawn by quickshell)
+bindsym $mod+Shift+Escape exec quickshell ipc call power toggle
 
 # Theme picker (drawn by quickshell)
 bindsym $mod+Ctrl+t exec quickshell ipc call theme toggle
@@ -275,7 +270,7 @@ bindsym XF86MonBrightnessUp exec brightness 10%+
 bindsym XF86AudioPlay exec playerctl play-pause
 bindsym XF86AudioNext exec playerctl next
 bindsym XF86AudioPrev exec playerctl previous
-bindsym XF86Search exec $menu
+bindsym XF86Search exec quickshell ipc call launcher toggle
 
 # Gestures
 bindgesture swipe:3:right workspace prev

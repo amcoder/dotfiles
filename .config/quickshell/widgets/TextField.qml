@@ -7,6 +7,12 @@ FocusScope {
 
     property alias text: input.text
     property alias echoMode: input.echoMode
+    property string placeholder: ""
+
+    // Items given first refusal on every key event, before the input reads it.
+    // Home and End are only reachable this way: a TextInput accepts them for
+    // cursor movement, so a handler further up the focus chain never sees them.
+    property list<Item> keyHandlers
 
     signal accepted
 
@@ -41,6 +47,18 @@ FocusScope {
         font.family: Appearance.fontFamily
         font.pixelSize: Appearance.fontSize
 
+        Keys.forwardTo: root.keyHandlers
+
         onAccepted: root.accepted()
+
+        Text {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            visible: input.text === ""
+            text: root.placeholder
+            color: Theme.popupSubtext
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize
+        }
     }
 }

@@ -47,13 +47,12 @@ template and list it in `TARGETS` in `.local/bin/theme`.
 | Generated file | App | Picks the change up |
 | --- | --- | --- |
 | `sway/theme.conf` | sway colors + wallpaper | `swaymsg client.*` / `output bg` |
-| `quickshell/palette.json` | status bar, notifications | live, file is watched |
+| `quickshell/palette.json` | status bar, notifications, launcher, switcher, session menu | live, file is watched |
 | `alacritty/theme.toml` | terminal | live |
 | `gtk-{3,4}.0/gtk{,-dark}.css` | GTK apps | gsettings nudge |
 | `gtk-{3,4}.0/settings.ini` | GTK theme + dark/light preference | app restart |
 | `kdeglobals` | Qt/KDE apps | app restart |
 | `qt{5,6}ct/colors/theme.conf` | Qt5 apps (VLC) | app restart |
-| `wofi/style.css` | launcher | next launch |
 | `swaylock/config` | lock screen | next lock |
 | `tmux/theme.tmux` | tmux palette (layout is in the tracked `tmux/statusline.conf`) | `tmux source-file` |
 | `zsh/theme.zsh` | fzf, bat, p10k | new shell |
@@ -88,7 +87,9 @@ systemctl --user status sway-session.target
 `swaymsg reload` no longer restarts the bar, and a QML edit that kills the shell
 is recovered by `Restart=always` (capped at `StartLimitBurst=5`). Every escape
 hatch — `$mod+Return`, `$mod+Shift+q`, workspace switching, lock — is a sway
-keybind and keeps working with quickshell stopped.
+keybind and keeps working with quickshell stopped. The launcher, window switcher
+and session menu do not: they are quickshell surfaces reached over IPC, so with
+the shell down `$mod+Return` is the way back to a terminal.
 
 The user manager never sources `~/.profile`, so the XDG base directories and
 `~/.local/bin` come from `.config/environment.d/10-xdg.conf`; without them

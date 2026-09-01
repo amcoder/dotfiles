@@ -21,9 +21,19 @@ Rectangle {
     border.color: Theme.text
     border.width: root.activeFocus ? 2 : 0
 
-    Keys.onSpacePressed: root.activated()
-    Keys.onReturnPressed: root.activated()
-    Keys.onEnterPressed: root.activated()
+    // A held key repeats at the compositor's rate, and a button that fires 25
+    // times a second is wrong everywhere -- but it matters most where a dialog
+    // opens under a key that is still down, which is how CountdownDialog is
+    // reached from the power menu.
+    Keys.onPressed: event => {
+        if (event.isAutoRepeat)
+            return;
+        if (event.key !== Qt.Key_Space && event.key !== Qt.Key_Return && event.key !== Qt.Key_Enter)
+            return;
+
+        root.activated();
+        event.accepted = true;
+    }
 
     Text {
         id: label

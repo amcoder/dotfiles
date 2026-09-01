@@ -48,7 +48,6 @@ TARGETS = [
     ("qtct-colors.conf.tmpl", "qt6ct/colors/theme.conf"),
     ("gtk3-settings.ini.tmpl", "gtk-3.0/settings.ini"),
     ("gtk4-settings.ini.tmpl", "gtk-4.0/settings.ini"),
-    ("wofi.css.tmpl", "wofi/style.css"),
     ("swaylock.conf.tmpl", "swaylock/config"),
     ("tmux.tmpl", "tmux/theme.tmux"),
     ("zsh.tmpl", "zsh/theme.zsh"),

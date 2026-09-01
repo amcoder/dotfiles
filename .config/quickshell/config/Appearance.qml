@@ -11,6 +11,7 @@ Singleton {
     readonly property int headingFontSize: 28
     readonly property int iconSize: 25
     readonly property int trayIconSize: 25
+    readonly property int launcherIconSize: 32
 
     readonly property int barHeight: 31
 }
