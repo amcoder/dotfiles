@@ -435,7 +435,13 @@ the plan:
   answers the open question below: new `.desktop` files *are* picked up at runtime.
 - **`entry.command` is already the `%`-code-stripped, shell-unquoted argv**, so the plan's "strip
   `%f %F %u %U %i %c %k`" step does not exist. `NoDisplay` entries are already excluded too (277
-  files, 228 in the model), so `!noDisplay` is a no-op.
+  files, 228 in the model), so `!noDisplay` is a no-op — but **`OnlyShowIn`/`NotShowIn` are not
+  applied and not exposed**, so `LauncherService` re-reads the files itself. That turned out to
+  matter more than it sounds: 107 xscreensaver hacks ship `OnlyShowIn=MATE;`, and with the lxqt and
+  GNOME control-centre panels the launcher was showing 129 entries out of 228 that no spec-following
+  launcher would. It shows 99 now. The embedded script has to avoid every backslash, because a QML
+  template literal collapses `\/` to `/` and `\[` to `[` and quietly reduces the awk to a syntax
+  error whose only symptom is that nothing is filtered — the first version did exactly that.
 - **Apps launch through `I3.dispatch("exec …")`, not `swaymsg exec --`** — one fewer process spawn
   and no `swaymsg` dependency, with the same guarantee: verified by `/proc/<pid>/cgroup` that a
   launched app lands in sway's `session-*.scope`, and by watching one survive `systemctl --user

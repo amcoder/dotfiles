@@ -19,7 +19,18 @@ Singleton {
     // instantiates the launcher, is what makes the list ready by the time the
     // keybind is pressed. Reading it for the first time inside show() would
     // open an empty launcher.
-    readonly property var applications: DesktopEntries.applications.values
+    readonly property var applications: DesktopEntries.applications.values.filter(entry => root.hidden[entry.id] !== true)
+
+    // Entry ids this desktop is not meant to see. Quickshell's DesktopEntries
+    // honours NoDisplay but not OnlyShowIn/NotShowIn, and exposes neither key,
+    // so the only way to apply them is to read the files again -- which is
+    // worth it here: 107 xscreensaver hacks ship OnlyShowIn=MATE and were
+    // nearly half the list, alongside the lxqt and GNOME control-centre panels.
+    //
+    // Scanned once at startup. New .desktop files appear in the model at
+    // runtime but are not re-checked, which only matters for a package that
+    // installs a desktop-restricted entry mid-session.
+    property var hidden: ({})
 
     property bool active: false
     property bool runMode: false
@@ -111,6 +122,69 @@ Singleton {
 
     function quote(word: string): string {
         return `'${String(word).split("'").join("'\\''")}'`;
+    }
+
+    // The id is the path below applications/ with / turned into -, which is the
+    // desktop-file ID from the spec and what DesktopEntry.id holds.
+    //
+    // The script contains no backslash and no ${...}, deliberately: it lives in
+    // a QML template literal, where \/ collapses to / and \[ to [, which
+    // silently turns an awk regex into a syntax error and leaves this filtering
+    // nothing at all.
+    Process {
+        id: showIn
+
+        running: true
+
+        command: ["sh", "-c", `
+            base=$XDG_DATA_HOME
+            [ -n "$base" ] || base=$HOME/.local/share
+            dirs=$base:$XDG_DATA_DIRS
+            IFS=:
+            for dir in $dirs; do
+                [ -d "$dir/applications" ] && find "$dir/applications" -name '*.desktop' -type f -print0
+            done |
+            xargs -0 -r awk -v cur="$XDG_CURRENT_DESKTOP" '
+                BEGIN { n = split(cur, want, ":") }
+                FNR == 1 {
+                    id = FILENAME
+                    sub("^.*/applications/", "", id)
+                    id = substr(id, 1, length(id) - 8)
+                    gsub("/", "-", id)
+                    entry = 0
+                    done = 0
+                }
+                substr($0, 1, 1) == "[" { entry = ($0 == "[Desktop Entry]"); next }
+                !entry || done { next }
+                index($0, "OnlyShowIn=") == 1 {
+                    v = ";" substr($0, 12) ";"
+                    for (i = 1; i <= n; i++)
+                        if (index(v, ";" want[i] ";")) next
+                    print id
+                    done = 1
+                }
+                index($0, "NotShowIn=") == 1 {
+                    v = ";" substr($0, 11) ";"
+                    for (i = 1; i <= n; i++)
+                        if (index(v, ";" want[i] ";")) { print id; done = 1; next }
+                }
+            '
+        `]
+
+        stdout: StdioCollector {
+            id: restricted
+
+            onStreamFinished: {
+                const hidden = {};
+
+                for (const id of restricted.text.split("\n")) {
+                    if (id !== "")
+                        hidden[id] = true;
+                }
+
+                root.hidden = hidden;
+            }
+        }
     }
 
     Process {
