@@ -1,0 +1,46 @@
+#!/usr/bin/env python3
+"""Knock a wallpaper's flat background out to transparency.
+
+Each pixel is assumed to be `a*fg + (1-a)*bg` for the known flat background
+`bg`. Recover the smallest alpha that keeps `fg` inside [0,255] -- the standard
+unmatting solution -- so antialiased edges keep their coverage instead of
+staying blended against the old background.
+
+Output is a paletted PNG when the result fits in 256 colours, which is what
+these mostly-flat illustrations do; truecolour RGBA otherwise.
+"""
+import sys
+import numpy as np
+from PIL import Image
+
+src, dst, bghex = sys.argv[1], sys.argv[2], sys.argv[3].lstrip("#")
+bg = np.array([int(bghex[i:i + 2], 16) for i in (0, 2, 4)], dtype=np.float64)
+
+rgb = np.asarray(Image.open(src).convert("RGB"), dtype=np.float64)
+delta = rgb - bg
+
+# Smallest alpha per channel that leaves a representable foreground: a pixel
+# brighter than the background needs headroom up to 255, a darker one down to 0.
+headroom = np.where(delta > 0, 255.0 - bg, bg)
+headroom[headroom == 0] = 1.0
+alpha = np.clip((np.abs(delta) / headroom).max(axis=2), 0.0, 1.0)
+
+safe = np.where(alpha > 0, alpha, 1.0)[..., None]
+fg = np.clip(bg + delta / safe, 0, 255)
+
+rgba = np.dstack([fg, alpha * 255.0]).round().astype(np.uint8)
+flat = rgba.reshape(-1, 4)
+colors, index = np.unique(flat, axis=0, return_inverse=True)
+
+if len(colors) <= 256:
+    image = Image.fromarray(index.reshape(rgba.shape[:2]).astype(np.uint8), "P")
+    palette = np.zeros((256, 3), dtype=np.uint8)
+    palette[:len(colors)] = colors[:, :3]
+    image.putpalette(palette.tobytes())
+    image.save(dst, optimize=True, transparency=bytes(colors[:, 3].tolist()))
+    kind = f"paletted, {len(colors)} colours"
+else:
+    Image.fromarray(rgba, "RGBA").save(dst, optimize=True)
+    kind = f"RGBA, {len(colors)} colours"
+
+print(f"{src.split('/')[-1]:30} {100 * (alpha == 0).mean():5.1f}% transparent  ({kind})")

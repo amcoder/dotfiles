@@ -10,6 +10,10 @@ import qs.config
 // changes visibly. That is also why `sourceSize` is left unset: `center` means
 // no scaling, and binding it to the screen would silently start resampling.
 //
+// The wallpapers carry no background of their own: it is knocked out to
+// transparency, so `color` below is what fills both the letterbox and the area
+// behind the artwork, and the two cannot drift apart.
+//
 // The layer is Bottom rather than Background, which is where swaybg itself
 // sits. Sway draws same-layer surfaces in creation order, and `theme set`
 // re-forks swaybg over IPC -- so on the Background layer the solid-colour
@@ -22,10 +26,10 @@ PanelWindow {
     readonly property url wallpaper: Theme.wallpaper ? `${Paths.wallpapers}/${Theme.wallpaper}` : ""
     readonly property int fadeDuration: 300
 
-    // The picker previews colours instantly, so a wallpaper that fades falls
-    // out of step with them -- a light-to-dark step spends the whole fade as a
-    // grey belonging to neither theme. The crossfade is for changes nobody
-    // watched happen.
+    // The picker previews colours instantly, so a wallpaper that fades lags the
+    // highlighted row: arrowing faster than the fade leaves the previous theme's
+    // artwork ghosting under the current one. The crossfade is for changes
+    // nobody watched happen.
     readonly property bool previewing: Theme.previewWallpaper !== ""
 
     // Hand the outgoing image to `previous` and fade the incoming one in over

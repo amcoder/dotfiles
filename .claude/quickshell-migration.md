@@ -649,12 +649,15 @@ the `DesktopEntries` scan.
 Two things came out of building it, both worth more than the preview itself:
 
 - **The crossfade has to be suppressed while previewing.** Colours preview instantly and cannot be
-  animated in step, so a fading wallpaper desynchronises from them: caught mid-step on a
-  light-to-dark row change, the whole screen is a grey belonging to neither theme, under a card
-  already repainted in the new one. `Wallpaper.previewing` is `Theme.previewWallpaper !== ""` and
-  zeroes the durations. The rule that falls out is a good one — **the crossfade is for changes
-  nobody watched happen**: committing from the picker is instant because you already saw it, and a
-  `theme set` from a terminal still fades.
+  animated in step, so a fading wallpaper lags the highlighted row — arrow faster than the fade and
+  the previous theme's artwork ghosts under the current one, a step behind the selection.
+  `Wallpaper.previewing` is `Theme.previewWallpaper !== ""` and zeroes the durations. The rule that
+  falls out is a good one — **the crossfade is for changes nobody watched happen**: committing from
+  the picker is instant because you already saw it, and a `theme set` from a terminal still fades.
+  (The original reason recorded here was that a light-to-dark step spent the fade as a grey
+  belonging to neither theme. That was true at the time and stopped being true when the wallpaper
+  backgrounds were knocked out to transparency — the mush was the *old* image's opaque background
+  at half opacity over the *new* crust. The lag is the reason that survives.)
 - **`ThemeService.commit()` was clearing the preview too early, and had been since Phase 2.** It
   called `hide()`, which drops `Theme.preview` before `theme set` has written the new palette, so
   the desktop falls back to the *old* theme for the length of that subprocess. For colours that is
@@ -664,6 +667,31 @@ Two things came out of building it, both worth more than the preview itself:
 
 `themes.json` gained a `wallpaper` key per entry to feed this; `theme apply` regenerates it, which
 `install` already runs.
+
+**Follow-up: the wallpapers have no background any more.** Every Catppuccin wallpaper was painted
+against `#1e1e2e` — *Mocha's `base`*, not any theme's `crust` — so the image drew a visibly
+different rectangle inside the letterbox `Theme.crust` filled. Four of the five differed
+(`catppuccin-frappe` `#1e1e2e` vs crust `#232634`, `catppuccin-macchiato` vs `#181926`,
+`catppuccin-mocha` vs `#11111b`, `catppuccin-latte` `#eff1f5` vs `#dce0e8`); only nord matched.
+
+The fix is to knock the background out to transparency rather than repaint it to each crust, so the
+image stays independent of the palette and cannot go stale if a crust changes or a new theme points
+at an existing image. `Wallpaper`'s `color: Theme.crust` then fills both the letterbox and the area
+behind the artwork by construction.
+
+- **It has to recover alpha, not replace a colour.** A `-fill new -opaque old` leaves every
+  antialiased edge blended against the *old* background — one pixel per edge on the Debian art, but
+  thin-line spirographs are almost all edge. Treating each pixel as `a*fg + (1-a)*bg` and taking the
+  smallest alpha that keeps `fg` representable recomposites over the original background to within
+  1/255 on all five, measured.
+- **Write paletted output when it fits.** `cat-blue-eye.png` was already a PNG8 of 253 colours, and
+  saving the result as truecolour RGBA tripled it (280KB → 842KB). Four of the five still fit in 256
+  colours; paletted output leaves the whole set at +7% (three shrink by 57-70%).
+- Unexpected bonus: this is also what killed the grey-mush problem described above, since the
+  washed-out intermediate was the outgoing image's *opaque background* at half opacity.
+
+Verified by sampling letterbox, just-inside-image, centre and far-edge on all five themes: every
+point is exactly that theme's crust.
 
 ### Phase 7 — Lock screen and idle
 
