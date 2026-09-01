@@ -94,7 +94,7 @@ PanelWindow {
 
             Separator {}
 
-            Dunst {
+            NotificationIndicator {
                 height: parent.height
             }
 

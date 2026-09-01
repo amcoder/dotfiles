@@ -293,8 +293,10 @@ bindsym $mod+Shift+backslash exec 1password
 bindsym $mod+Shift+n exec nautilus
 bindsym $mod+Shift+e exec bemoji -c -n && wtype -M ctrl -k v -m ctrl
 
-# notifications
-bindsym $mod+n exec dunstctl action
+# Notifications (drawn by quickshell)
+bindsym $mod+n exec quickshell ipc call notifications invoke
+bindsym $mod+Ctrl+n exec quickshell ipc call notifications toggle
+bindsym $mod+Alt+n exec quickshell ipc call notifications dnd
 
 # Inhibit idle
 for_window [con_mark="no idle"] inhibit_idle open; border normal 2

@@ -4,7 +4,7 @@
 > ("let's do Phase 3") and it stands alone, with its own files, sway edits,
 > verification and rollback. Tick phases off here as they land.
 >
-> - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [ ] 3 Notifications
+> - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
 > - [ ] 4 Launcher/switcher/power  · [ ] 5 OSD  · [ ] 6 Wallpaper
 > - [ ] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
@@ -315,6 +315,59 @@ finding 7), then restart quickshell. Confirm with
 (centre) and `$mod+Alt+n` (DND). **Rollback:** unmask and start dunst; it reclaims the name via
 D-Bus activation.
 
+**Landed.** `services/NotificationService.qml`, `modules/notifications/{NotificationCard,
+NotificationPopups,NotificationCentre}.qml` and `modules/bar/NotificationIndicator.qml`, plus one
+vendored Phosphor `x`. `Dunst.qml`, `.config/dunst/`, `dunst.conf.tmpl`, its `TARGETS` row and
+`dunstctl reload` are gone; `TARGETS` is 13 → 12. dunst is masked, not deleted — the local binary,
+its user unit and its D-Bus service file stay on disk so the rollback above still works. Activations
+this boot: 2, both from before the mask.
+
+Every freedesktop-API question was settled by a throwaway `qs -p` config with a `NotificationServer`
+and a `console.log`, run with dunst stopped, rather than reasoned about:
+
+- **`expireTimeout` is milliseconds**, straight off D-Bus, `-1` meaning "server default". The
+  urgency defaults (5s / 10s / never) are carried over from the old `dunstrc`.
+- **`notify-send -i <name>` never reaches `appIcon`.** It arrives as the `image-path` hint and lands
+  in `notification.image` as an `image://icon/<name>` URL, so `image` is the primary icon source and
+  `appIcon` only a fallback — the opposite of the obvious ordering.
+- **`trackedNotifications` is empty inside the `notification` handler.** The model updates
+  asynchronously, so the service keeps its own `popups`/`history` arrays instead of reading it.
+- **Replace-by-id mutates the `Notification` in place and emits no second `notification` signal.**
+  A record holding a copy of the fields silently goes stale — the first version of the card did
+  exactly that, and a `notify-send -p` / `-r` pair rendered the old body. `NotificationCard` now
+  reads through `entry.notification` while it lives and falls back to the stored copy only once the
+  notification is gone (restored from disk, or closed by its sender), and `save()` reads the same
+  way. `summaryChanged`/`bodyChanged` are the only "this was replaced" signal available; they drive
+  re-popping an already-expired notification and moving it back to the top of history.
+- **`qs ipc call <target> show` is swallowed by the CLI's own `ipc show` subcommand** and prints the
+  handler listing instead of calling anything. The handlers are `open`/`close`. Pre-existing, and
+  `theme show` has the same hole.
+
+Two design points worth keeping:
+
+- The popup cap (5) lives in the *view*, not the service, so capped notifications still expire on
+  their own schedule and are only hidden behind an "N more" row — dunst's `indicate_hidden`.
+- The **"Theme: X" toast stayed in `.local/bin/theme`** rather than moving into
+  `ThemeService.commit()` as planned. The restart race that motivated the move disappeared in
+  Phase 1 (a theme switch no longer touches the shell's lifecycle), and the script covers
+  `theme set` from a terminal, which the picker path does not. Verified: the toast now arrives at
+  our own server.
+
+Filename note: `NotificationCentre`, not `NotificationCenter` as written above — the rest of the
+repo's prose is British and the service functions are `showCentre`/`hideCentre`.
+
+The sway keybinds were installed at runtime with three `swaymsg bindsym` commands rather than
+`swaymsg reload`, which is lockup trigger #1.
+
+**Verified:** plain, `-u critical` (red border, never expires), `-t 0`, `-h int:value:40` (progress
+bar), `-i firefox` (icon), `-A yes=Yes -A no=No` (buttons, and `notify-send` *blocks* on `-A`, so
+background it in scripts), replace-by-id, a 4KB body (clamps at 6 lines with an ellipsis), Pango
+markup via `Text.StyledText`, 30 in a burst (5 cards + "25 more notifications"), DND suppressing
+popups while still recording history, history surviving `systemctl --user restart quickshell`, and
+`qs ipc call notifications invoke` emitting `ActionInvoked(id, "default")` on the bus. Popups
+repaint live across `theme set catppuccin-mocha` → `catppuccin-latte`; `journalctl --user -u
+quickshell` clean and `Failed to disable CRTC` still 0.
+
 ### Phase 4 — Launcher, window switcher, power menu
 
 All three sit on `FilterList`, and all three must land before wofi/zenity/`get-icon` can go.
@@ -484,7 +537,7 @@ and `swaylock` as the emergency lock.
 
 ## Theming changes
 
-`TARGETS` goes 13 → 11: `dunst.conf.tmpl` deleted in Phase 3, `wofi.css.tmpl` in Phase 4.
+`TARGETS` goes 13 → 11: `dunst.conf.tmpl` deleted in Phase 3 (done — 12 now), `wofi.css.tmpl` in Phase 4.
 `swaylock.conf.tmpl` **stays** — one render, and it keeps the emergency lock themed.
 `sway.conf.tmpl` shrinks to `client.*` colours, `set $accentNN`, and the solid-colour bg.
 

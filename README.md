@@ -47,13 +47,12 @@ template and list it in `TARGETS` in `.local/bin/theme`.
 | Generated file | App | Picks the change up |
 | --- | --- | --- |
 | `sway/theme.conf` | sway colors + wallpaper | `swaymsg client.*` / `output bg` |
-| `quickshell/palette.json` | status bar | live, file is watched |
+| `quickshell/palette.json` | status bar, notifications | live, file is watched |
 | `alacritty/theme.toml` | terminal | live |
 | `gtk-{3,4}.0/gtk{,-dark}.css` | GTK apps | gsettings nudge |
 | `gtk-{3,4}.0/settings.ini` | GTK theme + dark/light preference | app restart |
 | `kdeglobals` | Qt/KDE apps | app restart |
 | `qt{5,6}ct/colors/theme.conf` | Qt5 apps (VLC) | app restart |
-| `dunst/dunstrc.d/90-theme.conf` | notifications | `dunstctl reload` |
 | `wofi/style.css` | launcher | next launch |
 | `swaylock/config` | lock screen | next lock |
 | `tmux/theme.tmux` | tmux palette (layout is in the tracked `tmux/statusline.conf`) | `tmux source-file` |

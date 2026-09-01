@@ -144,7 +144,9 @@ which disables both CRTCs directly.
    disables both CRTCs on a timer.
 
 3. **Fix the dunst D-Bus activation loop** (a real bug in this repo, but *not* the
-   crash — log noise and wasted processes only). After every theme switch,
+   crash — log noise and wasted processes only). **Resolved** by Phase 3 of
+   `quickshell-migration.md`: dunst is retired and masked, and the polling widget
+   that drove the activations is gone with it. After every theme switch,
    `dunstctl` starts D-Bus-activating `dunst.service` on every call instead of
    routing to the already-running daemon: 255 activations in boot -3, driven by the
    5-second poll at `.config/quickshell/Dunst.qml:22`

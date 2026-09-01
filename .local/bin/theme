@@ -48,7 +48,6 @@ TARGETS = [
     ("qtct-colors.conf.tmpl", "qt6ct/colors/theme.conf"),
     ("gtk3-settings.ini.tmpl", "gtk-3.0/settings.ini"),
     ("gtk4-settings.ini.tmpl", "gtk-4.0/settings.ini"),
-    ("dunst.conf.tmpl", "dunst/dunstrc.d/90-theme.conf"),
     ("wofi.css.tmpl", "wofi/style.css"),
     ("swaylock.conf.tmpl", "swaylock/config"),
     ("tmux.tmpl", "tmux/theme.tmux"),
@@ -501,9 +500,6 @@ def clear_p10k_instant_prompt():
 
 
 def reload_all(theme):
-    if have("dunstctl"):
-        run(["dunstctl", "reload"])
-
     notify_kde()
     clear_p10k_instant_prompt()
     reload_tmux()
