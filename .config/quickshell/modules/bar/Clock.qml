@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.config
 
 Text {
     id: root
@@ -12,6 +13,6 @@ Text {
 
     text: Qt.formatDateTime(clock.date, "ddd, MMM dd HH:mm")
     color: Theme.barStatusline
-    font.family: Theme.fontFamily
-    font.pixelSize: Theme.fontSize
+    font.family: Appearance.fontFamily
+    font.pixelSize: Appearance.fontSize
 }

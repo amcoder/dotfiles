@@ -4,7 +4,7 @@
 > ("let's do Phase 3") and it stands alone, with its own files, sway edits,
 > verification and rollback. Tick phases off here as they land.
 >
-> - [x] 0 De-risk  · [x] 1 systemd  · [ ] 2 Layout  · [ ] 3 Notifications
+> - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [ ] 3 Notifications
 > - [ ] 4 Launcher/switcher/power  · [ ] 5 OSD  · [ ] 6 Wallpaper
 > - [ ] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
@@ -254,8 +254,43 @@ cross-file references resolve implicitly by directory), plus `FocusedScreen`, `M
 loading them. Add `.local/bin/dot-prune` (delete dangling symlinks under the four managed roots)
 in this phase, since this bites on every future file move.
 
+**Landed.** The tree is as planned. `FilterList` and `Fuzzy` were *not* built — they have no
+consumer until Phase 4, and a workhorse widget written against no caller is a guess. `ListRow` was
+built and has two consumers (`ThemePicker`, `AptUpgrade`); the identity chips in `PolkitDialog`
+stayed hand-rolled, since a selection chip is not a button and contorting `Button` to cover both
+would have cost more than it saved.
+
+Notes from execution:
+
+- Module synthesis was verified by spike before the move, not assumed: a throwaway config with
+  `config/`, `widgets/` and `modules/bar/` confirmed `import qs.config` / `qs.widgets` /
+  `qs.modules.bar` all resolve and that singletons auto-register across directories.
+- **`config/Icons.qml` needs `Qt.resolvedUrl("../icons")`.** It resolves relative to its own file,
+  so moving it into `config/` silently repointed the icon directory at `config/icons` — every icon
+  would have rendered blank with no error in the log.
+- **`widgets/TextField.qml` had to be a `FocusScope`**, not a `Rectangle` wrapping a `TextInput`.
+  A QML function cannot override `forceActiveFocus()` (it is a C++ method on `QQuickItem`), so
+  without the focus scope `ModalOverlay.focusItem` would have focused the frame and left the
+  caret nowhere. `FocusScope` + `focus: true` on the inner `TextInput` delegates properly.
+- `ModalOverlay` ended up with `opened()` and `dismissed()` rather than the planned
+  `opened()`/`closed()`: escape and click-outside are a *request* to close, which the consumer
+  answers differently (`ThemeService.hide()` vs `flow.cancelAuthenticationRequest()`), so naming
+  it `closed()` would have inverted the meaning.
+- `dot-prune` restricts itself to links whose target is inside `$DOTFILES_DIR`. Worth keeping:
+  its first run swept ~150 *pre-existing* dangling links from long-dead setups (Slack, Spotify,
+  obs-studio, per-theme `sway/nord.conf`-era files). All were already broken, so nothing readable
+  was lost — but an unrestricted version would also have deleted unrelated broken links in
+  `~/.config`, which are not this script's business.
+
 **Verify:** `rm ~/.config/quickshell/*.qml && ./install && find ~/.config/quickshell -xtype l`
 prints nothing; bar renders; `$mod+Ctrl+t` opens the picker; `pkexec true` prompts.
+
+Verified end to end by screenshot: bar (workspaces, icons, tray) unchanged; picker opens on the
+focused output with the current theme preselected, Down previews the next palette live on the bar,
+Escape closes and clears the preview; `pkexec true` prompts with the field focused, a wrong
+password shows "Authentication failed" and refocuses, Escape cancels; `theme set` across nord →
+catppuccin-latte → catppuccin-mocha repaints live; `journalctl --user -u quickshell` clean and
+`Failed to disable CRTC` still 0.
 
 ### Phase 3 — Notification daemon, popups, history
 

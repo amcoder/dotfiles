@@ -1,5 +1,7 @@
 import QtQuick
 import Quickshell.Services.UPower
+import qs.config
+import qs.widgets
 
 Row {
     id: root
@@ -124,8 +126,8 @@ Row {
                     visible: root.expanded
                     text: root.detailText(entry.modelData)
                     color: Theme.barStatusline
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.smallFontSize
+                    font.family: Appearance.fontFamily
+                    font.pixelSize: Appearance.smallFontSize
                 }
             }
         }

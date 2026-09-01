@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+
+# Delete symlinks under the managed roots that point into the dotfiles repo but
+# no longer resolve. `install` creates links and never removes them, so every
+# rename in the repo leaves a dangling link behind in $HOME.
+
+self=$(readlink -f -- "$0")
+dir=$(dirname -- "$(dirname -- "$(dirname -- "$self")")")
+
+for root in "$HOME/.config" "$HOME/.local" "$HOME/.profile" "$HOME/.zshenv"; do
+  [ -e "$root" ] || [ -L "$root" ] || continue
+
+  find "$root" -xtype l | while read -r link; do
+    case $(readlink -- "$link") in
+      "$dir"/*)
+        echo "Pruning $link"
+        rm -- "$link"
+        ;;
+    esac
+  done
+done

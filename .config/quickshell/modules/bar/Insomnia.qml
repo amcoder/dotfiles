@@ -1,4 +1,6 @@
 import QtQuick
+import qs.services
+import qs.widgets
 
 MouseArea {
     id: root
@@ -6,13 +8,13 @@ MouseArea {
     implicitWidth: label.implicitWidth
     cursorShape: Qt.PointingHandCursor
 
-    onClicked: ThemeService.toggle()
+    onClicked: InsomniaService.cycle()
 
     Icon {
         id: label
 
         anchors.centerIn: parent
-        name: "palette"
-        color: Theme.barStatusline
+        name: InsomniaService.mode.icon
+        color: InsomniaService.mode.color
     }
 }

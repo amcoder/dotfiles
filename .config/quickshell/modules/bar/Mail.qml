@@ -1,5 +1,7 @@
 import QtQuick
 import Quickshell.Io
+import qs.config
+import qs.widgets
 
 MouseArea {
     id: root

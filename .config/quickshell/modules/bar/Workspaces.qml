@@ -1,6 +1,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.I3
+import qs.config
+import qs.widgets
 
 Row {
     id: root
@@ -72,8 +74,8 @@ Row {
                     visible: item.parsed.label !== ""
                     text: item.parsed.label
                     color: item.foreground
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSize
+                    font.family: Appearance.fontFamily
+                    font.pixelSize: Appearance.fontSize
                 }
 
                 Icon {

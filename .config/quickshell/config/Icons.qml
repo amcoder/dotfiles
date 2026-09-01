@@ -7,7 +7,7 @@ import Quickshell.Io
 Singleton {
     id: root
 
-    readonly property string directory: Qt.resolvedUrl("icons").toString().replace(/^file:\/\//, "")
+    readonly property string directory: Qt.resolvedUrl("../icons").toString().replace(/^file:\/\//, "")
     readonly property var cache: ({})
 
     // Returns the raw SVG markup for an icon in icons/, which Icon.qml recolours

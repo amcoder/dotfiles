@@ -8,6 +8,10 @@ cd ~/.dotfiles
 ./install
 ```
 
+`install` symlinks every tracked file into `$HOME` and then runs `dot-prune`,
+which deletes links under the managed roots that point into the repo but no
+longer resolve — renaming a file here otherwise leaves a dangling link behind.
+
 ## Themes
 
 One palette drives the whole desktop. Pick a theme from the bar's palette icon

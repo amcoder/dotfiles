@@ -1,8 +1,11 @@
 //@ pragma UseQApplication
 import Quickshell
+import qs.modules.bar
+import qs.modules.polkit
+import qs.modules.theme
 
 ShellRoot {
-    Polkit {}
+    PolkitDialog {}
 
     ThemePicker {}
 

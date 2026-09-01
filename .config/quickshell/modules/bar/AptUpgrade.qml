@@ -1,6 +1,8 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import qs.config
+import qs.widgets
 
 MouseArea {
     id: root
@@ -212,8 +214,8 @@ MouseArea {
             anchors.verticalCenter: parent.verticalCenter
             text: root.count
             color: root.upgrading ? Theme.yellow : Theme.barStatusline
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize
         }
     }
 
@@ -275,8 +277,8 @@ MouseArea {
                         text: root.headerText
                         color: root.headerColor
                         elide: Text.ElideRight
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSize
+                        font.family: Appearance.fontFamily
+                        font.pixelSize: Appearance.fontSize
                     }
 
                     Row {
@@ -293,8 +295,8 @@ MouseArea {
                             visible: !root.upgrading
                             text: root.selectedCount > 0 ? "clear" : "select all"
                             color: selectMouse.containsMouse ? Theme.popupText : Theme.popupSubtext
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.smallFontSize
+                            font.family: Appearance.fontFamily
+                            font.pixelSize: Appearance.smallFontSize
 
                             MouseArea {
                                 id: selectMouse
@@ -326,8 +328,8 @@ MouseArea {
                                 anchors.centerIn: parent
                                 text: `Upgrade ${root.selectedCount}`
                                 color: Theme.base
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.smallFontSize
+                                font.family: Appearance.fontFamily
+                                font.pixelSize: Appearance.smallFontSize
                             }
 
                             MouseArea {
@@ -352,7 +354,7 @@ MouseArea {
                     boundsBehavior: Flickable.StopAtBounds
                     model: root.packages
 
-                    delegate: MouseArea {
+                    delegate: ListRow {
                         id: entry
 
                         required property var modelData
@@ -362,22 +364,9 @@ MouseArea {
                         width: list.width
                         height: popup.rowHeight
                         enabled: !root.upgrading
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
+                        selected: entry.checked
 
-                        onClicked: root.toggle(entry.modelData.name)
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 4
-                            color: {
-                                if (entry.checked)
-                                    return Theme.popupSelection;
-                                if (entry.containsMouse)
-                                    return Theme.popupHover;
-                                return "transparent";
-                            }
-                        }
+                        onActivated: root.toggle(entry.modelData.name)
 
                         Rectangle {
                             id: box
@@ -402,8 +391,8 @@ MouseArea {
                             text: entry.modelData.name
                             color: Theme.popupText
                             elide: Text.ElideRight
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.smallFontSize
+                            font.family: Appearance.fontFamily
+                            font.pixelSize: Appearance.smallFontSize
                         }
 
                         Text {
@@ -414,8 +403,8 @@ MouseArea {
                             anchors.verticalCenter: parent.verticalCenter
                             text: `${entry.modelData.from} → ${entry.modelData.to}`
                             color: Theme.popupSubtext
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.smallFontSize
+                            font.family: Appearance.fontFamily
+                            font.pixelSize: Appearance.smallFontSize
                         }
                     }
                 }

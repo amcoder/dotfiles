@@ -1,4 +1,5 @@
 import QtQuick
+import qs.config
 
 Rectangle {
     anchors.verticalCenter: parent.verticalCenter

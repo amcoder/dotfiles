@@ -1,11 +1,12 @@
 import QtQuick
+import qs.config
 
 Item {
     id: root
 
     required property string name
     property color color: Theme.barStatusline
-    property int size: Theme.iconSize
+    property int size: Appearance.iconSize
 
     implicitWidth: root.size
     implicitHeight: root.size

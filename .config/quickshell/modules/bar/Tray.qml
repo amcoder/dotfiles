@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
+import qs.config
 
 Row {
     id: root
@@ -18,7 +19,7 @@ Row {
 
             required property SystemTrayItem modelData
 
-            implicitWidth: Theme.trayIconSize
+            implicitWidth: Appearance.trayIconSize
             height: root.height
             acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
 
@@ -42,7 +43,7 @@ Row {
 
             IconImage {
                 anchors.centerIn: parent
-                implicitSize: Theme.trayIconSize
+                implicitSize: Appearance.trayIconSize
                 source: item.modelData.icon
             }
         }

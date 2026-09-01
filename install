@@ -30,6 +30,9 @@ done
 unset IFS
 set +f
 
+# Remove links left dangling by a rename in the repo; nothing above deletes them.
+"$dir/.local/bin/dot-prune"
+
 # Set DOTFILES_DIR
 echo "export DOTFILES_DIR=$dir" > "$ZDOTDIR/dotfiles-dir.zsh"
 

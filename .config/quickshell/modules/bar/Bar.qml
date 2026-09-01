@@ -1,6 +1,9 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.config
+import qs.services
+import qs.widgets
 
 PanelWindow {
     id: bar
@@ -14,7 +17,7 @@ PanelWindow {
     anchors.top: true
     anchors.left: true
     anchors.right: true
-    implicitHeight: 31
+    implicitHeight: Appearance.barHeight
     exclusionMode: ExclusionMode.Auto
 
     color: Theme.barBackground

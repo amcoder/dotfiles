@@ -1,5 +1,7 @@
 import QtQuick
 import Quickshell.Io
+import qs.config
+import qs.widgets
 
 MouseArea {
     id: root
@@ -66,8 +68,8 @@ MouseArea {
             visible: root.paused && root.count > 0
             text: root.count
             color: Theme.yellow
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSize
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.fontSize
         }
     }
 }
