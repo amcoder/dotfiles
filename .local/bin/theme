@@ -100,20 +100,37 @@ def rgb(hex_color):
     return ",".join(str(int(h[i : i + 2], 16)) for i in (0, 2, 4))
 
 
+def luminance(hex_color):
+    h = hex_color.lstrip("#")
+    channels = []
+    for i in (0, 2, 4):
+        c = int(h[i : i + 2], 16) / 255
+        channels.append(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4)
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+
+def contrast(a, b):
+    low, high = sorted((luminance(a), luminance(b)))
+    return (high + 0.05) / (low + 0.05)
+
+
 def substitutions(theme):
     """Build the {{placeholder}} table.
 
-    Every colour role is available in three forms: `role` (#rrggbb), `role_raw`
-    (rrggbb, for swaylock and Qt ARGB strings) and `role_rgb` (r,g,b, for
-    kdeglobals).
+    Every colour role is available in four forms: `role` (#rrggbb), `role_raw`
+    (rrggbb, for swaylock and Qt ARGB strings), `role_rgb` (r,g,b, for
+    kdeglobals) and `role_fg` (#rrggbb) -- whichever end of the palette, crust
+    or text, is legible drawn on top of a fill of `role`.
     """
     subs = {}
     colors = theme["colors"]
+    ends = (colors["crust"], colors["text"])
 
     for role, value in colors.items():
         subs[role] = value
         subs[f"{role}_raw"] = value.lstrip("#")
         subs[f"{role}_rgb"] = rgb(value)
+        subs[f"{role}_fg"] = max(ends, key=lambda end: contrast(value, end))
 
     for index, role in enumerate(theme["accents"], start=1):
         if role not in colors:
