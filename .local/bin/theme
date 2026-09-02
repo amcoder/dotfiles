@@ -506,17 +506,6 @@ def reload_all(theme):
     apply_sway_colors()
     rename_workspaces(theme)
 
-    if have("notify-send"):
-        run(
-            [
-                "notify-send",
-                "-a",
-                "theme",
-                f"Theme: {theme.get('label', theme['name'])}",
-                "Neovim picks this up on restart.",
-            ]
-        )
-
 
 def cmd_list(args):
     current = current_theme()

@@ -178,6 +178,22 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- Follow the desktop theme: `theme apply` rewrites lua/theme.lua, and this
+-- switches the running instance to the colorscheme it names.
+local theme_dir = vim.fn.stdpath('config') .. '/lua'
+local theme_watcher = assert(vim.uv.new_fs_event())
+theme_watcher:start(theme_dir, {}, function(err, name)
+  if err or name ~= 'theme.lua' then
+    return
+  end
+  vim.schedule(function()
+    local ok, theme = pcall(dofile, theme_dir .. '/theme.lua')
+    if ok and type(theme) == 'table' and theme.colorscheme and theme.colorscheme ~= vim.g.colors_name then
+      pcall(vim.cmd.colorscheme, theme.colorscheme)
+    end
+  end)
+end)
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath('data') .. '/lazy/lazy.nvim'
