@@ -7,15 +7,12 @@ import qs.modules.osd
 import qs.modules.polkit
 import qs.modules.power
 import qs.modules.switcher
-import qs.modules.theme
 import qs.windows
 
 ShellRoot {
     Osd {}
 
     PolkitDialog {}
-
-    ThemePicker {}
 
     Launcher {}
 

@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.modules.theme
 import qs.services
 import qs.widgets
 
@@ -17,5 +18,9 @@ MouseArea {
         anchors.centerIn: parent
         name: "palette"
         color: Theme.barStatusline
+    }
+
+    ThemePicker {
+        anchorItem: root
     }
 }
