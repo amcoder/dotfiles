@@ -293,7 +293,7 @@ bindsym $mod+Shift+Return exec $browser
 bindsym $mod+backslash exec 1password --quick-access
 bindsym $mod+Shift+backslash exec 1password
 bindsym $mod+Shift+n exec nautilus
-bindsym $mod+Shift+e exec bemoji -c -n && wtype -M ctrl -k v -m ctrl
+bindsym $mod+Shift+e exec quickshell ipc call emoji toggle
 
 # Notifications (drawn by quickshell)
 bindsym $mod+n exec quickshell ipc call notifications invoke

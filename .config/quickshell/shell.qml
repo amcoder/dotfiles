@@ -1,6 +1,7 @@
 //@ pragma UseQApplication
 import Quickshell
 import qs.modules.bar
+import qs.modules.emoji
 import qs.modules.idle
 import qs.modules.launcher
 import qs.modules.osd
@@ -15,6 +16,8 @@ ShellRoot {
     PolkitDialog {}
 
     Launcher {}
+
+    EmojiPicker {}
 
     WindowSwitcher {}
 
