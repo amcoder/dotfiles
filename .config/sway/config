@@ -83,7 +83,6 @@ exec "systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_C
 
 # Autostart apps
 exec nm-applet
-exec blueman-applet
 exec 1password --silent
 exec kdeconnect-indicator
 exec calibre --start-in-tray
@@ -329,8 +328,6 @@ for_window {
     [app_id="software-properties-gtk"] floating enable
 
     [app_id="blueman-manager"] floating enable
-    [app_id="blueman-services"] floating enable
-    [app_id="blueman-sendto"] floating enable
 
     [app_id="org.kde.kdeconnect-settings"] floating enable
     [app_id="org.kde.kdeconnect-indicator"] floating enable

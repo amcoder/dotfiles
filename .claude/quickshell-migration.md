@@ -6,7 +6,7 @@
 >
 > - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
 > - [x] 4 Launcher/switcher/power  · [x] 5 OSD  · [x] 6 Wallpaper
-> - [x] 7 Lock + idle  · [~] 8 Network/BT/audio panels (audio done)  · [ ] 9 Additions
+> - [x] 7 Lock + idle  · [~] 8 Network/BT/audio panels (audio, bluetooth done)  · [ ] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
 
 ## Context
@@ -837,7 +837,46 @@ and WirePlumber can decline a configured default whose route is unavailable.
 mechanical but there is no upgradable package to open it with right now, and an unverifiable
 refactor of a working widget is not worth shipping — do it the next time the package icon appears.
 
-#### 8b — Bluetooth · not started
+#### 8b — Bluetooth · **done**
+
+`services/BluetoothService`, `modules/bar/Bluetooth` and `modules/bluetooth/BluetoothPanel` on the
+Phase 8a `BarPopup`. The panel is adapter power plus the paired devices — click to connect or
+disconnect, hover for a forget `x`, battery percentage where BlueZ offers one — with an
+"advanced…" link to `blueman-manager`. `exec blueman-applet` is gone from the sway config, as are
+the dead `blueman-services` / `blueman-sendto` window rules; the `blueman-manager` rule stays.
+Three Phosphor icons vendored: `bluetooth{,-slash,-connected}`.
+
+**The open question is answered: `Quickshell.Bluetooth` registers no `org.bluez.Agent1`.** The
+binary carries `Adapter1`, `Device1` and `Battery1` and nothing else, so `pair()` cannot answer a
+PIN or a confirmation. But `blueman-manager` D-Bus-activates `blueman-applet`
+(`SystemdService=blueman-applet.service`), which *is* the agent, and both exit with the window —
+verified by killing every blueman process, clicking "advanced…", and watching the applet appear
+under `user@1000.service` and then go away. No tray icon returns with it, so nothing duplicates the
+bar item, and no persistent applet is needed for pairing to work.
+
+**Discovery is deliberately out of the panel**, for two reasons that compound. Pairing needs the
+agent above, so a scan list would show devices you cannot reliably pair from. And a `PopupWindow`
+is size-locked once mapped — `height` follows `implicitHeight` at map time and then diverges
+(logged at 762 while `implicitHeight` fell to 728), and `reposition()` does not re-send it — so a
+list that fills in during a scan is clipped until the panel is reopened, which is the one thing a
+scan UI must not do. Both facts are in CLAUDE.md; the second one constrains any future panel whose
+content grows on its own.
+
+Verified by driving the real session with `swaymsg seat seat0 cursor` and `grim`: the bar icon
+tracks adapter and connection state (`bluetooth` / `-connected` / `-slash`); the panel lists all
+five paired devices with the right class icons and a live battery percentage; connect and
+disconnect both work end to end (the MX Master 2S dropped and came back); adapter power off and on
+work, confirmed against `bluetoothctl show`; the forget `x` appears only under the cursor; Escape
+and a click into another client both dismiss; "advanced…" launches blueman-manager; and the panel
+repaints live across `theme set nord` / `catppuccin-latte` / `catppuccin-mocha`.
+`find ~/.config/quickshell -xtype l` is empty, `sway --validate` passes, the shell log is clean and
+`Failed to disable CRTC` is still 0.
+
+**Carry into 8c:** the device list is sorted by label alone rather than connected-first,
+deliberately — sorting by state slides the next row, and its hover-only forget `x`, under the
+cursor at the moment you click. Worth remembering if the network panel wants a "connected first"
+list. And the size-lock above rules out any live-filling list in a `BarPopup`, which is exactly
+what a wifi scan is.
 
 #### 8c — Network · not started
 
@@ -851,10 +890,11 @@ refactor of a working widget is not worth shipping — do it the next time the p
   needs `bluetoothctl`.
 
 New Phosphor icons still to vendor (regular weight; `fill="currentColor"` → `#ffffff`, then
-`./install`): `wifi-{high,medium,low,slash}`, `bluetooth{,-slash,-connected}`, `gear`,
+`./install`): `wifi-{high,medium,low,slash}`, `gear`,
 `caret-right`, `list`, `play`, `pause`, `skip-{back,forward}`, `calendar`. The audio panel needed
 none — `speaker-*`, `microphone{,-slash}` and `check` were already vendored, and "advanced…" is a
-text link rather than a gear.
+text link rather than a gear. Bluetooth needed only its own three: the device-class icons all map
+onto icons the bar already had.
 
 ### Phase 9 — Additions
 
@@ -1004,5 +1044,6 @@ is clean; `journalctl -b | grep -c 'Failed to disable CRTC'` is still 0.
   inhibitors — measured in Phase 7.
 - ~~Is `qs ipc call` latency acceptable on volume key repeat?~~ Yes: ~31ms a call against sway's
   40ms repeat, measured in Phase 5. No `SocketServer` needed.
-- Does `Quickshell.Bluetooth.pair()` register an `org.bluez.Agent1`? (Phase 8 scope.)
+- ~~Does `Quickshell.Bluetooth.pair()` register an `org.bluez.Agent1`?~~ No — measured in Phase 8b.
+  Pairing goes through `blueman-manager`, which D-Bus-activates the applet that owns the agent.
 - Does clipboard ownership survive the emoji picker closing, given the process stays alive?

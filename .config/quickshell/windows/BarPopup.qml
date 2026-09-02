@@ -6,6 +6,11 @@ import qs.config
 // `padding`, and the popup sizes itself to them unless the caller overrides
 // implicitHeight. Clicking outside breaks the compositor's popup grab, which
 // hides it; Escape does the same from the keyboard.
+//
+// The size is taken when the popup maps and never again: `height` follows
+// `implicitHeight` at that moment and then diverges, and `reposition()` does
+// not re-send it. Content that grows while the popup is open is clipped, so a
+// panel that would grow on its own has to reserve the space or stay out.
 PopupWindow {
     id: root
 

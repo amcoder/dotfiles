@@ -64,6 +64,16 @@ PanelWindow {
 
             Separator {}
 
+            Bluetooth {
+                id: bluetooth
+
+                height: parent.height
+            }
+
+            Separator {
+                visible: bluetooth.visible
+            }
+
             Battery {
                 id: battery
 
