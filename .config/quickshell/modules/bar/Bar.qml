@@ -28,10 +28,10 @@ PanelWindow {
         anchors.fill: parent
 
         // The bar's three sections. Each is a full-height Row, so an item can
-        // measure against `parent.height` and a Separator can size itself off
-        // it; a new item goes into whichever one it belongs in. The centre is
-        // anchored to the bar rather than laid out between the other two, so
-        // an item growing on the left or the right never shifts it.
+        // measure against `parent.height`; a new item goes into whichever one
+        // it belongs in. The centre is anchored to the bar rather than laid
+        // out between the other two, so an item growing on the left or the
+        // right never shifts it.
         Row {
             id: left
 
@@ -72,81 +72,45 @@ PanelWindow {
             anchors.bottom: parent.bottom
             anchors.rightMargin: 8
 
-            spacing: 12
+            // Wider than the other sections: these items carried a separator
+            // between each pair, and the gap has to stand in for it.
+            spacing: 16
 
             AptUpgrade {
-                id: aptUpgrade
-
                 height: parent.height
-            }
-
-            Separator {
-                visible: aptUpgrade.visible
             }
 
             Volume {
-                id: volume
-
                 height: parent.height
             }
-
-            Separator {}
 
             Network {
-                id: network
-
                 height: parent.height
             }
-
-            Separator {}
 
             Bluetooth {
-                id: bluetooth
-
                 height: parent.height
-            }
-
-            Separator {
-                visible: bluetooth.visible
             }
 
             Battery {
-                id: battery
-
                 height: parent.height
-            }
-
-            Separator {
-                visible: battery.visible
             }
 
             Mail {
-                id: mail
-
                 height: parent.height
-            }
-
-            Separator {
-                visible: mail.visible
             }
 
             ThemeToggle {
                 height: parent.height
             }
 
-            Separator {}
-
             Insomnia {
                 height: parent.height
             }
 
-            Separator {}
-
             NotificationIndicator {
                 height: parent.height
             }
-
-            Separator {}
 
             Tray {
                 height: parent.height

@@ -64,7 +64,7 @@ There are no tests or linters for the repo as a whole. Neovim Lua is formatted w
 
   Workspace icons are named by sway: each `set $wsN` in `.config/sway/config` carries a `<span foreground='...'>icon-name</span>`, and `modules/bar/Workspaces.qml` parses the span for the colour and the icon name. Sway only applies renamed workspaces to newly created ones, so after editing those lines, existing workspaces keep their old names until `swaymsg rename workspace` is run or they are recreated.
 
-  `modules/bar/Bar.qml` lays out three sections — `left`, `centre`, `right` — each a full-height `Row`, so an item can measure against `parent.height` and a `Separator` can size itself off it. A new item goes into whichever section it belongs in. The centre is anchored to the bar's own centre rather than laid out between the other two, so the clock stays put no matter what grows on either side; it also means the sections can overlap if one ever gets wide enough, which at these widths they do not.
+  `modules/bar/Bar.qml` lays out three sections — `left`, `centre`, `right` — each a full-height `Row`, so an item can measure against `parent.height`. A new item goes into whichever section it belongs in. Nothing is drawn between items — the right section's wider `spacing` is what stands in for the separators it used to carry. The centre is anchored to the bar's own centre rather than laid out between the other two, so the clock stays put no matter what grows on either side; it also means the sections can overlap if one ever gets wide enough, which at these widths they do not.
 
   The bar is always visible and reserves its own height via `ExclusionMode.Auto`, so windows start below it.
 

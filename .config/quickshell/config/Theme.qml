@@ -76,7 +76,6 @@ Singleton {
 
     readonly property color barBackground: base
     readonly property color barStatusline: text
-    readonly property color barSeparator: blue
 
     readonly property color popupBackground: mantle
     readonly property color popupBorder: surface1
