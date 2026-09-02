@@ -1,13 +1,14 @@
 # Migrate the desktop shell to pure Quickshell
 
-> Working document. Phases are independently shippable — pick one up by name
-> ("let's do Phase 3") and it stands alone, with its own files, sway edits,
-> verification and rollback. Tick phases off here as they land.
+> **Closed out at Phase 9: the shell migration is done.** This is now a record rather
+> than a plan. Each phase stood alone, with its own files, sway edits, verification and
+> rollback, and what each one settled is kept below for the next time one is reopened.
 >
 > - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
 > - [x] 4 Launcher/switcher/power  · [x] 5 OSD  · [x] 6 Wallpaper
 > - [x] 7 Lock + idle  · [x] 8 Network/BT/audio panels  · [x] 9 Additions
-> - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
+> - [ ] 10 uwsm — **not taken.** It is the session rather than the shell, nothing else
+>   depends on it, and the arrangement it would replace works. The design is kept.
 
 ## Context
 
@@ -1052,11 +1053,20 @@ test a paste against: alacritty's paste is Ctrl+Shift+V, and Ctrl+V is quoted-in
 (`qt.qpa.wayland.textinput: Try to enable surface …`) is emitted identically by the launcher when
 you type into it, so it is Qt's, not the picker's.
 
-### Phase 10 — Move the session under uwsm
+### Phase 10 — Move the session under uwsm — not taken
+
+**Declined, and the migration closed at Phase 9.** The three reasons are the ones the phase
+already gave against itself: it is the session rather than the shell, so nothing built in phases
+2-9 is waiting on it; it is the boot path, which is the only part of this machine where a mistake
+costs a rescue VT rather than a `systemctl --user restart`; and two of its gates were never
+answered — whether greetd's `initial_session` autologin works with uwsm at all (uwsm expects a
+`.desktop` session entry, usually driven from a display manager's session list), and what becomes
+of the gtkgreet path in `/etc/greetd/sway-config`, a second consumer of the same launcher. The
+design below is kept intact should the current arrangement ever start costing something.
 
 Numbered 10 because 8 and 9 were already taken; it is genuinely last, and unlike every other phase
-it is about the session rather than the shell. Do it **after Phase 7**, when the lock service makes
-session lifecycle the interesting part and there is something to gain.
+it is about the session rather than the shell. It would have gone **after Phase 7**, when the lock
+service makes session lifecycle the interesting part and there is something to gain.
 
 Today the compositor starts the session manager: greetd autologins `sway-run`, a shell script that
 exports Wayland env vars, and sway's own config does
