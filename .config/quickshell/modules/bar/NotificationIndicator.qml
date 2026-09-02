@@ -1,5 +1,6 @@
 import QtQuick
 import qs.config
+import qs.modules.notifications
 import qs.services
 import qs.widgets
 
@@ -37,5 +38,13 @@ MouseArea {
             font.family: Appearance.fontFamily
             font.pixelSize: Appearance.fontSize
         }
+    }
+
+    NotificationCentre {
+        anchorItem: root
+    }
+
+    NotificationPopups {
+        anchorItem: root
     }
 }

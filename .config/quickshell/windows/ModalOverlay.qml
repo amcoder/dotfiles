@@ -1,9 +1,9 @@
 import QtQuick
-import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import qs.config
 import qs.services
+import qs.widgets
 
 // A card on an overlay layer surface with exclusive keyboard focus, centred on
 // the focused output or hung under `anchorItem` when one is given. Children go
@@ -159,77 +159,11 @@ PanelWindow {
             radius: root.cornerRadius
         }
 
-        // Left open at the top: an unclosed subpath is still filled, so the
-        // edge the card hangs from is painted but not stroked.
-        Shape {
-            id: outline
-
-            // The card spans [flare, flare + card.width] in these coordinates.
-            readonly property real inset: root.flare
-            readonly property real curve: Math.min(root.flare, card.height / 2)
-            readonly property real corner: Math.min(root.cornerRadius, card.width / 2, card.height - curve)
-
+        AttachedOutline {
             visible: root.attached && card.height > 0
-            x: -root.flare
-            width: card.width + root.flare * 2
-            height: card.height
-            preferredRendererType: Shape.CurveRenderer
-
-            ShapePath {
-                fillColor: root.cardColor
-                strokeColor: Theme.popupBorder
-                strokeWidth: 1
-
-                startX: outline.inset - outline.curve
-                startY: 0
-
-                PathArc {
-                    x: outline.inset
-                    y: outline.curve
-                    radiusX: outline.curve
-                    radiusY: outline.curve
-                    direction: PathArc.Clockwise
-                }
-
-                PathLine {
-                    x: outline.inset
-                    y: card.height - outline.corner
-                }
-
-                PathArc {
-                    x: outline.inset + outline.corner
-                    y: card.height
-                    radiusX: outline.corner
-                    radiusY: outline.corner
-                    direction: PathArc.Counterclockwise
-                }
-
-                PathLine {
-                    x: outline.inset + card.width - outline.corner
-                    y: card.height
-                }
-
-                PathArc {
-                    x: outline.inset + card.width
-                    y: card.height - outline.corner
-                    radiusX: outline.corner
-                    radiusY: outline.corner
-                    direction: PathArc.Counterclockwise
-                }
-
-                PathLine {
-                    x: outline.inset + card.width
-                    y: outline.curve
-                }
-
-                PathArc {
-                    x: outline.inset + card.width + outline.curve
-                    y: 0
-                    radiusX: outline.curve
-                    radiusY: outline.curve
-                    direction: PathArc.Clockwise
-                }
-            }
+            fillColor: root.cardColor
+            cornerRadius: root.cornerRadius
+            flare: root.flare
         }
 
         // Clipped here rather than on the card, which the flare overflows by
