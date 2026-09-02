@@ -8,9 +8,8 @@ import qs.config
 // The session actions, and the confirmation the destructive ones go through.
 //
 // The accelerators are the mnemonics of the sway `mode $session` block this
-// replaces. "Reload Sway" is deliberately not carried over: it existed only to
-// re-read theme colours, which `theme` now applies with targeted commands, and
-// a reload is a known trigger for the DRM lockup in sway-lockup-investigation.
+// replaces, plus `w` and `q` for the two restarts, which that block had no
+// equivalent of.
 Singleton {
     id: root
 
@@ -26,6 +25,22 @@ Singleton {
             icon: "lock-key",
             colour: Theme.blue,
             command: "loginctl lock-session",
+            confirm: false
+        },
+        {
+            key: "w",
+            label: "Reload Sway",
+            icon: "arrows-clockwise",
+            colour: Theme.teal,
+            command: "swaymsg reload",
+            confirm: false
+        },
+        {
+            key: "q",
+            label: "Restart Quickshell",
+            icon: "app-window",
+            colour: Theme.green,
+            command: "systemctl --user restart quickshell.service",
             confirm: false
         },
         {

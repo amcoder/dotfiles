@@ -132,6 +132,10 @@ PanelWindow {
                 height: parent.height
                 window: bar
             }
+
+            Power {
+                height: parent.height
+            }
         }
     }
 }

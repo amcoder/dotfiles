@@ -21,7 +21,7 @@ ShellRoot {
 
     WindowSwitcher {}
 
-    PowerMenu {}
+    PowerConfirm {}
 
     Variants {
         model: Quickshell.screens
