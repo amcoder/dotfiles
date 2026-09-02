@@ -64,7 +64,7 @@ PanelWindow {
             spacing: 12
 
             Clock {
-                anchors.verticalCenter: parent.verticalCenter
+                height: parent.height
             }
         }
 
