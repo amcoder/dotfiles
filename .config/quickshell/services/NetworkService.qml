@@ -49,11 +49,6 @@ Singleton {
 
     property var vpns: []
 
-    // The network waiting on a password. A PopupWindow cannot hold keyboard
-    // focus, so the prompt cannot live in the panel -- PskDialog watches this
-    // and asks on a ModalOverlay, which can.
-    property var pskNetwork: null
-
     readonly property var activeVpns: root.vpns.filter(vpn => vpn.active)
 
     readonly property string icon: {
@@ -135,17 +130,8 @@ Singleton {
         network?.connect();
     }
 
-    function requestPsk(network: var): void {
-        root.pskNetwork = network;
-    }
-
-    function cancelPsk(): void {
-        root.pskNetwork = null;
-    }
-
-    function submitPsk(psk: string): void {
-        root.pskNetwork?.connectWithPsk(psk);
-        root.pskNetwork = null;
+    function connectWithPsk(network: var, psk: string): void {
+        network?.connectWithPsk(psk);
     }
 
     function disconnect(network: var): void {

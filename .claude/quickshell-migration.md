@@ -902,8 +902,10 @@ points sort by name alone: signal strength moves on its own, so sorting by it sl
 stationary cursor without a click being involved at all.
 
 **Chasing the password field turned up the bug that broke every bar popup** (see 8d): a
-`PopupWindow` cannot hold keyboard focus at all, so the prompt could never have been typed into
-wherever it was put. It lives in `modules/network/PskDialog` on a `ModalOverlay`.
+`PopupWindow` cannot hold keyboard focus at all, so the prompt could not be typed into wherever it
+was put. It briefly moved to a modal for that reason and came back inline once 8d fixed the cause;
+it replaces the network list inside the same box, and takes Escape itself so that cancelling puts
+the list back rather than closing the panel.
 
 VPN is nmcli, since `Quickshell.Networking` has no VPN concept — `nmcli monitor` debounced 200ms
 into a `connection show`, filtered to `vpn` and `wireguard`.
@@ -963,7 +965,8 @@ every minute and shifts every item to its right.
 
 **What this frees up:** a layer surface may resize while open, which an xdg_popup may not. The
 size-lock that kept the bluetooth scan list out of `BluetoothPanel` is gone, and the network
-list's fixed height is now a UX choice rather than a requirement.
+list's fixed height is now a UX choice rather than a requirement — which is also why the wireless
+password prompt could move back into the panel rather than staying a separate modal.
 
 **Still to check:** the fix is that the surface takes keyboard focus, which is measured; actually
 typing a character and pressing Escape were not, since synthesising keystrokes was declined.

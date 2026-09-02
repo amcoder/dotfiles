@@ -11,16 +11,17 @@ import qs.windows
 //
 // The access point list gets a fixed height and scrolls inside it: a scan takes
 // about five seconds to fill in, and a list that grows under a stationary
-// cursor moves the row you were about to click.
-//
-// Asking for a password is PskDialog's job, not this file's -- a modal is the
-// clearer place for it, and it is also where the field is certain to be
-// typeable whatever the panel is built on.
+// cursor moves the row you were about to click. The password prompt replaces
+// that list inside the same box for the same reason -- the card could grow to
+// fit it, but then the rows would shift the moment one was clicked.
 BarPopup {
     id: root
 
     readonly property int rowHeight: 34
     readonly property int listRows: 5
+
+    // The network awaiting a password, or null when the list is showing.
+    property var pending: null
 
     implicitWidth: 380
 
@@ -32,7 +33,29 @@ BarPopup {
 
         function onVisibleChanged() {
             NetworkService.setScanning(root.visible);
+
+            if (!root.visible)
+                root.cancelPsk();
         }
+    }
+
+    function promptPsk(network: var): void {
+        root.pending = network;
+        psk.text = "";
+        psk.forceActiveFocus();
+    }
+
+    function cancelPsk(): void {
+        root.pending = null;
+        psk.text = "";
+    }
+
+    function submitPsk(): void {
+        if (psk.text === "")
+            return;
+
+        NetworkService.connectWithPsk(root.pending, psk.text);
+        root.cancelPsk();
     }
 
     // A known network connects on click; an unknown secured one needs a
@@ -47,8 +70,7 @@ BarPopup {
             root.visible = false;
             NetworkService.advanced();
         } else {
-            root.visible = false;
-            NetworkService.requestPsk(network);
+            root.promptPsk(network);
         }
     }
 
@@ -234,8 +256,8 @@ BarPopup {
         }
     }
 
-    // Fixed height: the list fills in during a scan and must scroll inside
-    // this rather than resize the popup. See the note at the top of the file.
+    // Fixed height, holding either the access points or the password prompt.
+    // See the note at the top of the file.
     Item {
         width: parent.width
         height: heading.height + 4 + root.listRows * root.rowHeight
@@ -246,7 +268,7 @@ BarPopup {
 
             anchors.left: parent.left
             anchors.top: parent.top
-            text: "Networks"
+            text: root.pending ? `Password for ${root.pending.name}` : "Networks"
             width: parent.width
             elide: Text.ElideRight
         }
@@ -257,6 +279,7 @@ BarPopup {
             anchors.top: heading.bottom
             anchors.topMargin: 4
             anchors.bottom: parent.bottom
+            visible: !root.pending
             clip: true
             boundsBehavior: Flickable.StopAtBounds
 
@@ -319,6 +342,54 @@ BarPopup {
                     size: Appearance.smallFontSize
                     name: "lock-key"
                     color: network.modelData.known ? Theme.popupText : Theme.popupSubtext
+                }
+            }
+        }
+
+        // Escape is handled here rather than left to bubble: the card would
+        // otherwise take it and close the whole panel, when what it should do
+        // is put the network list back.
+        Column {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: heading.bottom
+            anchors.topMargin: 4
+            visible: root.pending !== null
+            spacing: 8
+
+            Keys.onEscapePressed: event => {
+                root.cancelPsk();
+                event.accepted = true;
+            }
+
+            TextField {
+                id: psk
+
+                width: parent.width
+                echoMode: TextInput.Password
+                placeholder: "Password"
+
+                onAccepted: root.submitPsk()
+            }
+
+            Row {
+                anchors.right: parent.right
+                spacing: 8
+
+                Button {
+                    text: "Cancel"
+
+                    onActivated: root.cancelPsk()
+                }
+
+                Button {
+                    text: "Connect"
+                    enabled: psk.text !== ""
+                    background: Theme.blue
+                    hoverBackground: Theme.sapphire
+                    foreground: Theme.crust
+
+                    onActivated: root.submitPsk()
                 }
             }
         }
