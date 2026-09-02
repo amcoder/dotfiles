@@ -6,7 +6,7 @@
 >
 > - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
 > - [x] 4 Launcher/switcher/power  · [x] 5 OSD  · [x] 6 Wallpaper
-> - [x] 7 Lock + idle  · [x] 8 Network/BT/audio panels  · [ ] 9 Additions
+> - [x] 7 Lock + idle  · [x] 8 Network/BT/audio panels  · [x] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
 
 ## Context
@@ -983,6 +983,75 @@ MPRIS media widget (retires `playerctl`, `config:295-297`); calendar popup on th
 (hand-rolled 7×6 grid from `Date`, ~40 lines, rather than pulling in `QtQuick.Controls`); emoji
 picker on `FilterList` (retires `bemoji`, keeps `wtype`).
 
+**Landed**, as three independent pieces.
+
+**9a — MPRIS.** `services/MprisService` + `modules/bar/Media` + `modules/media/MediaPanel`, and
+four vendored icons (`play`, `pause`, `skip-{back,forward}`). Sway 277-279 →
+`qs ipc call media playPause|next|previous`. Four findings, each by spike:
+
+- **`Mpris.players` starts empty and fills in asynchronously** — 0 entries at
+  `Component.onCompleted`, 4 a second later — exactly as `DesktopEntries` and `Networking` do. The
+  bar item is what warms the singleton.
+- **A binding over `players.values` never re-runs when a player changes state**, only when one
+  appears or disappears. The usable list is therefore rebuilt by hand from an `Instantiator` whose
+  model is `Mpris.players` (the model, *not* `.values`), so one watcher is created per player and
+  survives every state change. `refresh()` compares before assigning, so a track change does not
+  hand every list a fresh array and rebuild its rows.
+- **The bus is full of players that are not media.** Chrome keeps a stopped, untitled,
+  uncontrollable instance up whenever it is running, and kdeconnect publishes one per remote app
+  whether or not that app has any — 4 players for 1 thing actually playing. `canControl &&
+  (canTogglePlaying || trackTitle !== "")` is the filter that leaves the two real ones.
+- **`position` extrapolates on read**, advancing exactly 1.00s per second between fetches, so a 1s
+  poll while the panel is open is a local read rather than a bus round trip. Writing it seeks.
+
+`activeName` records the last player known to be playing — on the transition, *and* on appearance,
+because a player already playing when it appears emits no `isPlayingChanged` and the first Spotify
+track of a session would otherwise leave the fallback to pick a kdeconnect mirror. The bar item
+goes in the **left** section: its width changes on every track, and the right section is anchored
+to the right edge, so putting it there would shift every icon along it each time a song ends.
+
+**9b — Calendar.** `modules/calendar/CalendarPopup`, a `BarPopup` under the clock, plus
+`caret-{left,right}`. It takes today from the bar's own `SystemClock` rather than a second timer,
+so the highlight moves at midnight. The grid is always six rows even for the months that fit in
+five — a grid that changed height would move the card's own edges as you page through it — and the
+month name is the way back to today, which is otherwise several presses away once you have paged
+into next year. `Clock` grew from a bare `Text` into a `MouseArea`, so `Bar.qml` gives it
+`height: parent.height` like every other clickable item.
+
+**9c — Emoji.** `services/EmojiService` + `modules/emoji/EmojiPicker`. The `<glyph> <name>`
+database bemoji used to download is **vendored into the repo** at `.config/quickshell/emoji.txt`
+(144K, 3773 entries), for the same reason the Phosphor icons are: nothing should have to fetch it
+on a fresh machine. Frecency is the launcher's shape exactly, in `statePath("emoji.json")`; the
+existing `~/.local/state/bemoji-history.txt` was folded into it once by hand (41 emoji, 112 picks,
+all stamped with the history file's mtime since bemoji records no per-pick time), so the switch
+did not cost the user their recents. Sway 296 → `qs ipc call emoji toggle`. bemoji is not tracked
+in this repo — it is a loose script in `~/.local/bin` — so it is simply left on disk unused, as
+wofi and zenity were.
+
+**The clipboard finding, which is the whole of the open question.** `Quickshell.clipboardText` is
+writable, and writing it looks like it worked — the value reads back — but the *Wayland selection*
+only changes when the write happens inside an input event handler. Qt takes the selection using
+the seat's last input serial, so a write from a timer updates Qt's own copy and nothing else, and
+`wl-paste` goes on reporting the old contents. Measured four ways: no surface at all (fails),
+focused overlay + timer (fails, with `Window.active` reading **true**, so this is not a focus
+problem), focused overlay + key handler (**works**), and the same followed immediately by hiding
+the surface (**works, and keeps working**). Ownership lasts as long as the shell *process*, so it
+survives the picker closing indefinitely — one fewer forked helper than `wl-copy` needed. Both
+`copy()` and `paste()` therefore run straight from the row's activation handler.
+
+Paste is dispatched through sway (`I3.dispatch`) rather than run as a `Process`, for the same
+reason the launcher dispatches `exec`. It carries a 100ms sleep the old binding did not need: the
+overlay is still being unmapped when the handler returns, and the keystroke has to land in the
+window the picker was covering. Verified end to end into a `zenity --entry` — query "duck", Return,
+and 🦆 arrives in both the clipboard and the field. Note that a *terminal* is the wrong thing to
+test a paste against: alacritty's paste is Ctrl+Shift+V, and Ctrl+V is quoted-insert.
+
+**Verification.** All three restarted clean; `theme set nord` / `catppuccin-latte` /
+`catppuccin-macchiato` repaint the calendar, the panel and the picker live; `journalctl -b | grep
+-c 'Failed to disable CRTC'` is still 0. The one new warning
+(`qt.qpa.wayland.textinput: Try to enable surface …`) is emitted identically by the launcher when
+you type into it, so it is Qt's, not the picker's.
+
 ### Phase 10 — Move the session under uwsm
 
 Numbered 10 because 8 and 9 were already taken; it is genuinely last, and unlike every other phase
@@ -1130,4 +1199,7 @@ is clean; `journalctl -b | grep -c 'Failed to disable CRTC'` is still 0.
 - ~~Can `Quickshell.Networking` replace nm-applet outright?~~ No — measured in Phase 8c. It
   registers no NM secret agent, and nm-applet has no D-Bus activation, so it stays resident with
   its tray icon filtered out of `Tray.qml`.
-- Does clipboard ownership survive the emoji picker closing, given the process stays alive?
+- ~~Does clipboard ownership survive the emoji picker closing, given the process stays alive?~~
+  Yes, and for the whole life of the process. The real constraint is different and sharper: the
+  write must happen inside an input event handler or the Wayland selection never changes at all.
+  Measured in Phase 9c.
