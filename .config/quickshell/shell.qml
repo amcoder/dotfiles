@@ -1,6 +1,7 @@
 //@ pragma UseQApplication
 import Quickshell
 import qs.modules.bar
+import qs.modules.idle
 import qs.modules.launcher
 import qs.modules.notifications
 import qs.modules.osd
@@ -31,6 +32,16 @@ ShellRoot {
         model: Quickshell.screens
 
         Wallpaper {
+            required property var modelData
+
+            screen: modelData
+        }
+    }
+
+    Variants {
+        model: Quickshell.screens
+
+        IdleDim {
             required property var modelData
 
             screen: modelData

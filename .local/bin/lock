@@ -1,0 +1,34 @@
+#!/bin/sh
+# Lock the session with the Quickshell lock screen.
+#
+# swayidle's `lock` and `before-sleep` hooks both call this, so it is the one
+# path in and it has to be safe to call when already locked.
+#
+# It does not return until the compositor has confirmed the lock surfaces are
+# up: before-sleep must not suspend over a half-mapped surface, which would
+# resume to an unlocked desktop.
+set -eu
+
+stamp="${XDG_RUNTIME_DIR:?}/quickshell-lock.stamp"
+
+if ! systemctl --user is-active --quiet quickshell-lock.service; then
+    # Removing it here is what makes waiting for it meaningful: a stamp left by
+    # an earlier run can never be mistaken for this one.
+    rm -f "$stamp"
+    systemctl --user start quickshell-lock.service
+fi
+
+i=0
+while [ ! -e "$stamp" ] && [ "$i" -lt 40 ]; do
+    sleep 0.05
+    i=$((i + 1))
+done
+
+if [ ! -e "$stamp" ]; then
+    # Two seconds without a mapped surface means the shell is not coming up.
+    # Fall back to swaylock rather than leave the session unlocked, which is
+    # the whole reason swaylock and its theme template are kept installed.
+    echo "lock: quickshell-lock did not come up, falling back to swaylock" >&2
+    systemctl --user stop quickshell-lock.service || true
+    exec swaylock -f
+fi

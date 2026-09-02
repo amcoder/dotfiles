@@ -33,11 +33,17 @@ bindswitch --reload --locked lid:off output $laptop enable
 exec_always ~/.local/bin/sway-laptop-lid
 
 ### Idle configuration
+#
+# swayidle is only an adapter for logind's signals now. Quickshell 0.3.0 has no
+# logind client, so nothing in the shell can hear the Lock signal that
+# `loginctl lock-session` raises -- which is what $mod+Escape, the session menu
+# and kdeconnect all go through. Every timeout lives in
+# quickshell/services/IdleService.qml instead, so there is no policy here.
 exec_always killall swayidle; swayidle -w \
         idlehint 120 \
-        lock 'swaylock -f' \
-        timeout 300 'loginctl lock-session' \
-        before-sleep 'loginctl lock-session'
+        lock 'lock' \
+        unlock 'systemctl --user stop quickshell-lock.service' \
+        before-sleep 'lock'
 
 # Hide cursor after timeout, or when typing. Unclutter.
 seat * hide_cursor 5000

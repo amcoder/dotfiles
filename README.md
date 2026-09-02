@@ -53,7 +53,7 @@ template and list it in `TARGETS` in `.local/bin/theme`.
 | `gtk-{3,4}.0/settings.ini` | GTK theme + dark/light preference | app restart |
 | `kdeglobals` | Qt/KDE apps | app restart |
 | `qt{5,6}ct/colors/theme.conf` | Qt5 apps (VLC) | app restart |
-| `swaylock/config` | lock screen | next lock |
+| `swaylock/config` | emergency lock screen (the normal one is quickshell) | next lock |
 | `tmux/theme.tmux` | tmux palette (layout is in the tracked `tmux/statusline.conf`) | `tmux source-file` |
 | `zsh/theme.zsh` | fzf, bat, p10k | new shell |
 | `nvim/lua/theme.lua` | Neovim | restart |
@@ -87,7 +87,9 @@ systemctl --user status sway-session.target
 `swaymsg reload` no longer restarts the bar, and a QML edit that kills the shell
 is recovered by `Restart=always` (capped at `StartLimitBurst=5`). Every escape
 hatch — `$mod+Return`, `$mod+Shift+q`, workspace switching, lock — is a sway
-keybind and keeps working with quickshell stopped. The launcher, window switcher
+keybind and keeps working with quickshell stopped. The lock screen is a
+*separate* unit for the same reason: if the shell held the session lock and
+crashed, sway would keep the session locked with nothing to type into. The launcher, window switcher
 and session menu do not: they are quickshell surfaces reached over IPC, so with
 the shell down `$mod+Return` is the way back to a terminal.
 
@@ -97,6 +99,38 @@ The user manager never sources `~/.profile`, so the XDG base directories and
 
 `./install` runs `systemctl --user daemon-reload` and enables the unit. Editing
 an existing unit needs a `daemon-reload` of its own.
+
+## Lock screen and idle
+
+`lock` locks the session: it starts `quickshell-lock.service` and waits for the
+lock surfaces to map before returning, so a suspend cannot race a half-drawn
+lock. swayidle is only an adapter for logind's Lock/Unlock/PrepareForSleep
+signals now — the dim (240s) and lock (300s) timeouts live in the shell, in
+`quickshell/services/IdleService.qml`.
+
+```sh
+lock                                    # what $mod+Escape and before-sleep reach
+QS_LOCK_DEMO=1 quickshell -p ~/.config/quickshell/lock.qml   # same UI, Escape closes it
+```
+
+Work on the lock screen in `QS_LOCK_DEMO=1`, never by locking for real.
+
+**If a lock screen ever leaves you stuck**, switch to a VT with `Ctrl+Alt+F2`,
+log in, and start a fresh lock client — sway accepts a replacement for an
+abandoned lock, so this gives you a prompt you can type into:
+
+```sh
+XDG_RUNTIME_DIR=/run/user/$(id -u) systemctl --user start quickshell-lock.service
+```
+
+Last resort, which ends the session and loses unsaved work:
+
+```sh
+SWAYSOCK=$(ls /run/user/$(id -u)/sway-ipc.*.sock) swaymsg exit
+```
+
+If quickshell does not map within two seconds, `lock` falls back to
+`swaylock -f`, which is why swaylock stays installed and themed.
 
 ## Sway run
 

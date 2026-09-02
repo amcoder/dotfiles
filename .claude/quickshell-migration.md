@@ -6,7 +6,7 @@
 >
 > - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
 > - [x] 4 Launcher/switcher/power  · [x] 5 OSD  · [x] 6 Wallpaper
-> - [ ] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
+> - [x] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
 
 ## Context
@@ -717,6 +717,97 @@ should work, but confirm before building UI on it.
 **Risk: high (lockout).** Mitigations in the verification section.
 **Rollback:** restore swayidle's full line; `lock` → `swaylock -f`. `swaylock` and its template stay forever.
 
+**Landed.** `lock.qml`, `services/LockService.qml`, `modules/lock/LockSurface.qml`,
+`.config/systemd/user/quickshell-lock.service`, `.local/bin/lock`, `services/IdleService.qml`
+and `modules/idle/IdleDim.qml`. swayidle is demoted to the adapter the plan describes; its
+`timeout 300` moved into `IdleService`. No new icons and no `TARGETS` change — `swaylock.conf.tmpl`
+stays, and `lock` falls back to `swaylock -f` if the shell does not map within 2s, which is what
+keeps that template earning its place.
+
+Both gates passed before any UI was written:
+
+- **PAM works**, with `config: "swaylock"` (which on Debian is just `@include common-auth`).
+  `start()` → `pamMessage` with `responseRequired` → `respond()` → `completed(PamResult)`.
+  A wrong password comes back `PamResult.Failed` after `common-auth`'s ~2s `pam_faildelay`, and
+  `start()` can simply be called again — four consecutive failures never hit `MaxTries`.
+- **`respectInhibitors` does see other clients' inhibitors**, which was the open question. sway
+  enforces it compositor-side, so a monitor with it set never goes idle while any client holds a
+  Wayland idle inhibitor. Measured against a second process holding one, with a
+  `respectInhibitors: false` monitor alongside as the control.
+
+Three things about inhibitors, none of which the plan anticipated:
+
+- **A layer-surface inhibitor does not count.** The first attempt at the test used a 1×1
+  background-layer surface and the respecting monitor went idle anyway. sway only honours a
+  protocol inhibitor attached to a visible *view*, so quickshell's own surfaces cannot inhibit
+  idle; the test had to be redone with a `FloatingWindow`.
+- **Nothing here sees *logind* idle inhibitors**, which is what `.local/bin/noidle` and
+  `InsomniaService`'s third mode create (`systemd-inhibit --what=…:idle`). That is not a
+  regression: swayidle never saw them either — measured, a `--what=idle` inhibitor held across a
+  `swayidle timeout 5` and the timeout fired regardless. So Insomnia's "inhibit idle" mode and
+  `noidle` have never prevented the screen locking; only their `sleep` half ever did anything.
+- Since idle policy now lives in the same process as Insomnia, `IdleService` reads
+  `InsomniaService.mode.inhibitIdle` directly and disarms both monitors. That is one binding, and
+  it makes the bar's indicator finally mean what it says. (Cross-service references need no
+  import: same directory, same synthesized `qs.services` module.)
+
+**`Quickshell.env()` returns `null` for an unset variable, not `""`.** `env("QS_LOCK_DEMO") !== ""`
+is therefore true when the variable is *unset*, which put every real lock into demo mode — drawing
+an escapable overlay instead of a `WlSessionLock`. It fails open, silently, and only in the case
+nobody tests by hand, because setting the variable is what makes it behave. It is `!!env(…)` now.
+Anything reading an optional env var wants truthiness, not a comparison against `""`.
+
+The rest, as built:
+
+- **`WlSessionLock.secure` is the "surfaces are up" signal**, and it is what the sleep race needs:
+  `LockService` writes `$XDG_RUNTIME_DIR/quickshell-lock.stamp` on it, and `lock` polls for that
+  before returning so `before-sleep` cannot suspend over a half-mapped surface. `lock` removes the
+  stamp *before* starting the unit, which is what makes waiting for it meaningful — a stamp from an
+  earlier lock can never be read as this one's.
+- **`quickshell-lock.service` sets `StartLimitIntervalSec=0`.** Once the compositor holds a lock it
+  keeps holding it whether or not a client is alive, so a unit that gives up restarting leaves a
+  locked session with nothing to type into. Retrying for ever is the recoverable failure mode;
+  giving up is not. `Restart=on-failure` rather than `always`, so a clean exit after a successful
+  unlock stays gone.
+- **Screen-off is a paint, never a modeset**, in two stages: `IdleDim` darkens to 60% at 240s from
+  the shell (click-through, so the input that dismisses it still reaches the window underneath),
+  and `LockService.blanked` paints the lock surface black after 60s idle *while locked*. Neither
+  goes near `output power off`, which is lockup trigger #2.
+- The plan's `widgets/ConfirmDialog`-style layering was not needed: `LockSurface` is a plain `Item`
+  owning no window chrome, instantiated per screen by `WlSessionLockSurface` for a real lock and by
+  one overlay `PanelWindow` under `QS_LOCK_DEMO`. `WlSessionLock` is left instantiated in both
+  cases and simply never locks in demo mode.
+
+**The crash-path answer, which the plan asked to be written down because it is documented nowhere
+else: sway accepts a replacement lock client for an abandoned lock.** `SIGKILL` to the client while
+locked leaves the session locked (the protocol's guarantee, so there is no failure-open), and a
+freshly started client then maps and re-confirms `secure`. `Restart=on-failure` is therefore real
+crash recovery rather than a hope, and the lock screen is safe to keep. From a VT the same fact is
+the recovery path: `systemctl --user start quickshell-lock.service` gives you a prompt you can type
+into.
+
+**Nested sway is the right sandbox for this, and it has one trap that bites hard.** A real
+`WlSessionLock` can be exercised inside `sway -c <minimal>` running as a window in the session,
+which is how the crash path above was answered without risking the real desktop. But the nested
+compositor's IPC socket is found by mtime (`ls -t /run/user/1000/sway-ipc.*.sock`), and when the
+nested sway exits that lookup silently falls through to the **real** session's socket — so the next
+`swaymsg exec` launches the lock client into the desktop you were protecting, and locks it. Bind
+the socket path once, up front, and assert the nested compositor is still alive before every
+`swaymsg` against it.
+
+**Verified:** the PAM spike, then demo mode driven with `wtype` — a wrong password clears the field,
+refocuses it and shows "Incorrect password" in red, and a second attempt is accepted. Then the full
+lifecycle against a real `WlSessionLock`: lock engages and writes the stamp, `SIGKILL` leaves it
+locked, a replacement client remaps, and the correct password unlocks and exits the process cleanly
+(nothing left running, so `Restart=on-failure` does not fire). `IdleService` loads with 240/300 and
+`inhibited=false`, `IdleDim` renders, and the lock wiring fires `Quickshell.execDetached` on the
+monitor. swayidle runs in sway's own `session-*.scope`, so it survives the shell that started it.
+The shell restarted clean, `find ~/.config/quickshell -xtype l` is empty, and
+`Failed to disable CRTC` is still 0.
+
+Not done, deliberately: **the `before-sleep` path has not been exercised against a real suspend.**
+The stamp it depends on is verified, but nothing has actually suspended this machine.
+
 ### Phase 8 — Network, Bluetooth and audio panels
 
 Three services, three bar indicators, three `BarPopup` panels. Order within the phase:
@@ -884,7 +975,9 @@ is clean; `journalctl -b | grep -c 'Failed to disable CRTC'` is still 0.
 
 ## Open questions to settle during execution
 
-- Does `respectInhibitors` see other clients' idle inhibitors? (Phase 7 gate.)
+- ~~Does `respectInhibitors` see other clients' idle inhibitors?~~ Yes, for Wayland inhibitors on
+  a visible view; sway enforces it compositor-side. Not for layer-surface ones, and not for logind
+  inhibitors — measured in Phase 7.
 - ~~Is `qs ipc call` latency acceptable on volume key repeat?~~ Yes: ~31ms a call against sway's
   40ms repeat, measured in Phase 5. No `SocketServer` needed.
 - Does `Quickshell.Bluetooth.pair()` register an `org.bluez.Agent1`? (Phase 8 scope.)
