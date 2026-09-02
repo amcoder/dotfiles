@@ -1,8 +1,8 @@
 import QtQuick
-import Quickshell
 import Quickshell.Io
 import qs.config
 import qs.widgets
+import qs.windows
 
 MouseArea {
     id: root
@@ -118,18 +118,18 @@ MouseArea {
     cursorShape: Qt.PointingHandCursor
 
     onClicked: {
-        if (popup.visible) {
-            popup.visible = false;
+        if (popup.expanded) {
+            popup.expanded = false;
         } else {
             if (!root.upgrading)
                 check.running = true;
-            popup.visible = true;
+            popup.expanded = true;
         }
     }
 
     onCountChanged: {
         if (root.count === 0)
-            popup.visible = false;
+            popup.expanded = false;
     }
 
     Process {
@@ -219,194 +219,170 @@ MouseArea {
         }
     }
 
-    PopupWindow {
+    BarPopup {
         id: popup
 
-        readonly property int padding: 12
         readonly property int rowHeight: 26
         readonly property int maxRows: 20
 
-        anchor.item: root
-        anchor.edges: Edges.Bottom | Edges.Right
-        anchor.gravity: Edges.Bottom | Edges.Left
+        anchorItem: root
+        cardWidth: 560
+        spacing: 8
 
-        implicitWidth: 560
-        implicitHeight: popup.padding * 2 + header.height + body.spacing + Math.min(list.contentHeight, popup.maxRows * popup.rowHeight)
-        color: "transparent"
-        visible: false
-        grabFocus: true
+        Item {
+            id: header
 
-        Rectangle {
-            anchors.fill: parent
-            color: Theme.popupBackground
-            border.color: Theme.popupBorder
-            border.width: 1
-            radius: 6
+            width: parent.width
+            height: 30
 
-            focus: true
-            Keys.onEscapePressed: popup.visible = false
+            Icon {
+                id: headerIcon
 
-            Column {
-                id: body
+                anchors.left: parent.left
+                anchors.verticalCenter: parent.verticalCenter
+                name: "package"
+                color: root.headerColor
+            }
 
-                anchors.fill: parent
-                anchors.margins: popup.padding
-                spacing: 8
+            Text {
+                anchors.left: headerIcon.right
+                anchors.right: actions.left
+                anchors.leftMargin: 6
+                anchors.rightMargin: 10
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.headerText
+                color: root.headerColor
+                elide: Text.ElideRight
+                font.family: Appearance.fontFamily
+                font.pixelSize: Appearance.fontSize
+            }
 
-                Item {
-                    id: header
+            Row {
+                id: actions
 
-                    width: parent.width
-                    height: 30
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 12
 
-                    Icon {
-                        id: headerIcon
+                Text {
+                    id: selectLink
 
-                        anchors.left: parent.left
-                        anchors.verticalCenter: parent.verticalCenter
-                        name: "package"
-                        color: root.headerColor
-                    }
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !root.upgrading
+                    text: root.selectedCount > 0 ? "clear" : "select all"
+                    color: selectMouse.containsMouse ? Theme.popupText : Theme.popupSubtext
+                    font.family: Appearance.fontFamily
+                    font.pixelSize: Appearance.smallFontSize
 
-                    Text {
-                        anchors.left: headerIcon.right
-                        anchors.right: actions.left
-                        anchors.leftMargin: 6
-                        anchors.rightMargin: 10
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: root.headerText
-                        color: root.headerColor
-                        elide: Text.ElideRight
-                        font.family: Appearance.fontFamily
-                        font.pixelSize: Appearance.fontSize
-                    }
+                    MouseArea {
+                        id: selectMouse
 
-                    Row {
-                        id: actions
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
 
-                        anchors.right: parent.right
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 12
-
-                        Text {
-                            id: selectLink
-
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: !root.upgrading
-                            text: root.selectedCount > 0 ? "clear" : "select all"
-                            color: selectMouse.containsMouse ? Theme.popupText : Theme.popupSubtext
-                            font.family: Appearance.fontFamily
-                            font.pixelSize: Appearance.smallFontSize
-
-                            MouseArea {
-                                id: selectMouse
-
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-
-                                onClicked: {
-                                    if (root.selectedCount > 0)
-                                        root.clearSelection();
-                                    else
-                                        root.selectAll();
-                                }
-                            }
-                        }
-
-                        Rectangle {
-                            anchors.verticalCenter: parent.verticalCenter
-                            visible: root.selectedCount > 0 && !root.upgrading
-                            implicitWidth: upgradeLabel.implicitWidth + 20
-                            height: 26
-                            radius: 4
-                            color: upgradeMouse.containsMouse ? Theme.sapphire : Theme.blue
-
-                            Text {
-                                id: upgradeLabel
-
-                                anchors.centerIn: parent
-                                text: `Upgrade ${root.selectedCount}`
-                                color: Theme.base
-                                font.family: Appearance.fontFamily
-                                font.pixelSize: Appearance.smallFontSize
-                            }
-
-                            MouseArea {
-                                id: upgradeMouse
-
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                cursorShape: Qt.PointingHandCursor
-
-                                onClicked: root.upgradeSelected()
-                            }
+                        onClicked: {
+                            if (root.selectedCount > 0)
+                                root.clearSelection();
+                            else
+                                root.selectAll();
                         }
                     }
                 }
 
-                ListView {
-                    id: list
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: root.selectedCount > 0 && !root.upgrading
+                    implicitWidth: upgradeLabel.implicitWidth + 20
+                    height: 26
+                    radius: 4
+                    color: upgradeMouse.containsMouse ? Theme.sapphire : Theme.blue
 
-                    width: parent.width
-                    height: body.height - header.height - body.spacing
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-                    model: root.packages
+                    Text {
+                        id: upgradeLabel
 
-                    delegate: ListRow {
-                        id: entry
-
-                        required property var modelData
-
-                        readonly property bool checked: root.isSelected(entry.modelData.name)
-
-                        width: list.width
-                        height: popup.rowHeight
-                        enabled: !root.upgrading
-                        selected: entry.checked
-
-                        onActivated: root.toggle(entry.modelData.name)
-
-                        Rectangle {
-                            id: box
-
-                            anchors.left: parent.left
-                            anchors.leftMargin: 6
-                            anchors.verticalCenter: parent.verticalCenter
-                            width: 14
-                            height: 14
-                            radius: 3
-                            color: entry.checked ? Theme.blue : "transparent"
-                            border.color: entry.checked ? Theme.blue : Theme.surface2
-                            border.width: 1
-                        }
-
-                        Text {
-                            anchors.left: box.right
-                            anchors.right: versions.left
-                            anchors.leftMargin: 8
-                            anchors.rightMargin: 12
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: entry.modelData.name
-                            color: Theme.popupText
-                            elide: Text.ElideRight
-                            font.family: Appearance.fontFamily
-                            font.pixelSize: Appearance.smallFontSize
-                        }
-
-                        Text {
-                            id: versions
-
-                            anchors.right: parent.right
-                            anchors.rightMargin: 6
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: `${entry.modelData.from} → ${entry.modelData.to}`
-                            color: Theme.popupSubtext
-                            font.family: Appearance.fontFamily
-                            font.pixelSize: Appearance.smallFontSize
-                        }
+                        anchors.centerIn: parent
+                        text: `Upgrade ${root.selectedCount}`
+                        color: Theme.base
+                        font.family: Appearance.fontFamily
+                        font.pixelSize: Appearance.smallFontSize
                     }
+
+                    MouseArea {
+                        id: upgradeMouse
+
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: root.upgradeSelected()
+                    }
+                }
+            }
+        }
+
+        // The card grows with the list until it hits `maxRows`, which is what
+        // the popup's fixed height used to cap.
+        ListView {
+            id: list
+
+            width: parent.width
+            height: Math.min(list.contentHeight, popup.maxRows * popup.rowHeight)
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            model: root.packages
+
+            delegate: ListRow {
+                id: entry
+
+                required property var modelData
+
+                readonly property bool checked: root.isSelected(entry.modelData.name)
+
+                width: list.width
+                height: popup.rowHeight
+                enabled: !root.upgrading
+                selected: entry.checked
+
+                onActivated: root.toggle(entry.modelData.name)
+
+                Rectangle {
+                    id: box
+
+                    anchors.left: parent.left
+                    anchors.leftMargin: 6
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 14
+                    height: 14
+                    radius: 3
+                    color: entry.checked ? Theme.blue : "transparent"
+                    border.color: entry.checked ? Theme.blue : Theme.surface2
+                    border.width: 1
+                }
+
+                Text {
+                    anchors.left: box.right
+                    anchors.right: versions.left
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: entry.modelData.name
+                    color: Theme.popupText
+                    elide: Text.ElideRight
+                    font.family: Appearance.fontFamily
+                    font.pixelSize: Appearance.smallFontSize
+                }
+
+                Text {
+                    id: versions
+
+                    anchors.right: parent.right
+                    anchors.rightMargin: 6
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: `${entry.modelData.from} → ${entry.modelData.to}`
+                    color: Theme.popupSubtext
+                    font.family: Appearance.fontFamily
+                    font.pixelSize: Appearance.smallFontSize
                 }
             }
         }
