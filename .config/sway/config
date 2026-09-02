@@ -274,9 +274,9 @@ bindsym XF86AudioMute exec quickshell ipc call audio mute
 bindsym XF86AudioMicMute exec quickshell ipc call audio micMute
 bindsym XF86MonBrightnessDown exec quickshell ipc call brightness down
 bindsym XF86MonBrightnessUp exec quickshell ipc call brightness up
-bindsym XF86AudioPlay exec playerctl play-pause
-bindsym XF86AudioNext exec playerctl next
-bindsym XF86AudioPrev exec playerctl previous
+bindsym XF86AudioPlay exec quickshell ipc call media playPause
+bindsym XF86AudioNext exec quickshell ipc call media next
+bindsym XF86AudioPrev exec quickshell ipc call media previous
 bindsym XF86Search exec quickshell ipc call launcher toggle
 
 # Gestures

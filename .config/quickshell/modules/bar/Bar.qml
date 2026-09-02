@@ -48,6 +48,10 @@ PanelWindow {
 
                 screenName: bar.screen.name
             }
+
+            Media {
+                height: parent.height
+            }
         }
 
         Row {
