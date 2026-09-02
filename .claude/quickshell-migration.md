@@ -896,13 +896,14 @@ changed instead is that `Tray.qml` filters its item out by `id` (`"nm-applet"`, 
 `Id`), so there is one network indicator rather than two, and `exec nm-applet` in the sway config
 now carries a comment saying why it is there.
 
-**The scan is exactly the live-filling list 8b said a `BarPopup` cannot hold**, so this phase
-answers that with the other half of the rule: reserve the space. `scannerEnabled` is off until the
-panel opens, the list fills from 1 entry to all of them over ~5s, and it does that inside a
-fixed-height `ListView` that scrolls instead of resizing the popup — measured 1 → 4 rows with no
-clipping. The password prompt replaces the list inside that same box rather than being appended
-below it. Access points sort by name alone: signal strength moves on its own, so sorting by it
-slides rows under a stationary cursor without a click being involved at all.
+`scannerEnabled` is off until the panel opens and the list fills from 1 entry to all of them over
+~5s, inside a fixed-height `ListView` that scrolls — measured 1 → 4 rows with no clipping. Access
+points sort by name alone: signal strength moves on its own, so sorting by it slides rows under a
+stationary cursor without a click being involved at all.
+
+**Chasing the password field turned up the bug that broke every bar popup** (see 8d): a
+`PopupWindow` cannot hold keyboard focus at all, so the prompt could never have been typed into
+wherever it was put. It lives in `modules/network/PskDialog` on a `ModalOverlay`.
 
 VPN is nmcli, since `Quickshell.Networking` has no VPN concept — `nmcli monitor` debounced 200ms
 into a `connection show`, filtered to `vpn` and `wireguard`.
@@ -917,15 +918,55 @@ attempted, and Cancel returns to the list; and the panel repaints live across `t
 back. `find ~/.config/quickshell -xtype l` is empty, `sway --validate` passes, and the shell log is
 clean.
 
-**Not verified:** Escape-to-dismiss (keystroke injection was declined this session; the mechanism is
-`BarPopup`'s and unchanged from 8a/8b), an actual PSK join, and the EAP path that hands off to
-`nm-connection-editor` — both would mean joining a network that is not ours.
+**Not verified:** an actual PSK join and the EAP path that hands off to `nm-connection-editor` —
+both would mean joining a network that is not ours.
 
 **Two QML findings worth carrying.** `Networking` starts loading on first read and fills in
 asynchronously, like `DesktopEntries`, so everything is a binding and the bar item is what warms it.
 And a signal handler written at the instantiation site *replaces* the component's own rather than
 running alongside it — an `onVisibleChanged` next to `NetworkPanel { … }` silently overrode the
 panel's own handler.
+
+#### 8d — Bar popups had to stop being popups · **done**
+
+Reported after 8c landed: with any bar panel open, keystrokes and clicks fell through to the app
+underneath, and the PSK field could not be typed into.
+
+**A Quickshell 0.3.0 `PopupWindow` cannot hold keyboard focus.** Its only knob is `grabFocus`,
+which is the pointer grab; keys go to the *parent* layer surface, a different window, and Qt
+delivers key events only to the focused one. Nothing in the popup can ever see them, Escape
+included — and sway will not honour the grab either, so clicks outside it reach the app rather
+than dismissing. Measured with `Window.active` and calibrated against the launcher: an open
+`ModalOverlay` reads `true`, the popup reads `false`.
+
+The obvious fix does not work either. **`WlrLayershell.keyboardFocus` is applied when the surface
+is created and ignored on every later change**, so giving the bar `Exclusive` only while a popup
+was open changed nothing (`kb=1`, still `active=false`), while the same constant set before
+startup made the bar active at once. That is why `ModalOverlay` holds a constant `Exclusive` and
+toggles `visible` instead — hiding destroys the surface, showing recreates it with the focus mode
+it was declared with.
+
+So `BarPopup` is now a `ModalOverlay` with an `anchorItem` — the same overlay layer surface as the
+launcher, with the card hung under the bar item rather than centred — and `ModalOverlay` grew that
+anchoring plus `focus: true` on the card so Escape lands without a `focusItem`. The API did not
+change, so the three panels needed nothing beyond `NetworkPanel` swapping its `onVisibleChanged`
+for a `Connections` (the base class's handler would otherwise be replaced, the same trap as in 8c).
+
+One trap found on the way: **a `PanelWindow` is visible by default**, so the rewritten `BarPopup`
+mapped all three panels at startup as full-screen overlays that silently ate every click aimed at
+the bar. A dropdown has to say `visible: false`.
+
+Verified with `swaymsg seat seat0 cursor` and `grim`: all three panels open anchored under their
+own bar item, the popup now reads `active=true`, a click outside dismisses without reaching the
+app, and the anchor is re-measured on each open — which it must be, since the clock changes width
+every minute and shifts every item to its right.
+
+**What this frees up:** a layer surface may resize while open, which an xdg_popup may not. The
+size-lock that kept the bluetooth scan list out of `BluetoothPanel` is gone, and the network
+list's fixed height is now a UX choice rather than a requirement.
+
+**Still to check:** the fix is that the surface takes keyboard focus, which is measured; actually
+typing a character and pressing Escape were not, since synthesising keystrokes was declined.
 
 New Phosphor icons still to vendor for later phases (regular weight; `fill="currentColor"` →
 `#ffffff`, then `./install`): `gear`, `caret-right`, `list`, `play`, `pause`,

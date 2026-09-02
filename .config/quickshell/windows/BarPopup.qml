@@ -1,57 +1,41 @@
 import QtQuick
 import Quickshell
-import qs.config
+import qs.services
 
-// The anchored card a bar item drops down. Children stack in a column inside
-// `padding`, and the popup sizes itself to them unless the caller overrides
-// implicitHeight. Clicking outside breaks the compositor's popup grab, which
-// hides it; Escape does the same from the keyboard.
+// The card a bar item drops down. Children stack in a column inside `padding`,
+// and the card sizes itself to them.
 //
-// The size is taken when the popup maps and never again: `height` follows
-// `implicitHeight` at that moment and then diverges, and `reposition()` does
-// not re-send it. Content that grows while the popup is open is clipped, so a
-// panel that would grow on its own has to reserve the space or stay out.
-PopupWindow {
+// This is an overlay layer surface rather than a PopupWindow, and that is the
+// whole point of the file. A PopupWindow can never hold keyboard focus: keys
+// go to the parent layer surface, which is a different window, so a text field
+// in one shows a caret and then never receives a character, Escape never
+// arrives, and both keys and clicks fall through to whatever is underneath the
+// bar. A layer surface with exclusive focus has none of those problems, and it
+// is also free to resize while open, which an xdg_popup is not.
+ModalOverlay {
     id: root
-
-    default property alias content: column.data
-
-    property Item anchorItem: null
-    property int padding: 12
-    property int spacing: 12
 
     function toggle(): void {
         root.visible = !root.visible;
     }
 
-    anchor.item: root.anchorItem
-    anchor.edges: Edges.Bottom | Edges.Right
-    anchor.gravity: Edges.Bottom | Edges.Left
+    namespaceSuffix: "bar-popup"
 
-    implicitWidth: 360
-    implicitHeight: column.implicitHeight + 2 * root.padding
-    color: "transparent"
+    // A PanelWindow is visible by default; a dropdown is not. Without this
+    // every panel maps at startup as a full-screen overlay and swallows the
+    // clicks meant for the bar.
     visible: false
-    grabFocus: true
 
-    Rectangle {
-        anchors.fill: parent
-        color: Theme.popupBackground
-        border.color: Theme.popupBorder
-        border.width: 1
-        radius: 6
+    // The screen whose bar was clicked, rather than whichever holds the focus.
+    // Falls back rather than resolving to null: a PanelWindow with no screen
+    // fails to map at all.
+    screen: root.anchorItem?.QsWindow.window?.screen ?? FocusedScreen.screen
 
-        focus: true
-        Keys.onEscapePressed: root.visible = false
+    dim: false
+    closeOnClickOutside: true
+    cardWidth: 360
+    padding: 12
+    spacing: 12
 
-        Column {
-            id: column
-
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: root.padding
-            spacing: root.spacing
-        }
-    }
+    onDismissed: root.visible = false
 }

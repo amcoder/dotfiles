@@ -3,6 +3,7 @@ import Quickshell
 import qs.modules.bar
 import qs.modules.idle
 import qs.modules.launcher
+import qs.modules.network
 import qs.modules.notifications
 import qs.modules.osd
 import qs.modules.polkit
@@ -27,6 +28,8 @@ ShellRoot {
     WindowSwitcher {}
 
     PowerMenu {}
+
+    PskDialog {}
 
     Variants {
         model: Quickshell.screens

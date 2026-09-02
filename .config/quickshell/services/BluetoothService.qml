@@ -7,11 +7,10 @@ import Quickshell.I3
 // Adapter power and per-device connect/forget for devices already paired,
 // replacing blueman-applet's tray menu.
 //
-// Pairing is deliberately not here. Quickshell 0.3.0 talks to Adapter1,
+// Pairing is deliberately not here: Quickshell 0.3.0 talks to Adapter1,
 // Device1 and Battery1 but registers no org.bluez.Agent1, so it cannot answer
-// a PIN or confirmation prompt; and a scan list cannot refresh in a BarPopup,
-// which takes its size when it maps. `advanced()` launches blueman-manager,
-// which D-Bus-activates blueman-applet and with it the agent.
+// a PIN or confirmation prompt. `advanced()` launches blueman-manager, which
+// D-Bus-activates blueman-applet and with it the agent.
 Singleton {
     id: root
 
