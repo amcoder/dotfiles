@@ -27,18 +27,46 @@ PanelWindow {
 
         anchors.fill: parent
 
-        Workspaces {
+        // The bar's three sections. Each is a full-height Row, so an item can
+        // measure against `parent.height` and a Separator can size itself off
+        // it; a new item goes into whichever one it belongs in. The centre is
+        // anchored to the bar rather than laid out between the other two, so
+        // an item growing on the left or the right never shifts it.
+        Row {
+            id: left
+
             anchors.left: parent.left
             anchors.top: parent.top
             anchors.bottom: parent.bottom
             anchors.leftMargin: 4
-            anchors.topMargin: 3
-            anchors.bottomMargin: 3
 
-            screenName: bar.screen.name
+            spacing: 12
+
+            Workspaces {
+                anchors.verticalCenter: parent.verticalCenter
+                height: parent.height - 6
+
+                screenName: bar.screen.name
+            }
         }
 
         Row {
+            id: centre
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+
+            spacing: 12
+
+            Clock {
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
+
+        Row {
+            id: right
+
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
@@ -101,12 +129,6 @@ PanelWindow {
             Separator {
                 visible: mail.visible
             }
-
-            Clock {
-                anchors.verticalCenter: parent.verticalCenter
-            }
-
-            Separator {}
 
             ThemeToggle {
                 height: parent.height
