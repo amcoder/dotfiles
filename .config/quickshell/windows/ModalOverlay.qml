@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import qs.config
@@ -23,17 +24,47 @@ PanelWindow {
     property bool dim: true
     property bool closeOnClickOutside: false
     property int cardWidth: 480
+
+    // The card's fill. An attached card takes the colour of the surface it
+    // hangs from instead, so the two read as one shape.
+    property color cardColor: Theme.popupBackground
+
     property int padding: 16
     property int spacing: 12
     property Item focusItem: null
 
-    // When set, the card hangs below this item and is right-aligned to it
-    // rather than centred. The item lives in another window, but every layer
-    // surface here shares the screen's origin, so its mapped position needs no
+    // When set, the card hangs below this item, centred on it rather than on
+    // the screen. The item lives in another window, but every layer surface
+    // here shares the screen's origin, so its mapped position needs no
     // translation.
     property Item anchorItem: null
 
     readonly property bool anchored: root.anchorItem !== null
+
+    // Draws the card as a continuation of the surface above it instead of a
+    // box floating under it: no top border, and top corners that curve the
+    // other way so the sides flare out of the bar's bottom edge. An attached
+    // card also opens and closes by growing downward.
+    property bool attached: false
+
+    property int cornerRadius: 6
+
+    // How far the flared top corners reach past the card on either side.
+    property int flare: 10
+
+    property int revealDuration: 160
+
+    // Drives the expand/collapse of an attached card.
+    //
+    // `cardHeight` is what the owner keeps the surface mapped by: it is still
+    // the full height at the instant `revealed` goes false and only reaches
+    // zero once the card has finished rolling up. Watching the animation's
+    // `running` instead loses the race -- a `visible` binding re-evaluated
+    // before the Behavior has started reads false and unmaps the surface
+    // mid-collapse, which the layer surface shows as a flicker.
+    property bool revealed: true
+
+    readonly property real cardHeight: card.height
 
     property real anchorX: 0
     property real anchorY: 0
@@ -43,7 +74,7 @@ PanelWindow {
             return;
 
         const pos = root.anchorItem.mapToItem(null, 0, 0);
-        root.anchorX = pos.x + root.anchorItem.width;
+        root.anchorX = pos.x + root.anchorItem.width / 2;
         root.anchorY = pos.y + root.anchorItem.height;
     }
 
@@ -85,17 +116,31 @@ PanelWindow {
         }
     }
 
-    Rectangle {
+    Item {
         id: card
 
-        x: root.anchored ? Math.max(0, root.anchorX - width) : (parent.width - width) / 2
+        // The flare needs room on both sides, so an anchored card stops short
+        // of the screen edge by that much.
+        x: {
+            if (!root.anchored)
+                return (parent.width - width) / 2;
+
+            const inset = root.attached ? root.flare : 0;
+            return Math.max(inset, Math.min(root.anchorX - width / 2, parent.width - width - inset));
+        }
         y: root.anchored ? root.anchorY : (parent.height - height) / 2
         width: root.cardWidth
         implicitHeight: body.implicitHeight + root.padding * 2
-        color: Theme.popupBackground
-        border.color: Theme.popupBorder
-        border.width: 1
-        radius: 6
+        height: root.revealed ? implicitHeight : 0
+
+        Behavior on height {
+            enabled: root.attached
+
+            NumberAnimation {
+                duration: root.revealDuration
+                easing.type: Easing.OutCubic
+            }
+        }
 
         // The card holds focus itself so Escape lands even when there is no
         // focusItem to take it -- a bar popup has no field to type into.
@@ -105,14 +150,103 @@ PanelWindow {
 
         Keys.onEscapePressed: root.dismissed()
 
-        Column {
-            id: body
+        Rectangle {
+            anchors.fill: parent
+            visible: !root.attached
+            color: root.cardColor
+            border.color: Theme.popupBorder
+            border.width: 1
+            radius: root.cornerRadius
+        }
 
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: root.padding
-            spacing: root.spacing
+        // Left open at the top: an unclosed subpath is still filled, so the
+        // edge the card hangs from is painted but not stroked.
+        Shape {
+            id: outline
+
+            // The card spans [flare, flare + card.width] in these coordinates.
+            readonly property real inset: root.flare
+            readonly property real curve: Math.min(root.flare, card.height / 2)
+            readonly property real corner: Math.min(root.cornerRadius, card.width / 2, card.height - curve)
+
+            visible: root.attached && card.height > 0
+            x: -root.flare
+            width: card.width + root.flare * 2
+            height: card.height
+            preferredRendererType: Shape.CurveRenderer
+
+            ShapePath {
+                fillColor: root.cardColor
+                strokeColor: Theme.popupBorder
+                strokeWidth: 1
+
+                startX: outline.inset - outline.curve
+                startY: 0
+
+                PathArc {
+                    x: outline.inset
+                    y: outline.curve
+                    radiusX: outline.curve
+                    radiusY: outline.curve
+                    direction: PathArc.Clockwise
+                }
+
+                PathLine {
+                    x: outline.inset
+                    y: card.height - outline.corner
+                }
+
+                PathArc {
+                    x: outline.inset + outline.corner
+                    y: card.height
+                    radiusX: outline.corner
+                    radiusY: outline.corner
+                    direction: PathArc.Counterclockwise
+                }
+
+                PathLine {
+                    x: outline.inset + card.width - outline.corner
+                    y: card.height
+                }
+
+                PathArc {
+                    x: outline.inset + card.width
+                    y: card.height - outline.corner
+                    radiusX: outline.corner
+                    radiusY: outline.corner
+                    direction: PathArc.Counterclockwise
+                }
+
+                PathLine {
+                    x: outline.inset + card.width
+                    y: outline.curve
+                }
+
+                PathArc {
+                    x: outline.inset + card.width + outline.curve
+                    y: 0
+                    radiusX: outline.curve
+                    radiusY: outline.curve
+                    direction: PathArc.Clockwise
+                }
+            }
+        }
+
+        // Clipped here rather than on the card, which the flare overflows by
+        // design.
+        Item {
+            anchors.fill: parent
+            clip: true
+
+            Column {
+                id: body
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: root.padding
+                spacing: root.spacing
+            }
         }
     }
 }

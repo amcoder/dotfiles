@@ -146,7 +146,7 @@ BarPopup {
                 cursorShape: Qt.PointingHandCursor
 
                 onClicked: {
-                    root.visible = false;
+                    root.expanded = false;
                     AudioService.advanced();
                 }
             }

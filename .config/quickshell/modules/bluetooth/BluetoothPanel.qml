@@ -131,7 +131,7 @@ BarPopup {
             text: "advanced…"
 
             onActivated: {
-                root.visible = false;
+                root.expanded = false;
                 BluetoothService.advanced();
             }
         }

@@ -67,7 +67,7 @@ BarPopup {
         } else if (network.known || !NetworkService.secured(network)) {
             NetworkService.connect(network);
         } else if (NetworkService.needsAgent(network)) {
-            root.visible = false;
+            root.expanded = false;
             NetworkService.advanced();
         } else {
             root.promptPsk(network);
@@ -121,7 +121,7 @@ BarPopup {
             text: "advanced…"
 
             onActivated: {
-                root.visible = false;
+                root.expanded = false;
                 NetworkService.advanced();
             }
         }

@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.config
 import qs.services
 
 // The card a bar item drops down. Children stack in a column inside `padding`,
@@ -15,27 +16,31 @@ import qs.services
 ModalOverlay {
     id: root
 
+    property bool expanded: false
+
     function toggle(): void {
-        root.visible = !root.visible;
+        root.expanded = !root.expanded;
     }
 
     namespaceSuffix: "bar-popup"
 
-    // A PanelWindow is visible by default; a dropdown is not. Without this
-    // every panel maps at startup as a full-screen overlay and swallows the
-    // clicks meant for the bar.
-    visible: false
+    // A PanelWindow is visible by default; a dropdown is not. The surface is
+    // kept mapped through the collapse so the card can roll up before it goes.
+    visible: root.expanded || root.cardHeight > 0
 
     // The screen whose bar was clicked, rather than whichever holds the focus.
     // Falls back rather than resolving to null: a PanelWindow with no screen
     // fails to map at all.
     screen: root.anchorItem?.QsWindow.window?.screen ?? FocusedScreen.screen
 
+    attached: true
+    revealed: root.expanded
+    cardColor: Theme.barBackground
     dim: false
     closeOnClickOutside: true
     cardWidth: 360
     padding: 12
     spacing: 12
 
-    onDismissed: root.visible = false
+    onDismissed: root.expanded = false
 }
