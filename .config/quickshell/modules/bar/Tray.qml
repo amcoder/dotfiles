@@ -9,10 +9,16 @@ Row {
 
     required property var window
 
+    // nm-applet stays running as NetworkManager's secret agent -- Quickshell
+    // registers none, and the openconnect VPN's cookie is flagged not-saved --
+    // but the bar has its own network item, so its tray icon is dropped rather
+    // than shown twice.
+    readonly property var hidden: ["nm-applet"]
+
     spacing: 8
 
     Repeater {
-        model: SystemTray.items
+        model: SystemTray.items.values.filter(item => !root.hidden.includes(item.id))
 
         MouseArea {
             id: item

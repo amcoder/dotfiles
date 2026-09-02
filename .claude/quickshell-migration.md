@@ -6,7 +6,7 @@
 >
 > - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
 > - [x] 4 Launcher/switcher/power  · [x] 5 OSD  · [x] 6 Wallpaper
-> - [x] 7 Lock + idle  · [~] 8 Network/BT/audio panels (audio, bluetooth done)  · [ ] 9 Additions
+> - [x] 7 Lock + idle  · [x] 8 Network/BT/audio panels  · [ ] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
 
 ## Context
@@ -813,10 +813,11 @@ The stamp it depends on is verified, but nothing has actually suspended this mac
 Three services, three bar indicators, three `BarPopup` panels. Taken **one applet at a time**,
 in this order: audio → bluetooth → network, easiest first.
 
-**Retires:** `pasystray`, `nm-applet`, `blueman-applet` (`config:84-86`) and the dead
-`blueman-*` window rules at 349-351. **Keeps** 1password / kdeconnect-indicator / calibre, so
-`Tray.qml` stays. Keep the `pavucontrol` and `nm-connection-editor` rules and surface them as an
-"Advanced…" row in each panel.
+**Retired:** `pasystray` and `blueman-applet` (`config:84-86`) and the dead `blueman-*` window
+rules. **nm-applet was not** — it is NetworkManager's secret agent and nothing else can be, so it
+stays resident with its tray icon filtered out instead (see 8c). **Keeps** 1password /
+kdeconnect-indicator / calibre, so `Tray.qml` stays. The `pavucontrol`, `blueman-manager` and
+`nm-connection-editor` rules stay too, surfaced as the "advanced…" link in each panel.
 
 #### 8a — Audio · **done**
 
@@ -878,23 +879,59 @@ cursor at the moment you click. Worth remembering if the network panel wants a "
 list. And the size-lock above rules out any live-filling list in a `BarPopup`, which is exactly
 what a wifi scan is.
 
-#### 8c — Network · not started
+#### 8c — Network · **done**
 
-**This phase last, deliberately — it has real feature gaps, and nothing here is broken today:**
-- `nm-applet` is also NetworkManager's **secret agent** (VPN, 802.1x, captive portals).
-  `Quickshell.Networking` has `connectWithPsk`/`connectWithSettings` but no agent registration,
-  so an enterprise network fails silently. Scope the panel as "wifi + connectivity status", not
-  an NM replacement. Check what `.local/bin/toggle-vpn` drives before removing anything.
-- `blueman-applet` provides the BlueZ **pairing agent** (PIN prompts). Verify
-  `Quickshell.Bluetooth.pair()` registers an `org.bluez.Agent1`; if not, new-device pairing still
-  needs `bluetoothctl`.
+`services/NetworkService`, `modules/bar/Network` and `modules/network/NetworkPanel` on the same
+`BarPopup`. The panel is the wifi radio, the wired link, the saved VPNs and the access points in
+range, with "advanced…" launching `nm-connection-editor`. The bar item is the signal-strength icon
+plus a green `shield-check` badge whenever a VPN is up. Eight Phosphor icons vendored:
+`wifi-{high,medium,low,none,slash}`, `plugs{,-connected}`, `shield-check`.
 
-New Phosphor icons still to vendor (regular weight; `fill="currentColor"` → `#ffffff`, then
-`./install`): `wifi-{high,medium,low,slash}`, `gear`,
-`caret-right`, `list`, `play`, `pause`, `skip-{back,forward}`, `calendar`. The audio panel needed
-none — `speaker-*`, `microphone{,-slash}` and `check` were already vendored, and "advanced…" is a
-text link rather than a gear. Bluetooth needed only its own three: the device-class icons all map
-onto icons the bar already had.
+**nm-applet stays, and this is the one applet the migration does not retire.** It is
+NetworkManager's secret agent; the Quickshell binary has zero `SecretAgent` strings, and `Lytx` is
+openconnect with its cookie, gateway and cert secrets all flagged `2` — never saved, ask the agent
+every time — so dropping nm-applet would take the work VPN with it. Unlike blueman-applet it ships
+no D-Bus service file, so it cannot be activated on demand either; it has to stay resident. What
+changed instead is that `Tray.qml` filters its item out by `id` (`"nm-applet"`, read off its SNI
+`Id`), so there is one network indicator rather than two, and `exec nm-applet` in the sway config
+now carries a comment saying why it is there.
+
+**The scan is exactly the live-filling list 8b said a `BarPopup` cannot hold**, so this phase
+answers that with the other half of the rule: reserve the space. `scannerEnabled` is off until the
+panel opens, the list fills from 1 entry to all of them over ~5s, and it does that inside a
+fixed-height `ListView` that scrolls instead of resizing the popup — measured 1 → 4 rows with no
+clipping. The password prompt replaces the list inside that same box rather than being appended
+below it. Access points sort by name alone: signal strength moves on its own, so sorting by it
+slides rows under a stationary cursor without a click being involved at all.
+
+VPN is nmcli, since `Quickshell.Networking` has no VPN concept — `nmcli monitor` debounced 200ms
+into a `connection show`, filtered to `vpn` and `wireguard`.
+
+Verified by driving the real session with `swaymsg seat seat0 cursor` and `grim`: the bar icon
+tracks signal and the VPN badge appears and clears; the panel opens and toggles closed on the bar
+item; the scan fills in without clipping; the VPN list picks up a connection added and deleted
+underneath it; a throwaway wireguard connection went up externally (row turned green, badge
+appeared) and came back down from a click on its row; clicking an unknown secured network swaps in
+the password prompt, focused, with Connect disabled until something is typed and **no** connection
+attempted, and Cancel returns to the list; and the panel repaints live across `theme set nord` and
+back. `find ~/.config/quickshell -xtype l` is empty, `sway --validate` passes, and the shell log is
+clean.
+
+**Not verified:** Escape-to-dismiss (keystroke injection was declined this session; the mechanism is
+`BarPopup`'s and unchanged from 8a/8b), an actual PSK join, and the EAP path that hands off to
+`nm-connection-editor` — both would mean joining a network that is not ours.
+
+**Two QML findings worth carrying.** `Networking` starts loading on first read and fills in
+asynchronously, like `DesktopEntries`, so everything is a binding and the bar item is what warms it.
+And a signal handler written at the instantiation site *replaces* the component's own rather than
+running alongside it — an `onVisibleChanged` next to `NetworkPanel { … }` silently overrode the
+panel's own handler.
+
+New Phosphor icons still to vendor for later phases (regular weight; `fill="currentColor"` →
+`#ffffff`, then `./install`): `gear`, `caret-right`, `list`, `play`, `pause`,
+`skip-{back,forward}`, `calendar`. The audio panel needed none — `speaker-*`,
+`microphone{,-slash}` and `check` were already vendored, and "advanced…" is a text link rather
+than a gear. Bluetooth needed its own three, network its own eight.
 
 ### Phase 9 — Additions
 
@@ -1046,4 +1083,7 @@ is clean; `journalctl -b | grep -c 'Failed to disable CRTC'` is still 0.
   40ms repeat, measured in Phase 5. No `SocketServer` needed.
 - ~~Does `Quickshell.Bluetooth.pair()` register an `org.bluez.Agent1`?~~ No — measured in Phase 8b.
   Pairing goes through `blueman-manager`, which D-Bus-activates the applet that owns the agent.
+- ~~Can `Quickshell.Networking` replace nm-applet outright?~~ No — measured in Phase 8c. It
+  registers no NM secret agent, and nm-applet has no D-Bus activation, so it stays resident with
+  its tray icon filtered out of `Tray.qml`.
 - Does clipboard ownership survive the emoji picker closing, given the process stays alive?

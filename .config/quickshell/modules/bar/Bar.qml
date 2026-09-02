@@ -64,6 +64,14 @@ PanelWindow {
 
             Separator {}
 
+            Network {
+                id: network
+
+                height: parent.height
+            }
+
+            Separator {}
+
             Bluetooth {
                 id: bluetooth
 
