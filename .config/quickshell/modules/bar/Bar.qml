@@ -27,11 +27,11 @@ PanelWindow {
 
         anchors.fill: parent
 
-        // The bar's three sections. Each is a full-height Row, so an item can
-        // measure against `parent.height`; a new item goes into whichever one
-        // it belongs in. The centre is anchored to the bar rather than laid
-        // out between the other two, so an item growing on the left or the
-        // right never shifts it.
+        // The bar's three sections, each full height so an item can measure
+        // against `parent.height`; a new item goes into whichever one it
+        // belongs in. The centre is anchored to the bar rather than laid out
+        // between the other two, so an item growing on the left or the right
+        // never shifts it.
         Row {
             id: left
 
@@ -48,23 +48,35 @@ PanelWindow {
 
                 screenName: bar.screen.name
             }
-
-            Media {
-                height: parent.height
-            }
         }
 
-        Row {
+        // The one section that is not a Row: the clock has to stay on the
+        // bar's centre line, and a Row would slide it left by half of whatever
+        // was added beside it. So the section spans the full width, the clock
+        // is pinned to the middle of it, and anything else hangs off the
+        // clock's own edge and grows outward. Only the children take input, so
+        // spanning the bar does not shadow the sections either side.
+        Item {
             id: centre
 
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.left: parent.left
+            anchors.right: parent.right
             anchors.top: parent.top
             anchors.bottom: parent.bottom
 
-            spacing: 12
-
             Clock {
-                height: parent.height
+                id: clock
+
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+            }
+
+            Media {
+                anchors.left: clock.right
+                anchors.leftMargin: 12
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
             }
         }
 

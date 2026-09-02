@@ -64,7 +64,9 @@ There are no tests or linters for the repo as a whole. Neovim Lua is formatted w
 
   Workspace icons are named by sway: each `set $wsN` in `.config/sway/config` carries a `<span foreground='...'>icon-name</span>`, and `modules/bar/Workspaces.qml` parses the span for the colour and the icon name. Sway only applies renamed workspaces to newly created ones, so after editing those lines, existing workspaces keep their old names until `swaymsg rename workspace` is run or they are recreated.
 
-  `modules/bar/Bar.qml` lays out three sections — `left`, `centre`, `right` — each a full-height `Row`, so an item can measure against `parent.height`. A new item goes into whichever section it belongs in. Nothing is drawn between items — the right section's wider `spacing` is what stands in for the separators it used to carry. The centre is anchored to the bar's own centre rather than laid out between the other two, so the clock stays put no matter what grows on either side; it also means the sections can overlap if one ever gets wide enough, which at these widths they do not.
+  `modules/bar/Bar.qml` lays out three sections — `left`, `centre`, `right` — each full height, so an item can measure against `parent.height`. A new item goes into whichever section it belongs in. Nothing is drawn between items — the right section's wider `spacing` is what stands in for the separators it used to carry. The centre is positioned against the bar's own centre rather than laid out between the other two, so the clock stays put no matter what grows on either side; it also means the sections can overlap if one ever gets wide enough, which at these widths they do not.
+
+  `left` and `right` are `Row`s, but the **centre is not**: a Row would slide the clock left by half of whatever was added beside it. It is an `Item` spanning the full bar width, with the clock pinned to `horizontalCenter` and everything else anchored off the clock's own edge so it grows outward — measured invariant at the bar's centre line (±0.5px, glyph bearings) while the media item's width moved 184px → 120px across a track change. Spanning the bar shadows nothing, since a bare `Item` takes no input and only the children do.
 
   The bar is always visible and reserves its own height via `ExclusionMode.Auto`, so windows start below it.
 
@@ -168,7 +170,7 @@ There are no tests or linters for the repo as a whole. Neovim Lua is formatted w
 
   `quickshell ipc call` costs ~31ms a call, against sway's default 40ms key repeat, so holding a volume key keeps up without a long-lived socket.
 
-  `services/MprisService.qml` + `modules/bar/Media.qml` + `modules/media/MediaPanel.qml` replace **playerctl** (`config:277-279`, now `quickshell ipc call media playPause|next|previous`). The bar item is the track, in the **left** section rather than with the other status items: its width changes on every song, and the right section is anchored to the right edge, so an item there would shift every icon along it each time one ends. The panel is art, the track, a seek bar, the transport, and — only once there is more than one — the players to choose between.
+  `services/MprisService.qml` + `modules/bar/Media.qml` + `modules/media/MediaPanel.qml` replace **playerctl** (`config:277-279`, now `quickshell ipc call media playPause|next|previous`). The bar item is the track, in the **centre** section immediately right of the clock, and it must hang off the clock rather than sit in a row with it: its width changes on every song, so a row would walk the clock off centre each time one ended, and the right section — being anchored to the right edge — would shift every icon along it instead. The panel is art, the track, a seek bar, the transport, and — only once there is more than one — the players to choose between.
 
   Four things about `Quickshell.Services.Mpris`, each established by spike:
 
