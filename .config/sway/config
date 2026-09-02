@@ -82,7 +82,6 @@ input "1:1:AT_Translated_Set_2_keyboard" {
 exec "systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP && systemctl --user start sway-session.target"
 
 # Autostart apps
-exec pasystray
 exec nm-applet
 exec blueman-applet
 exec 1password --silent

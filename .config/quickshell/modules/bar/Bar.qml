@@ -56,6 +56,14 @@ PanelWindow {
                 visible: aptUpgrade.visible
             }
 
+            Volume {
+                id: volume
+
+                height: parent.height
+            }
+
+            Separator {}
+
             Battery {
                 id: battery
 

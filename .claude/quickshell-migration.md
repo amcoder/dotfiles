@@ -6,7 +6,7 @@
 >
 > - [x] 0 De-risk  · [x] 1 systemd  · [x] 2 Layout  · [x] 3 Notifications
 > - [x] 4 Launcher/switcher/power  · [x] 5 OSD  · [x] 6 Wallpaper
-> - [x] 7 Lock + idle  · [ ] 8 Network/BT/audio panels  · [ ] 9 Additions
+> - [x] 7 Lock + idle  · [~] 8 Network/BT/audio panels (audio done)  · [ ] 9 Additions
 > - [ ] 10 uwsm (session, not shell — optional, gate on Phase 7)
 
 ## Context
@@ -810,13 +810,36 @@ The stamp it depends on is verified, but nothing has actually suspended this mac
 
 ### Phase 8 — Network, Bluetooth and audio panels
 
-Three services, three bar indicators, three `BarPopup` panels. Order within the phase:
-audio → bluetooth → network, easiest first.
+Three services, three bar indicators, three `BarPopup` panels. Taken **one applet at a time**,
+in this order: audio → bluetooth → network, easiest first.
 
 **Retires:** `pasystray`, `nm-applet`, `blueman-applet` (`config:84-86`) and the dead
 `blueman-*` window rules at 349-351. **Keeps** 1password / kdeconnect-indicator / calibre, so
 `Tray.qml` stays. Keep the `pavucontrol` and `nm-connection-editor` rules and surface them as an
 "Advanced…" row in each panel.
+
+#### 8a — Audio · **done**
+
+`windows/BarPopup` (extracted chrome), `widgets/Slider`, `modules/bar/Volume` and
+`modules/audio/AudioPanel`, on an `AudioService` grown from the Phase 5 one: `sinks` / `sources` /
+`streams`, `setVolume`/`setMuted` per node, and `setDefaultSink`/`setDefaultSource`.
+`exec pasystray` is gone from the sway config.
+
+Verified by driving the real session with `swaymsg seat seat0 cursor set/press/release` and
+`grim`: the panel opens on click and closes on Escape, on a click into another client and on a
+second click of the bar item; the slider drags; the mute icon and middle-click both toggle;
+the wheel steps 5%; switching the output device moves the tick and `pactl get-default-sink`;
+and `quickshell ipc call audio up/down` still raises the OSD. The Pipewire findings are in
+CLAUDE.md — untracked nodes expose `type` but not `audio`, `nodes.values` order is unstable,
+and WirePlumber can decline a configured default whose route is unavailable.
+
+**Still owed from this slice:** `AptUpgrade` keeps its hand-rolled popup. The conversion is
+mechanical but there is no upgradable package to open it with right now, and an unverifiable
+refactor of a working widget is not worth shipping — do it the next time the package icon appears.
+
+#### 8b — Bluetooth · not started
+
+#### 8c — Network · not started
 
 **This phase last, deliberately — it has real feature gaps, and nothing here is broken today:**
 - `nm-applet` is also NetworkManager's **secret agent** (VPN, 802.1x, captive portals).
@@ -827,10 +850,11 @@ audio → bluetooth → network, easiest first.
   `Quickshell.Bluetooth.pair()` registers an `org.bluez.Agent1`; if not, new-device pairing still
   needs `bluetoothctl`.
 
-New Phosphor icons to vendor (regular weight; `fill="currentColor"` → `#ffffff`, then `./install`):
-`wifi-{high,medium,low,slash}`, `bluetooth{,-slash,-connected}`, `speaker-{high,low,none,slash}`,
-`microphone{,-slash}`, `magnifying-glass`, `x`, `gear`, `power`, `sign-out`, `arrows-clockwise`,
-`bed`, `caret-right`, `list`, `play`, `pause`, `skip-{back,forward}`, `calendar`.
+New Phosphor icons still to vendor (regular weight; `fill="currentColor"` → `#ffffff`, then
+`./install`): `wifi-{high,medium,low,slash}`, `bluetooth{,-slash,-connected}`, `gear`,
+`caret-right`, `list`, `play`, `pause`, `skip-{back,forward}`, `calendar`. The audio panel needed
+none — `speaker-*`, `microphone{,-slash}` and `check` were already vendored, and "advanced…" is a
+text link rather than a gear.
 
 ### Phase 9 — Additions
 
