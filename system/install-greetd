@@ -13,8 +13,10 @@ root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 src="$root/system/greetd"
 # The wallpaper is copied out of the user tree because $HOME is 0700 and the
 # greeter runs as _greetd. Resolved against the repo, not $HOME, so this still
-# works under sudo (where $HOME is root's).
-wallpaper="$root/.config/quickshell/wallpapers/cat-blue-eye.png"
+# works under sudo (where $HOME is root's). It is pinned to the one Catppuccin
+# Mocha names, matching gtkgreet.css's palette, rather than following whatever
+# `theme` has selected -- the greeter is static on both counts.
+wallpaper="$root/.config/quickshell/wallpapers/catppuccin-debian.png"
 
 if [ "$(id -u)" -ne 0 ]; then
 	echo "install-greetd: must be run as root (try: sudo $0)" >&2
