@@ -52,6 +52,7 @@ TARGETS = [
     ("tmux.tmpl", "tmux/theme.tmux"),
     ("zsh.tmpl", "zsh/theme.zsh"),
     ("nvim.lua.tmpl", "nvim/lua/theme.lua"),
+    ("btop.tmpl", "btop/themes/dotfiles.theme"),
 ]
 
 
