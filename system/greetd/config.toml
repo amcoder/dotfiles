@@ -21,5 +21,13 @@ source_profile = false
 
 [default_session]
 # A bare sway whose only job is to host gtkgreet and exit when it does.
-command = "sway --config /etc/greetd/sway-config"
+#
+# SWAY_UNSUPPORTED_GPU stops sway popping a swaynag over gtkgreet on a machine
+# with the proprietary nvidia modules loaded; the session's own copy lives in
+# ~/.config/uwsm/env, which nothing on this path reads. greetd runs this line
+# through sh(1) (greetd(5): "The command-line is run by sh"), so a VAR=value
+# prefix would work -- `env` is used instead because it also survives a greetd
+# that shlex-splits and execs the argv directly, which is what older versions
+# did with source_profile = false.
+command = "env SWAY_UNSUPPORTED_GPU=true sway --config /etc/greetd/sway-config"
 user = "_greetd"
