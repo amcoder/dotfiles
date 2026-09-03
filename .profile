@@ -78,7 +78,7 @@ fi
 
 # Add kubeconfigs to KUBECONFIG
 while read -r p; do
-  [ -d "$p" ] && KUBECONFIG="$p:$KUBECONFIG"
+  [ -f "$p" ] && KUBECONFIG="$p${KUBECONFIG:+:$KUBECONFIG}"
 done <<EOF
 $HOME/.kube/config
 $HOME/.kube/homelab.config
