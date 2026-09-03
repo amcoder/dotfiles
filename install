@@ -141,6 +141,24 @@ for file in $(find $sources -type f); do
   ln -nfs "$dir/$file" "$HOME/$file"
 done
 
+# Claude Code's config directory is ~/.claude, which cannot be one of the roots
+# above: the repo's own .claude/ holds this project's instructions, and mirroring
+# it into $HOME would lay those over the user-level CLAUDE.md. The home-level
+# config lives in claude/ instead and is linked file by file. ~/.claude/CLAUDE.md
+# is deliberately absent from it -- that file is the machine-specific half, and
+# the shared instructions are the rules/ files linked in beside it.
+for file in $(find claude -type f); do
+  target="$HOME/.claude/${file#claude/}"
+  echo "Linking $file"
+
+  if [ -e "$target" ] && [ ! -L "$target" ]; then
+    mv "$target" "$target.backup.$(date +%s)"
+  fi
+
+  mkdir -p "$(dirname "$target")"
+  ln -nfs "$dir/$file" "$target"
+done
+
 unset IFS
 set +f
 

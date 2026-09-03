@@ -3,3 +3,7 @@
 # regolith
 ui-fingerprint
 first-time-setup*
+
+# Claude Code writes settings.json by renaming a temp file onto the resolved
+# symlink target, which lands here.
+claude/settings.json.tmp.*
