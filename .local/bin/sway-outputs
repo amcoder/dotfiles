@@ -91,10 +91,11 @@ validate_overrides() {
 }
 
 # The best mode for one output, as "WIDTH HEIGHT REFRESH_MHZ". $3 is the
-# panel's physical aspect ratio, or 0 when the EDID gave us nothing; $4 is an
-# optional modeOverrides filter.
+# aspect ratio to rank against -- normally the panel's physical one, 0 when the
+# EDID gave us nothing; $4 is an optional modeOverrides filter; $5 and $6 an
+# optional bounding box no mode may exceed.
 best_mode() {
-    local outputs=$1 name=$2 aspect=$3 want=${4:-}
+    local outputs=$1 name=$2 aspect=$3 want=${4:-} maxW=${5:-0} maxH=${6:-0}
     local wantW=0 wantH=0 wantHz=0
     if [[ -n $want ]]; then
         parse_mode $want || return 1
@@ -102,11 +103,13 @@ best_mode() {
     fi
 
     jq -r --arg name "$name" --argjson aspect "$aspect" \
-          --argjson w "$wantW" --argjson h "$wantH" --argjson hz "$wantHz" '
+          --argjson w "$wantW" --argjson h "$wantH" --argjson hz "$wantHz" \
+          --argjson maxW "$maxW" --argjson maxH "$maxH" '
         [.[] | select(.name == $name)][0].modes
         | map(select(.width > 0 and .height > 0))
         | map(select($w == 0 or (.width == $w and .height == $h)))
         | map(select($hz == 0 or (((.refresh / 1000) - $hz) | fabs) < 1))
+        | map(select($maxW == 0 or (.width <= $maxW and .height <= $maxH)))
         | map({
             w: .width, h: .height, r: .refresh,
             # Log ratio, so a 4:3-vs-3:4 error is symmetric.
@@ -221,14 +224,42 @@ cmd_apply() {
 }
 
 # One field of what an output resolves to, for the scripts that need to agree
-# with it: `mode` is the native mode string, `scale` the ladder's answer. Both
-# default to the focused output.
+# with the ladder rather than carry their own copy of it. Defaults to the
+# focused output.
 resolve_field() {
     local field=$1 name=${2:-} outputs resolved
     outputs=$(get_outputs) || exit 1
     [[ -n $name ]] || name=$(jq -r '.[] | select(.focused) | .name' <<< "$outputs")
     resolved=$(resolve "$outputs" "$name" "$(identifier_of $name $outputs)") || return 1
     print -r -- ${${(z)resolved}[$field]}
+}
+
+# The native mode, or -- given "W:H" -- the best mode at that aspect ratio that
+# still fits inside the native one. The bound is what makes the answer useful:
+# this panel's largest 16:9 mode by pixel count is 3840x2160, which it cannot
+# actually display (1440 rows of hardware) and must downscale, while 2560x1440
+# lands on the native pixel grid exactly.
+cmd_mode() {
+    local name=${1:-} want=${2:-} outputs resolved native nw nh
+    outputs=$(get_outputs) || exit 1
+    [[ -n $name ]] || name=$(jq -r '.[] | select(.focused) | .name' <<< "$outputs")
+    resolved=$(resolve "$outputs" "$name" "$(identifier_of $name $outputs)") || return 1
+    native=${${(z)resolved}[1]}
+
+    if [[ -z $want ]]; then
+        print -r -- $native
+        return 0
+    fi
+
+    [[ $want == (#b)([0-9]##):([0-9]##) ]] || die "cannot parse aspect ratio \"$want\""
+    local aspect=$(( 1.0 * match[1] / match[2] ))
+
+    nw=${native%%x*} nh=${${native#*x}%%@*}
+    local best w h r
+    best=$(best_mode "$outputs" "$name" "$aspect" "" $nw $nh)
+    [[ -n $best ]] || { print -ru2 -- "$self: $name: no $want mode within ${nw}x${nh}"; return 1 }
+    read -r w h r <<< "$best"
+    print -r -- "$(mode_str $w $h $r)"
 }
 
 cmd_show() {
@@ -245,7 +276,7 @@ cmd_show() {
 }
 
 # Configure an output once, when it appears -- not on every event. A mode or a
-# scale set by hand afterwards (sway-scale, sway-samsung-width) fires an output
+# scale set by hand afterwards (sway-scale, sway-toggle-aspect) fires an output
 # event of its own, and re-applying on that would undo it a frame later.
 cmd_watch() {
     local -A seen
@@ -282,7 +313,7 @@ case ${1:-apply} in
     apply) cmd_apply ;;
     watch) cmd_watch ;;
     show)  cmd_show ;;
-    mode)  resolve_field 1 ${2:-} ;;
+    mode)  cmd_mode ${2:-} ${3:-} ;;
     scale) resolve_field 2 ${2:-} ;;
-    *) die "usage: $self {apply|watch|show|mode [output]|scale [output]}" ;;
+    *) die "usage: $self {apply|watch|show|mode [output] [W:H]|scale [output]}" ;;
 esac

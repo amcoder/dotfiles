@@ -256,8 +256,8 @@ bindsym $mod+Ctrl+equal exec sway-scale up
 bindsym $mod+Ctrl+minus exec sway-scale down
 bindsym $mod+Ctrl+0 exec sway-scale default
 
-# Switch aspect ratio for ultrawide
-bindsym $mod+Ctrl+backslash exec sway-samsung-width
+# Swap the focused output between native and the best 16:9 mode
+bindsym $mod+Ctrl+backslash exec sway-toggle-aspect
 
 # Session Management
 bindsym $mod+Escape exec loginctl lock-session

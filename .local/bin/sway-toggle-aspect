@@ -1,0 +1,30 @@
+#!/usr/bin/env zsh
+#
+# Swap the focused output between its native mode and the best 16:9 mode that
+# fits inside it -- for running an ultrawide as a single conventional panel.
+#
+# No connector or monitor is named here: both modes come from sway-outputs,
+# which derives them from the EDID. The script this replaced hardcoded
+# HDMI-A-1, which stopped matching anything when the monitor moved to DP-2.
+
+aspect=${1:-16:9}
+
+swaymsg -t get_outputs \
+    | jq -r '.[] | select(.focused) | [.name, .current_mode.width, .current_mode.height] | @tsv' \
+    | read -r output width height
+
+native=$(sway-outputs mode "$output") || exit 1
+target=$(sway-outputs mode "$output" "$aspect") || exit 1
+
+if [[ $native == $target ]]; then
+    print -ru2 -- "${ZSH_ARGZERO:t}: $output is already $aspect ($native)"
+    exit 0
+fi
+
+# Compare on resolution alone: the refresh in a mode string is rounded, and the
+# only thing being toggled is the shape.
+if [[ ${native%@*} == ${width}x${height} ]]; then
+    swaymsg output "$output" mode "$target"
+else
+    swaymsg output "$output" mode "$native"
+fi
