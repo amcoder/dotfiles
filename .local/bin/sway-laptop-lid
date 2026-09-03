@@ -1,6 +1,56 @@
-#!/bin/sh
-if grep -q open /proc/acpi/button/lid/LID/state; then
-    swaymsg output eDP-1 enable
-else
-    swaymsg output eDP-1 disable
+#!/usr/bin/env zsh
+#
+# Follow the laptop lid: disable the internal panel when it shuts, enable it
+# when it opens. Sway's bindswitch calls this with "open" or "closed"; called
+# with no argument it reads the current state, which is what picks up a lid
+# that was already shut when sway started.
+#
+# Neither the panel nor the lid is named here. The connector is whatever DRM
+# reports as an internal panel type -- eDP on anything recent, LVDS and DSI for
+# older machines and tablets -- and the state comes from logind. So this drops
+# onto a different laptop, or onto a desktop, with no edit.
+
+set -u
+setopt extended_glob null_glob
+
+self=${ZSH_ARGZERO:t}
+drm=/sys/class/drm
+
+panels=()
+for dir in $drm/card<->-(eDP|LVDS|DSI)-<->(-/); do
+    [[ -r $dir/status && "$(<$dir/status)" == connected ]] || continue
+    panels+=( ${${dir:t}#card<->-} )
+done
+
+# No internal panel: a desktop, or the panel is not attached. This -- not the
+# lid -- is the test for "is this a laptop", since logind reports a lid state
+# on machines that have no lid at all.
+(( $#panels )) || exit 0
+
+state=${1:-}
+if [[ -z $state ]]; then
+    # logind answers on any systemd machine. /proc/acpi is the fallback for
+    # anything else, and is where the lid lived before logind exposed it; the
+    # device under it is LID, LID0 or a PNP id depending on the firmware, so it
+    # is globbed rather than named.
+    case "$(busctl get-property org.freedesktop.login1 /org/freedesktop/login1 \
+                org.freedesktop.login1.Manager LidClosed 2>/dev/null)" in
+        *true)  state=closed ;;
+        *false) state=open ;;
+        *)
+            acpi=( /proc/acpi/button/lid/*/state )
+            (( $#acpi )) || exit 0
+            grep -qi open $acpi[1] && state=open || state=closed
+            ;;
+    esac
 fi
+
+case $state in
+    open)   action=enable ;;
+    closed) action=disable ;;
+    *) print -ru2 -- "$self: unknown lid state \"$state\""; exit 1 ;;
+esac
+
+for panel in $panels; do
+    swaymsg output "$panel" $action
+done
