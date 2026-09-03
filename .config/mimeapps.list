@@ -1,0 +1,33 @@
+[Added Associations]
+application/yaml=nvim.desktop;
+text/plain=nvim.desktop;calibre-gui.desktop;
+application/xml=nvim.desktop;
+text/markdown=nvim.desktop;
+image/png=org.gnome.Loupe.desktop;
+image/jpeg=org.gnome.Loupe.desktop;
+application/vnd.adobe.adept+xml=calibre-gui.desktop;
+application/epub+zip=calibre-ebook-viewer.desktop;
+application/vnd.openxmlformats-officedocument.wordprocessingml.document=org.gnome.Evince.desktop;libreoffice-writer.desktop;
+
+[Default Applications]
+application/yaml=nvim.desktop;
+text/html=google-chrome.desktop
+text/plain=nvim.desktop
+x-scheme-handler/about=google-chrome.desktop
+x-scheme-handler/http=google-chrome.desktop
+x-scheme-handler/https=google-chrome.desktop
+x-scheme-handler/mailspring=Mailspring.desktop
+x-scheme-handler/unknown=google-chrome.desktop
+application/xml=nvim.desktop
+text/markdown=nvim.desktop
+image/png=org.gnome.Loupe.desktop
+image/jpeg=org.gnome.Loupe.desktop
+application/vnd.adobe.adept+xml=calibre-gui.desktop
+x-scheme-handler/postman=Postman.desktop
+application/epub+zip=calibre-ebook-viewer.desktop
+x-scheme-handler/mailto=Mailspring.desktop
+inode/directory=org.gnome.Nautilus.desktop
+application/vnd.openxmlformats-officedocument.wordprocessingml.document=libreoffice-writer.desktop
+x-scheme-handler/slack=slack.desktop
+x-scheme-handler/claude-cli=claude-code-url-handler.desktop
+x-scheme-handler/claude=com.anthropic.Claude.desktop
