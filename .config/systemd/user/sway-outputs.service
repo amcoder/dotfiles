@@ -1,0 +1,16 @@
+[Unit]
+Description=Pick a mode and scale for each sway output
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+# `watch` configures each output once, when it appears, and then follows sway's
+# output events for hotplug. It needs SWAYSOCK, which the sway config imports
+# into the user manager before starting sway-session.target.
+ExecStart=%h/.local/bin/sway-outputs watch
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=graphical-session.target
