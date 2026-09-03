@@ -2,6 +2,118 @@
 
 dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
+# Packages come first. The symlink pass below is harmless on a bare machine,
+# but everything after it -- enabling the quickshell units, and `theme apply` --
+# needs those binaries to already exist.
+if [ "$1" = "--deps" ]; then
+  if [ "$(uname)" = "Darwin" ]; then
+    echo "MacOS detected"
+    if ! command -v brew > /dev/null 2>&1; then
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+    brew bundle --no-lock
+  fi
+
+  if command -v apt > /dev/null 2>&1; then
+    echo "Debian/Ubuntu detected"
+
+    # The session itself. `theme` reaches gsettings and gdbus (libglib2.0-bin)
+    # through a `have()` guard, so without them its appearance and GTK3 palette
+    # steps silently do nothing rather than fail; sway's idle exec needs
+    # killall, from psmisc.
+    session="zsh sway swayidle swaylock quickshell alacritty python3
+      libglib2.0-bin psmisc"
+
+    # Shell and editor tooling. build-essential and unzip are what
+    # telescope-fzf-native's `make`, `:TSUpdate` and the mason-installed
+    # language servers reach for. Node and Rust are not here -- they come from
+    # nvm and rustup below, which own their own toolchains; an apt copy of
+    # either would sit in front of whatever those selected.
+    tools="git bat eza fzf neovim ripgrep tmux zoxide direnv jq just
+      fd-find tree curl wget unzip build-essential"
+
+    # Theming. Every theme names Papirus for icons and Cantarell for UI text,
+    # sway names the Breeze cursor, and the generated kdeglobals is inert
+    # without plasma-integration to read it.
+    theming="plasma-integration qt5ct qt6ct papirus-icon-theme
+      breeze-cursor-theme fonts-cantarell fonts-dejavu fontconfig"
+
+    # What the bar and the sway config shell out to. nm-applet and blueman stay
+    # for their NetworkManager and BlueZ agents, which quickshell does not
+    # register; pkexec is the apt upgrade path, wtype the emoji paste.
+    desktop="wl-clipboard wtype grim slurp grimshot pavucontrol blueman
+      network-manager network-manager-applet pkexec poweralertd
+      xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-wlr"
+
+    # Apps the sway config autostarts or binds a key to. 1password and
+    # google-chrome ship from third-party repos and are installed by hand.
+    apps="nautilus kdeconnect calibre"
+
+    # .local/bin: backup rsyncs over ssh, overdrive-dl wants xmllint and uuidgen.
+    scripts="rsync openssh-client libxml2-utils uuid-runtime"
+
+    sudo apt update
+    sudo apt install -y $session $tools $theming $desktop $apps $scripts
+  fi
+
+  # Node, via nvm rather than a package manager: .config/zsh/nvm.zsh already
+  # sources it and switches versions per .nvmrc, which a system node would
+  # shadow. Bump NVM_VERSION to upgrade.
+  NVM_VERSION=v0.40.7
+  nvm_dir="${NVM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/nvm}"
+  if [ ! -s "$nvm_dir/nvm.sh" ]; then
+    echo "Installing nvm $NVM_VERSION"
+    # The installer creates $NVM_DIR itself only at its own default location,
+    # and errors out otherwise -- this repo puts it under XDG_DATA_HOME.
+    mkdir -p "$nvm_dir"
+    # PROFILE=/dev/null is nvm's own opt-out from having the installer append
+    # source lines to a shell profile. Without it it would edit ~/.profile,
+    # which is a symlink into this repo.
+    PROFILE=/dev/null NVM_DIR="$nvm_dir" bash -c \
+      "$(curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/$NVM_VERSION/install.sh")"
+  fi
+
+  # A default node for mason's language servers and the plugins that build with
+  # npm; per-project versions come from .nvmrc at runtime.
+  if [ -s "$nvm_dir/nvm.sh" ]; then
+    NVM_DIR="$nvm_dir" bash -c '
+      . "$NVM_DIR/nvm.sh"
+      [ "$(nvm version default)" != "N/A" ] && exit 0
+      nvm install --lts && nvm alias default "lts/*"'
+  fi
+
+  # Rust, via rustup rather than apt, so the toolchain updates in place and
+  # cargo, rustfmt and clippy stay in step. .profile already points CARGO_HOME
+  # and RUSTUP_HOME at XDG_DATA_HOME and puts $CARGO_HOME/bin on PATH.
+  cargo_home="${CARGO_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/cargo}"
+  if [ ! -x "$cargo_home/bin/cargo" ]; then
+    echo "Installing rustup"
+    # --no-modify-path is rustup's opt-out from having the installer append PATH
+    # lines to a shell profile. Without it it would edit ~/.profile, which is a
+    # symlink into this repo.
+    CARGO_HOME="$cargo_home" \
+    RUSTUP_HOME="${RUSTUP_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/rustup}" \
+      sh -c "$(curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs)" \
+        -- -y --no-modify-path
+  fi
+
+  if [ "$(uname)" = "Linux" ]; then
+    # The tracked wayland-pipewire-idle-inhibit unit runs a cargo-installed
+    # binary, and the enable below is unconditional -- without this the unit is
+    # enabled and then fails for ever under Restart=always.
+    # $CARGO_HOME/bin is named outright rather than looked up on PATH: .profile
+    # adds it only if it already exists, so on a fresh machine it was not there
+    # when this shell started.
+    if [ ! -x "$cargo_home/bin/wayland-pipewire-idle-inhibit" ]; then
+      if [ -x "$cargo_home/bin/cargo" ]; then
+        CARGO_HOME="$cargo_home" "$cargo_home/bin/cargo" install wayland-pipewire-idle-inhibit
+      else
+        echo "install: no cargo; wayland-pipewire-idle-inhibit.service will fail" >&2
+      fi
+    fi
+  fi
+fi
+
 IFS='
 '
 set -f
@@ -46,20 +158,3 @@ fi
 # Generate the themed configs for the selected theme (catppuccin-macchiato by
 # default). The selection lives in $XDG_STATE_HOME/theme, never in the repo.
 "$dir/.local/bin/theme" apply --no-reload
-
-if [ "$1" = "--deps" ]; then
-  if [ $(uname) = "Darwin" ]; then
-    echo "MacOS detected"
-    if ! command -v brew &> /dev/null; then
-      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
-    brew bundle --no-lock
-  fi
-
-  if command -v apt &> /dev/null; then
-    echo "Debian/Ubuntu detected"
-    sudo apt update
-    sudo apt install -y git bat eza fzf neovim ripgrep tmux zoxide direnv jq just \
-      grim slurp grimshot
-  fi
-fi

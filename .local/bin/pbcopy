@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+
+# macOS's pbcopy, for Linux.
+#
+# `.config/tmux/tmux.conf` pipes its copy-mode yank to `pbcopy`, and so does the
+# ctrl-y binding in `FZF_CTRL_R_OPTS`. Both were written on a Mac; on Linux
+# there is no such command, so both bindings silently did nothing.
+#
+# ~/.local/bin is prepended to PATH by .profile, so on a Mac this file shadows
+# the real pbcopy -- which is why that is the first branch rather than the last.
+
+if [ -x /usr/bin/pbcopy ]; then
+    exec /usr/bin/pbcopy "$@"
+fi
+
+if command -v wl-copy > /dev/null 2>&1; then
+    exec wl-copy
+fi
+
+if command -v xclip > /dev/null 2>&1; then
+    exec xclip -selection clipboard
+fi
+
+if command -v xsel > /dev/null 2>&1; then
+    exec xsel --clipboard --input
+fi
+
+echo "pbcopy: no clipboard tool found; install wl-clipboard" >&2
+exit 1
