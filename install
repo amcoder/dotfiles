@@ -31,7 +31,8 @@ if [ "$1" = "--deps" ]; then
     # not, because nvm and rustup below own their own toolchains and an apt copy
     # of either would sit in front of whatever those selected.
     tools="git bat eza fzf neovim ripgrep tmux zoxide direnv jq just
-      fd-find tree curl wget unzip build-essential golang-go"
+      fd-find tree curl wget unzip build-essential golang-go pkg-config
+      libpipewire-0.3-dev libclang-dev"
 
     # Theming. Every theme names Papirus for icons and Cantarell for UI text,
     # sway names the Breeze cursor, and the generated kdeglobals is inert
