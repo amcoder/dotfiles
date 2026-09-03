@@ -54,7 +54,7 @@ if [ "$1" = "--deps" ]; then
     scripts="rsync openssh-client libxml2-utils uuid-runtime"
 
     sudo apt update
-    sudo apt install -y $session $tools $theming $desktop $apps $scripts
+    sudo apt install --no-install-recommends -y $session $tools $theming $desktop $apps $scripts
   fi
 
   # Node, via nvm rather than a package manager: .config/zsh/nvm.zsh already
