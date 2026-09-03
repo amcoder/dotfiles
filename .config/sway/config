@@ -135,25 +135,31 @@ bindsym $mod+Shift+Right move right
 
 # Workspace definitions
 # Note: the span holds a Phosphor icon name rendered by quickshell (.config/quickshell/icons/)
-set  $ws1  1: 1  <span foreground='$accent01'>envelope</span>
-set  $ws2  2: 2  <span foreground='$accent02'>globe</span>
-set  $ws3  3: 3  <span foreground='$accent03'>terminal-window</span>
-set  $ws4  4: 4  <span foreground='$accent04'>code</span>
-set  $ws5  5: 5  <span foreground='$accent05'>code</span>
-set  $ws6  6: 6  <span foreground='$accent06'>code</span>
-set  $ws7  7: 7  <span foreground='$accent07'>app-window</span>
-set  $ws8  8: 8  <span foreground='$accent08'>currency-dollar</span>
-set  $ws9  9: 9  <span foreground='$accent09'>video</span>
-set $ws10 10: 10 <span foreground='$accent10'>music-note</span>
-set $ws11 11: 11 <span foreground='$accent11'>app-window</span>
-set $ws12 12: 12 <span foreground='$accent12'>app-window</span>
-set $ws13 13: 13 <span foreground='$accent13'>app-window</span>
-set $ws14 14: 14 <span foreground='$accent14'>app-window</span>
-set $ws15 15: 15 <span foreground='$accent01'>app-window</span>
-set $ws16 16: 16 <span foreground='$accent02'>app-window</span>
-set $ws17 17: 17 <span foreground='$accent03'>app-window</span>
-set $ws18 18: 18 <span foreground='$accent04'>app-window</span>
-set $ws19 19: 19 <span foreground='$accent05'>app-window</span>
+# The value is double-quoted so the single quotes around the colour survive.
+# sway names the workspace that exists at startup after the `workspace number`
+# binding that mentions it, and that path strips one level of quoting -- without
+# the outer quotes the first workspace comes up as
+# `1: 1 <span foreground=#89b4fa>envelope</span>`, which no longer parses as a
+# span, so the bar shows the icon's name as text until you leave and come back.
+set  $ws1  "1: 1  <span foreground='$accent01'>envelope</span>"
+set  $ws2  "2: 2  <span foreground='$accent02'>globe</span>"
+set  $ws3  "3: 3  <span foreground='$accent03'>terminal-window</span>"
+set  $ws4  "4: 4  <span foreground='$accent04'>code</span>"
+set  $ws5  "5: 5  <span foreground='$accent05'>code</span>"
+set  $ws6  "6: 6  <span foreground='$accent06'>code</span>"
+set  $ws7  "7: 7  <span foreground='$accent07'>app-window</span>"
+set  $ws8  "8: 8  <span foreground='$accent08'>currency-dollar</span>"
+set  $ws9  "9: 9  <span foreground='$accent09'>video</span>"
+set $ws10 "10: 10 <span foreground='$accent10'>music-note</span>"
+set $ws11 "11: 11 <span foreground='$accent11'>app-window</span>"
+set $ws12 "12: 12 <span foreground='$accent12'>app-window</span>"
+set $ws13 "13: 13 <span foreground='$accent13'>app-window</span>"
+set $ws14 "14: 14 <span foreground='$accent14'>app-window</span>"
+set $ws15 "15: 15 <span foreground='$accent01'>app-window</span>"
+set $ws16 "16: 16 <span foreground='$accent02'>app-window</span>"
+set $ws17 "17: 17 <span foreground='$accent03'>app-window</span>"
+set $ws18 "18: 18 <span foreground='$accent04'>app-window</span>"
+set $ws19 "19: 19 <span foreground='$accent05'>app-window</span>"
 
 # Switch to workspace
 bindsym $mod+1      workspace number $ws1

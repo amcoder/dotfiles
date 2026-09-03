@@ -72,6 +72,10 @@ Row {
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: item.parsed.label !== ""
+                    // A name that failed to parse is shown as-is: AutoText would
+                    // render its markup as rich text and quietly print the icon's
+                    // name where the icon should be.
+                    textFormat: Text.PlainText
                     text: item.parsed.label
                     color: item.foreground
                     font.family: Appearance.fontFamily
