@@ -24,13 +24,14 @@ if [ "$1" = "--deps" ]; then
     session="zsh sway swayidle swaylock quickshell alacritty python3
       libglib2.0-bin psmisc"
 
-    # Shell and editor tooling. build-essential and unzip are what
-    # telescope-fzf-native's `make`, `:TSUpdate` and the mason-installed
-    # language servers reach for. Node and Rust are not here -- they come from
-    # nvm and rustup below, which own their own toolchains; an apt copy of
-    # either would sit in front of whatever those selected.
+    # Shell and editor tooling. build-essential, unzip and golang-go are what
+    # telescope-fzf-native's `make`, `:TSUpdate` and the mason-installed tools
+    # reach for -- gopls and delve are both `go install` builds. Go is from apt
+    # because nothing here switches its version per project; node and Rust are
+    # not, because nvm and rustup below own their own toolchains and an apt copy
+    # of either would sit in front of whatever those selected.
     tools="git bat eza fzf neovim ripgrep tmux zoxide direnv jq just
-      fd-find tree curl wget unzip build-essential"
+      fd-find tree curl wget unzip build-essential golang-go"
 
     # Theming. Every theme names Papirus for icons and Cantarell for UI text,
     # sway names the Breeze cursor, and the generated kdeglobals is inert
