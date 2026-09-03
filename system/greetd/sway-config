@@ -1,0 +1,41 @@
+# Greeter compositor -- installed to /etc/greetd/sway-config.
+#
+# This runs as _greetd, not as the user, and exists only to give gtkgreet a
+# Wayland session. It deliberately does NOT `include /etc/sway/config.d/*`:
+# the only drop-in there, 50-systemd-user.conf, imports the environment into
+# the systemd *user* manager, which for _greetd means spinning up a user
+# manager for the greeter account that has nothing to manage.
+
+# Match the mode the real session will pick, so login -> session is not a
+# second modeset. Keyed by sway identifier ("make model serial") rather than
+# by connector: connector names are not stable (this panel has already moved
+# from HDMI-A-1 to DP-2). An identifier that matches nothing is ignored, so
+# on any other machine this line is inert and the panel keeps sway's own
+# preferred mode.
+output "Samsung Electric Company Odyssey G93SC HCSX504312" mode 5120x1440@240Hz scale 1
+
+# Catppuccin Macchiato crust, the same backstop the real session paints.
+output * bg #181926 solid_color
+
+# Mirror the session's keyboard handling so a password types identically here.
+# xkb_numlock especially: a greeter with numlock off silently eats digits
+# typed on a numpad.
+input type:keyboard {
+    xkb_numlock enabled
+    xkb_options caps:ctrl_modifier,compose:ralt
+}
+
+# GTK_THEME is set here because _greetd cannot read the user's themes: the
+# generated dotfiles GTK theme lives under ~/.local/share/themes and $HOME is
+# 0700. Without this the greeter renders in stock light Adwaita under a dark
+# stylesheet. The "; swaymsg exit" is what makes sway terminate once gtkgreet
+# has finalized a login -- greetd then takes over and starts the session.
+exec "GTK_THEME=Adwaita:dark gtkgreet --layer-shell --style /etc/greetd/gtkgreet.css; swaymsg exit"
+
+# Escape hatch, kept from the packaged example: if a login cannot be completed
+# there is still a way to power the machine down from the greeter.
+bindsym Mod4+Shift+e exec swaynag \
+	-t warning \
+	-m 'What do you want to do?' \
+	-b 'Poweroff' 'systemctl poweroff -i' \
+	-b 'Reboot' 'systemctl reboot -i'

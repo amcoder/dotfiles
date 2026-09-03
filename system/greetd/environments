@@ -1,0 +1,2 @@
+uwsm start -- sway.desktop
+zsh -lc sway

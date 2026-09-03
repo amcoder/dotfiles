@@ -1,0 +1,25 @@
+# greetd(5) -- installed to /etc/greetd/config.toml by system/install-greetd.
+#
+# The greeter is gtkgreet hosted in a bare sway. greetd hands the chosen
+# command from /etc/greetd/environments to a PAM session as the user.
+
+[terminal]
+# greetd.service carries Conflicts=getty@tty7.service, so this VT is greetd's
+# alone. tty1-tty6 keep their gettys, and are the way back in if the greeter
+# ever fails to start.
+vt = 7
+
+[general]
+# uwsm sources /etc/profile and ~/.profile itself while preparing the session
+# environment (prepare-env.sh, gated on __LOAD_PROFILE__), and ~/.profile
+# prepends to PATH unconditionally rather than guarding against re-entry --
+# so sourcing it here as well would duplicate every entry it adds. uwsm owns
+# it. The session still starts with systemd's default PATH, which greetd
+# inherits and passes down: /etc/environment is empty and common-session has
+# no pam_env, so nothing else would supply one.
+source_profile = false
+
+[default_session]
+# A bare sway whose only job is to host gtkgreet and exit when it does.
+command = "sway --config /etc/greetd/sway-config"
+user = "_greetd"

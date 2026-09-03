@@ -1,0 +1,78 @@
+#!/bin/sh
+# Install the greetd login flow into /etc.
+#
+# Everything under system/ lives outside the four roots `install` symlinks into
+# $HOME, because it is root-owned system configuration: it is *copied* rather
+# than linked, so re-run this after editing anything in system/greetd.
+#
+# Run as: sudo ./system/install-greetd
+
+set -eu
+
+root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+src="$root/system/greetd"
+# The wallpaper is copied out of the user tree because $HOME is 0700 and the
+# greeter runs as _greetd. Resolved against the repo, not $HOME, so this still
+# works under sudo (where $HOME is root's).
+wallpaper="$root/.config/quickshell/wallpapers/cat-blue-eye.png"
+
+if [ "$(id -u)" -ne 0 ]; then
+	echo "install-greetd: must be run as root (try: sudo $0)" >&2
+	exit 1
+fi
+
+for pkg in greetd gtkgreet sway; do
+	if ! dpkg -s "$pkg" >/dev/null 2>&1; then
+		echo "install-greetd: missing package '$pkg' -- apt install $pkg" >&2
+		exit 1
+	fi
+done
+
+for f in config.toml sway-config environments gtkgreet.css; do
+	[ -r "$src/$f" ] || { echo "install-greetd: missing $src/$f" >&2; exit 1; }
+done
+[ -r "$wallpaper" ] || { echo "install-greetd: missing $wallpaper" >&2; exit 1; }
+
+# Validate the greeter's compositor config BEFORE installing it -- once this is
+# the login path a config sway refuses to parse means no greeter at all. sway
+# has no root guard, so this runs fine under sudo. Validation is on the repo
+# copy, which is equivalent: the only absolute paths in it are inside an `exec`
+# string, which sway does not resolve at parse time.
+if ! sway --validate --config "$src/sway-config" >/dev/null 2>&1; then
+	echo "install-greetd: $src/sway-config failed sway --validate:" >&2
+	sway --validate --config "$src/sway-config" >&2 || true
+	exit 1
+fi
+echo "  sway --validate: ok"
+
+install -d -m 755 /etc/greetd
+for f in config.toml sway-config environments gtkgreet.css; do
+	install -m 644 "$src/$f" "/etc/greetd/$f"
+	echo "  /etc/greetd/$f"
+done
+install -m 644 "$wallpaper" /etc/greetd/wallpaper.png
+echo "  /etc/greetd/wallpaper.png"
+
+# logind grants the active session's user an ACL on /dev/dri/card0, which is how
+# the greeter reaches the GPU. Group membership is a hedge for the window before
+# the session goes active; video and render are the groups the DRM nodes carry.
+for grp in video render; do
+	if getent group "$grp" >/dev/null 2>&1 && ! id -nG _greetd | tr ' ' '\n' | grep -qx "$grp"; then
+		usermod -aG "$grp" _greetd
+		echo "  _greetd added to group $grp"
+	fi
+done
+
+systemctl enable greetd.service >/dev/null
+echo "  greetd.service enabled"
+
+cat <<'MSG'
+
+Installed. Apply from a text console, NOT from the graphical session:
+
+  Ctrl+Alt+F2, log in, then:  sudo systemctl restart greetd
+
+Restarting greetd ends the running session either way; doing it from a getty
+leaves you somewhere useful if the greeter does not come up. tty1-tty6 keep
+their gettys, so Ctrl+Alt+F2 is always the way back in.
+MSG
