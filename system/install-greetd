@@ -34,13 +34,29 @@ done
 [ -r "$wallpaper" ] || { echo "install-greetd: missing $wallpaper" >&2; exit 1; }
 
 # Validate the greeter's compositor config BEFORE installing it -- once this is
-# the login path a config sway refuses to parse means no greeter at all. sway
-# has no root guard, so this runs fine under sudo. Validation is on the repo
-# copy, which is equivalent: the only absolute paths in it are inside an `exec`
-# string, which sway does not resolve at parse time.
-if ! sway --validate --config "$src/sway-config" >/dev/null 2>&1; then
+# the login path, a config sway refuses to parse means no greeter at all.
+# Validation is on the repo copy, which is equivalent: the only absolute paths
+# in it sit inside an `exec` string, which sway does not resolve at parse time.
+#
+# Both of these are load-bearing, and neither is obvious. `sway --validate`
+# brings the backend up *before* it parses the config, so under sudo it aborts
+# outright on the unset XDG_RUNTIME_DIR -- and merely faking that one is worse
+# than useless: it then spends ten seconds failing to open a DRM session and
+# exits 1 for a good config and a bad one alike, a check that can never pass.
+# WLR_BACKENDS=headless skips DRM and seat management entirely, leaving just
+# the parse, which is all this wants. Measured: exit 0 on a good config and 1
+# on a bad one, with no display and no session.
+validate() {
+	XDG_RUNTIME_DIR="$vrt" WLR_BACKENDS=headless \
+		sway --validate --config "$src/sway-config" "$@"
+}
+vrt="$(mktemp -d)"
+cleanup() { rm -rf "$vrt"; return 0; }
+trap cleanup EXIT
+
+if ! validate >/dev/null 2>&1; then
 	echo "install-greetd: $src/sway-config failed sway --validate:" >&2
-	sway --validate --config "$src/sway-config" >&2 || true
+	validate >&2 || true
 	exit 1
 fi
 echo "  sway --validate: ok"
