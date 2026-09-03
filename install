@@ -59,6 +59,7 @@ if [ "$1" = "--deps" ]; then
   if command -v apt &> /dev/null; then
     echo "Debian/Ubuntu detected"
     sudo apt update
-    sudo apt install -y git bat eza fzf neovim ripgrep tmux zoxide direnv jq just
+    sudo apt install -y git bat eza fzf neovim ripgrep tmux zoxide direnv jq just \
+      grim slurp grimshot
   fi
 fi
