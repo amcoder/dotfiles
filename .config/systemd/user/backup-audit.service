@@ -1,0 +1,9 @@
+[Unit]
+Description=Audit what the backup includes
+Documentation=file:/home/amcoder/.local/bin/backup-audit
+OnFailure=backup-failed@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/amcoder/.local/bin/backup-audit
+TimeoutStartSec=1h

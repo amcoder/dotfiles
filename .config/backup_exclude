@@ -47,7 +47,13 @@
 .javacpp/
 .jdks/
 .kube/cache/
-.local/
++ /.local/
++ /.local/share/
++ /.local/share/keyrings/***
++ /.local/share/applications/***
++ /.local/share/mime/***
+- /.local/share/*
+- /.local/*
 .minikube/
 .npm/
 .nuget/
@@ -72,7 +78,25 @@ projects/*/obj/
 projects/*/vendor/
 projects/android-cuttlefish/
 projects/aosp/
+projects/jbt/jbt-db/db-data/
 projects/Launcher3/
 projects/lawnchair/
 software/
 tmp/
+.platformio/packages/
+.platformio/tools/
+.platformio/dist/
+.platformio/penv/
+.wine/
+.unity/
+.config/teams-for-linux
+.config/Claude
+.config/unityhub
+**/target/debug/
+**/target/release/
+**/Library/
+**/obj/
+**/build/
+**/dist/
+**/.venv/
+**/__pycache__/

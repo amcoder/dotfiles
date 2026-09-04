@@ -1,0 +1,10 @@
+[Unit]
+Description=Yearly backup to beedle
+
+[Timer]
+OnCalendar=yearly
+Persistent=true
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target

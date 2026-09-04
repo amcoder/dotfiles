@@ -1,0 +1,65 @@
+#!/bin/sh
+# Report directories the backup has started including that are large enough to
+# be worth a second look -- the failure mode a deny-list cannot cover, where a
+# new app drops a cache into a directory nothing in backup_exclude names.
+#
+# Compares against the previous run's baseline, so it reports what CHANGED
+# rather than restating the same large directories every week.
+
+set -eu
+
+exclude="${XDG_CONFIG_HOME:-$HOME/.config}/backup_exclude"
+state="${XDG_STATE_HOME:-$HOME/.local/state}/backup-audit"
+baseline="$state/baseline.tsv"
+# Bytes a directory must gain, or arrive at, before it is worth reporting.
+threshold="${BACKUP_AUDIT_THRESHOLD:-1073741824}"
+
+[ -r "$exclude" ] || { echo "backup-audit: no exclude file at $exclude" >&2; exit 1; }
+mkdir -p "$state"
+
+dest="$(mktemp -d)"
+current="$(mktemp)"
+cleanup() { rm -rf "$dest" "$current"; return 0; }
+trap cleanup EXIT
+
+# -n so nothing is written; the empty destination is what makes rsync list the
+# whole selection rather than just what differs from a previous run.
+rsync -an --exclude-from="$exclude" --out-format='%l|%n' "$HOME/" "$dest/" |
+	awk -F'|' '
+		{
+			name = substr($0, index($0, "|") + 1)
+			if (name ~ /\/$/) next
+			n = split(name, p, "/")
+			key = (n > 1) ? p[1] "/" p[2] : p[1]
+			size[key] += $1
+		}
+		END { for (k in size) printf "%s\t%d\n", k, size[k] }
+	' | sort > "$current"
+
+if [ ! -f "$baseline" ]; then
+	cp "$current" "$baseline"
+	echo "backup-audit: baseline recorded ($(wc -l < "$current") directories)"
+	exit 0
+fi
+
+report="$(awk -F'\t' -v thr="$threshold" '
+	NR == FNR { was[$1] = $2; next }
+	{
+		grew = $2 - (($1 in was) ? was[$1] : 0)
+		if (grew < thr) next
+		printf "  %6.1f GB  %s%s\n", $2 / 1073741824, $1, \
+			($1 in was) ? "  (grew " sprintf("%.1f", grew / 1073741824) " GB)" : "  (new)"
+	}
+' "$baseline" "$current")"
+
+cp "$current" "$baseline"
+
+if [ -n "$report" ]; then
+	printf 'backup-audit: newly included or grown past threshold:\n%s\n' "$report"
+	if command -v notify-send >/dev/null 2>&1; then
+		notify-send --app-name=Backup --urgency=normal \
+			"Backup grew" "$(printf '%s' "$report" | sed 's/^  //')"
+	fi
+else
+	echo "backup-audit: nothing new above threshold"
+fi

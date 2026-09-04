@@ -21,14 +21,14 @@ timestamp=`date "+%Y-%m-%dT%H-%M-%S"`
 tempfile=$targetdir/$interval-tmp-$timestamp
 
 # Create new backup using rsync and output to log
-rsync -avzPh --delete --delete-excluded -e ssh \
+rsync -avzh --partial --delete --delete-excluded -e ssh \
   --exclude-from=/home/$user/.config/backup_exclude \
   --link-dest=$targetdir/latest \
   $sourcedir \
   $backup_user@$backup_server:$tempfile
 
 code=$?
-if [ "$code" != 0 ]; then
+if [ "$code" != 0 ] && [ "$code" != 24 ]; then
   printf "rsync failed with code $code\n"
   exit $code
 fi

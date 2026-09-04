@@ -1,0 +1,17 @@
+[Unit]
+Description=Yearly backup to beedle
+Documentation=file:/home/amcoder/.local/bin/backup
+OnFailure=backup-failed@%n.service
+
+[Service]
+Type=oneshot
+# A NAS that is simply not on this network is not a failure. ExecCondition
+# skips the unit -- no OnFailure, no notification -- when the probe exits
+# 1-254, so it must normalise to 1: an exit of 255 counts as a failure, and
+# 255 is exactly what ssh returns for a connection error.
+ExecCondition=/bin/sh -c 'nc -z -w 5 beedle 22 || exit 1'
+ExecStart=/home/amcoder/.local/bin/backup yearly 10
+TimeoutStartSec=6h
+# rsync -v is a line per transferred file, which on a first run is enough to
+# trip journald's rate limit and drop the error this unit exists to report.
+LogRateLimitIntervalSec=0
