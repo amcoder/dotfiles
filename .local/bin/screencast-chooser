@@ -33,9 +33,23 @@ import time
 # grab of a 5K window.
 THUMB_WIDTH = 640
 
-# grim occasionally refuses a client's buffer ("Invalid stride"), so a capture
-# is allowed to fail and the picker falls back to the app icon.
-CAPTURE_TIMEOUT = 8
+# A budget for the whole batch of thumbnails, not for each one.
+#
+# `grim -T` on a toplevel that xdpw is *already* capturing never returns:
+# measured at 164ms for a window before it was streamed and still running at
+# 12s for the same window while xdpw held a capture session on it, with every
+# other window unaffected at ~90ms. That window is by definition the one just
+# shared, so it hangs on every re-share -- and a per-capture timeout waited the
+# whole timeout for it every time, putting the picker 8s late.
+#
+# It is worse than a slow picker. xdpw blocks in waitpid for as long as the
+# chooser runs and services nothing meanwhile, so the seconds spent waiting on
+# a capture that cannot finish are seconds the live presentation is frozen.
+#
+# A full batch is ~470ms and no single successful capture exceeds ~200ms, so
+# this is roughly 2.5x headroom over the normal case and a hard cap on
+# the pathological one. Whatever has not arrived falls back to the app icon.
+CAPTURE_BUDGET = 1.2
 
 # How long the picker may stay open before this gives up and cancels. Without
 # it a shell that died mid-pick would wedge xdpw's waitpid, and with it every
@@ -172,14 +186,27 @@ def capture(targets, directory):
         except OSError:
             break
 
-    for target, path, process in running:
-        try:
-            ok = process.wait(timeout=CAPTURE_TIMEOUT) == 0
-        except subprocess.TimeoutExpired:
-            process.kill()
-            ok = False
+    deadline = time.monotonic() + CAPTURE_BUDGET
 
-        if ok and os.path.exists(path):
+    for target, path, process in running:
+        code = process.poll()
+
+        if code is None:
+            remaining = deadline - time.monotonic()
+
+            if remaining > 0:
+                try:
+                    code = process.wait(timeout=remaining)
+                except subprocess.TimeoutExpired:
+                    code = None
+
+            if code is None:
+                # Past the budget, or hung on a toplevel xdpw is capturing.
+                process.kill()
+                process.wait()
+                continue
+
+        if code == 0 and os.path.exists(path):
             target["thumbnail"] = path
 
 
