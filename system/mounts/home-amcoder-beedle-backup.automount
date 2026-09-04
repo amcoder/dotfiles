@@ -1,0 +1,9 @@
+[Unit]
+Description=beedle backup share (automount)
+
+[Automount]
+Where=/home/amcoder/beedle/backup
+TimeoutIdleSec=600
+
+[Install]
+WantedBy=multi-user.target

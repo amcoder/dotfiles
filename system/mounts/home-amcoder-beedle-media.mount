@@ -1,0 +1,9 @@
+[Unit]
+Description=beedle media library
+
+[Mount]
+What=//beedle/media
+Where=/home/amcoder/beedle/media
+Type=cifs
+Options=credentials=/etc/cifs/beedle.cred,uid=1000,gid=1000,file_mode=0644,dir_mode=0755,iocharset=utf8,noatime,actimeo=30,mfsymlinks
+TimeoutSec=15

@@ -1,0 +1,98 @@
+#!/bin/sh
+# Install the beedle CIFS automounts into /etc.
+#
+# Everything under system/ lives outside the four roots `install` symlinks into
+# $HOME, because it is root-owned system configuration: it is *copied* rather
+# than linked, so re-run this after editing anything in system/mounts.
+#
+# These are system units, not user units, because mount.cifs needs privilege --
+# unlike the sshfs mounts they replace, which ran unprivileged under FUSE.
+#
+# Run as: sudo ./system/install-mounts
+
+set -eu
+
+root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+src="$root/system/mounts"
+cred=/etc/cifs/beedle.cred
+
+if [ "$(id -u)" -ne 0 ]; then
+	echo "install-mounts: must be run as root (try: sudo $0)" >&2
+	exit 1
+fi
+
+if ! dpkg -s cifs-utils >/dev/null 2>&1; then
+	echo "install-mounts: missing package 'cifs-utils' -- apt install cifs-utils" >&2
+	exit 1
+fi
+
+units="$(cd "$src" && ls *.mount *.automount)"
+for u in $units; do
+	[ -r "$src/$u" ] || { echo "install-mounts: missing $src/$u" >&2; exit 1; }
+done
+
+# A .mount unit's name must be the escaped form of its Where=, or systemd
+# refuses to load it with a mismatch error at daemon-reload rather than at
+# install time. Check here, where the message can say which file is wrong.
+for u in $units; do
+	where="$(sed -n 's/^Where=//p' "$src/$u")"
+	want="$(systemd-escape --path --suffix="${u##*.}" "$where")"
+	[ "$u" = "$want" ] || {
+		echo "install-mounts: $u declares Where=$where, which must be named $want" >&2
+		exit 1
+	}
+done
+
+# The credentials file is deliberately never in the repo: it holds a DSM
+# password. Written as a template on first install so the mount fails with a
+# clear auth error rather than a missing-file one.
+install -d -m 700 /etc/cifs
+if [ -e "$cred" ]; then
+	echo "  $cred (kept)"
+else
+	umask 077
+	cat > "$cred" <<'CRED'
+# DSM account used for the //beedle/* shares. Fill both in, then the
+# automounts pick it up on the next access -- no reload needed.
+username=CHANGEME
+password=CHANGEME
+CRED
+	chmod 600 "$cred"
+	echo "  $cred (template -- EDIT THIS)"
+fi
+
+for u in $units; do
+	install -m 644 "$src/$u" "/etc/systemd/system/$u"
+	echo "  /etc/systemd/system/$u"
+done
+
+# The mount points live in the user's home and are not created here: creating
+# them as root would leave them root-owned, and autofs will not adopt a
+# directory it cannot traverse as the accessing user.
+for u in $units; do
+	case "$u" in *.automount) ;; *) continue ;; esac
+	where="$(sed -n 's/^Where=//p' "$src/$u")"
+	[ -d "$where" ] || echo "  WARNING: mount point $where does not exist" >&2
+done
+
+systemctl daemon-reload
+for u in $units; do
+	case "$u" in *.automount) ;; *) continue ;; esac
+	systemctl enable --now "$u" >/dev/null
+	echo "  $u enabled and started"
+done
+
+cat <<MSG
+
+Installed. The shares mount on first access and unmount after 10 minutes idle,
+so nothing fails at login the way the sshfs units did.
+
+Remaining step -- put a real DSM account in the credentials file:
+
+  sudoedit $cred
+
+Then test:  ls ~/beedle/media
+
+If that hangs or reports a host-is-down error, this laptop's IP is still on the
+NAS's block list (DSM > Control Panel > Security > Protection > Block List).
+MSG

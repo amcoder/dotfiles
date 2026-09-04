@@ -1,0 +1,9 @@
+[Unit]
+Description=beedle media library (automount)
+
+[Automount]
+Where=/home/amcoder/beedle/media
+TimeoutIdleSec=600
+
+[Install]
+WantedBy=multi-user.target
