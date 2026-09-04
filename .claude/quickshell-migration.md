@@ -1068,6 +1068,11 @@ Numbered 10 because 8 and 9 were already taken; it is genuinely last, and unlike
 it is about the session rather than the shell. It would have gone **after Phase 7**, when the lock
 service makes session lifecycle the interesting part and there is something to gain.
 
+**Since done, on both machines.** greetd + gtkgreet replaced the autologin rather than uwsm being
+driven from `initial_session`, which answered the first gate; `sway-session.target` was kept rather
+than folded into uwsm's target tree. See the Sway and Login sections of `CLAUDE.md` for what is
+actually in place. The rest of this section is the design as it stood before that.
+
 Today the compositor starts the session manager: greetd autologins `sway-run`, a shell script that
 exports Wayland env vars, and sway's own config does
 `exec "systemctl --user import-environment ... && systemctl --user start sway-session.target"`.

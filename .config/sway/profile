@@ -1,6 +1,0 @@
-export QT_QPA_PLATFORMTHEME=kde
-
-# Silence sway's proprietary-driver swaynag. Inert on a machine with no nvidia
-# modules loaded; kept here so the sway-run path matches uwsm/env, which
-# carries the same line with the full explanation.
-export SWAY_UNSUPPORTED_GPU=true

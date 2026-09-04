@@ -11,6 +11,6 @@ export XCURSOR_SIZE=24
 # silences the dialog; the one-line [ERROR] in the journal is unconditional and
 # stays. sway 1.12 no longer lists --unsupported-gpu in --help, so the variable
 # is the only route -- and it has to be in sway's own environment, which is why
-# it lives here (and in sway/profile for the laptop) rather than in
-# environment.d, whose vars the sway-run path never sees.
+# it lives here. Inert on a machine with no nvidia modules loaded, so it is set
+# unconditionally rather than per-machine.
 export SWAY_UNSUPPORTED_GPU=true
