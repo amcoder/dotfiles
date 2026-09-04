@@ -90,14 +90,11 @@ input "1:1:AT_Translated_Set_2_keyboard" {
 # finish before the target starts.
 exec "systemctl --user import-environment DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP && systemctl --user start sway-session.target"
 
-# Autostart apps
-# Kept for NetworkManager's secret agent, not for its tray icon, which the bar
-# hides: Quickshell registers no agent, and the openconnect VPN's cookie is
-# flagged not-saved, so nothing else can answer its auth prompt.
-exec nm-applet
-exec 1password --silent
-exec kdeconnect-indicator
-exec calibre --start-in-tray
+# No `exec` block for apps: uwsm runs XDG autostart, so they come from
+# .config/autostart and /etc/xdg/autostart with systemd owning the lifecycle.
+# nm-applet is still started, by /etc/xdg/autostart/nm-applet.desktop, and is
+# still wanted for NetworkManager's secret agent rather than for its tray icon,
+# which the bar hides.
 
 # Kill focused window
 bindsym $mod+Shift+q kill

@@ -1,0 +1,14 @@
+[Desktop Entry]
+# Moved out of sway's `exec` block now that uwsm runs XDG autostart, so systemd
+# owns the lifecycle: a unit, its own log, a cgroup, and teardown with
+# graphical-session.target rather than an orphaned child of the compositor.
+#
+# There is a system autostart entry for the kdeconnect *daemon* but none for
+# the indicator, which is the tray icon and menu -- hence this file rather than
+# a Hidden=true shadow of one. Modelled on the launcher entry
+# /usr/share/applications/org.kde.kdeconnect.nonplasma.desktop.
+Type=Application
+Name=KDE Connect Indicator
+Exec=kdeconnect-indicator
+Icon=kdeconnect
+Terminal=false

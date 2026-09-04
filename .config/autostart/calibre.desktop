@@ -1,0 +1,9 @@
+[Desktop Entry]
+# Moved out of sway's `exec` block -- see kdeconnect-indicator.desktop for the
+# reasoning. calibre ships no autostart entry of its own, and --start-in-tray
+# is what makes it a background server rather than an open library window.
+Type=Application
+Name=calibre
+Exec=calibre --start-in-tray
+Icon=calibre-gui
+Terminal=false
