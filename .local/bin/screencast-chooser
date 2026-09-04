@@ -27,6 +27,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 
 # Enough resolution for the picker's thumbnails without paying for a full-size
 # grab of a 5K window.
@@ -40,6 +41,20 @@ CAPTURE_TIMEOUT = 8
 # it a shell that died mid-pick would wedge xdpw's waitpid, and with it every
 # later screenshare, until the portal was restarted.
 PICK_TIMEOUT = 180
+
+# How long a pick is replayed to a repeat request instead of asking again.
+#
+# Chrome asks more than once for a single share. Measured over one Google Meet
+# share: three CreateSession/SelectSources rounds in nine seconds, all of them
+# `types: 2`, of which the first was started and immediately closed, the second
+# was abandoned without ever calling Start, and only the third became the
+# stream. wmenu did this too -- it is Chrome's flow, not the portal's -- and it
+# meant picking the same window three times.
+#
+# The gaps between those rounds were 2.0s and 0.02s, so a few seconds covers a
+# repeat while staying far below the time it takes a person to stop a share and
+# deliberately start another one.
+REPLAY_WINDOW = 5
 
 # xdpw's own chooser list, used here when the shell is not reachable so a
 # broken bar cannot take screensharing down with it. Configuring `chooser_cmd`
@@ -213,6 +228,48 @@ def ask_quickshell(targets, directory):
         os.close(reader)
 
 
+def replay_path():
+    return os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"),
+                        "screencast-chooser.last")
+
+
+def replay(lines):
+    """The previous answer, if this looks like a repeat of the same request.
+
+    Returns None when there is nothing to replay, which includes the answer
+    naming a window that is no longer on offer -- the source list grows and
+    shrinks between Chrome's rounds, and a label xdpw did not just produce
+    would be rejected as an unknown target.
+    """
+    try:
+        with open(replay_path()) as handle:
+            state = json.load(handle)
+    except (OSError, ValueError):
+        return None
+
+    if time.time() - state.get("at", 0) > REPLAY_WINDOW:
+        return None
+
+    answer = state.get("answer", "")
+    if answer and answer not in lines:
+        return None
+
+    return answer
+
+
+def remember(answer):
+    """Record an answer so the next round of the same request can replay it."""
+    try:
+        # The answer carries a window title, so the mode is set explicitly:
+        # O_CREAT's is only applied when the file did not already exist.
+        fd = os.open(replay_path(), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        os.fchmod(fd, 0o600)
+        with os.fdopen(fd, "w") as handle:
+            json.dump({"answer": answer, "at": time.time()}, handle)
+    except OSError:
+        pass
+
+
 def ask_fallback(lines):
     """Walk xdpw's own chooser list, taking the answer from the first that runs."""
     for command in FALLBACKS:
@@ -239,6 +296,17 @@ def ask_fallback(lines):
 def main():
     lines = [line.rstrip("\n") for line in sys.stdin if line.strip()]
     if not lines:
+        return
+
+    # Answered before the thumbnails are grabbed, so a repeat round costs
+    # nothing and never flashes a picker the user did not ask for.
+    repeat = replay(lines)
+    if repeat is not None:
+        # Refreshed so a chain of rounds keeps replaying rather than only the
+        # one that follows the pick.
+        remember(repeat)
+        if repeat:
+            print(repeat)
         return
 
     targets = parse(lines)
@@ -274,8 +342,16 @@ def main():
 
     # Anything but a label xdpw itself produced is a cancel: it would only be
     # reported as "selected unknown target" and drop the session anyway.
-    if choice in lines:
-        print(choice)
+    answer = choice if choice in lines else ""
+
+    # A cancel is remembered too, so declining a share declines the rounds
+    # behind it instead of asking again for each one. Nothing is remembered
+    # when no chooser could run at all, since the user was never asked.
+    if choice is not None:
+        remember(answer)
+
+    if answer:
+        print(answer)
 
 
 if __name__ == "__main__":
