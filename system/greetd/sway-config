@@ -12,7 +12,13 @@
 # from HDMI-A-1 to DP-2). An identifier that matches nothing is ignored, so
 # on any other machine this line is inert and the panel keeps sway's own
 # preferred mode.
-output "Samsung Electric Company Odyssey G93SC HCSX504312" mode 5120x1440@240Hz scale 1
+#
+# No refresh rate: this panel offers 240Hz over DisplayPort and 60Hz over HDMI,
+# and it has already moved between the two. sway picks the highest rate
+# available at the given resolution when none is named, which is what
+# sway-outputs will pick in the session, so the pair stay in step across a
+# cable change instead of the greeter naming a rate the connector cannot do.
+output "Samsung Electric Company Odyssey G93SC HCSX504312" mode 5120x1440 scale 1
 
 # Catppuccin Macchiato crust, the same backstop the real session paints.
 output * bg #181926 solid_color

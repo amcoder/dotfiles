@@ -14,9 +14,11 @@ vt = 7
 # environment (prepare-env.sh, gated on __LOAD_PROFILE__), and ~/.profile
 # prepends to PATH unconditionally rather than guarding against re-entry --
 # so sourcing it here as well would duplicate every entry it adds. uwsm owns
-# it. The session still starts with systemd's default PATH, which greetd
-# inherits and passes down: /etc/environment is empty and common-session has
-# no pam_env, so nothing else would supply one.
+# it. What the session does NOT get is a PATH: measured on a real greeter, the
+# environment greetd hands its child has none at all, and sh(1) falls back to
+# confstr(_CS_PATH) for the lookups on the command line below. Anything invoked
+# from sway-config that does its own PATH search instead of leaving it to sh
+# must therefore use an absolute path.
 source_profile = false
 
 [default_session]
@@ -29,5 +31,37 @@ source_profile = false
 # prefix would work -- `env` is used instead because it also survives a greetd
 # that shlex-splits and execs the argv directly, which is what older versions
 # did with source_profile = false.
-command = "env SWAY_UNSUPPORTED_GPU=true sway --config /etc/greetd/sway-config"
+#
+# DBUS_SESSION_BUS_ADDRESS is pointed at a path that cannot exist, taking the
+# greeter's session bus away on purpose. Measured: 25.14s to first paint with
+# the bus, 0.07s without it.
+#
+# That 25s is one dbus-daemon service_start_timeout, and the chain is worth
+# recording because none of it is visible from the greeter. gtkgreet calls
+# org.freedesktop.host.portal.Registry.Register synchronously inside gtk_init,
+# so nothing is drawn -- not the wallpaper, not the clock, not the entry -- until
+# it returns; the screen sits on sway's solid background with a live cursor.
+# The call activates org.freedesktop.portal.Desktop, which picks a backend by
+# matching XDG_CURRENT_DESKTOP against the UseIn= lines in
+# /usr/share/xdg-desktop-portal/portals/*.portal. That variable is unset here,
+# nothing matches, and it falls back to gtk.portal --
+# xdg-desktop-portal-gtk.service, which is Type=dbus, so systemd waits for it to
+# claim its BusName. But it is itself a GTK app, started by the user@105.service
+# pam_systemd creates for _greetd, and that manager has no WAYLAND_DISPLAY,
+# because this greeter deliberately does not include /etc/sway/config.d/* (where
+# 50-systemd-user.conf would import it). It cannot open a display, never claims
+# the name, and dbus-daemon gives up 25s later. xdg-desktop-portal then retries,
+# so the wait is 25s, 50s or 75s depending on how many rounds it takes -- which
+# is why this presented as "30 to 60 seconds" rather than a constant.
+#
+# Suppressing the portal from the client side does not work, all measured
+# against the same harness: GTK_USE_PORTAL=0 gives 25.08s, adding NO_AT_BRIDGE=1
+# and GIO_USE_VFS=local gives 25.10s, and XDG_CURRENT_DESKTOP=sway gives 25.10s
+# (wlr.portal advertises only Screenshot and ScreenCast, so the lookup still
+# falls back to the gtk backend). None of them gate that Register call. Removing
+# the bus is what works, and it costs the greeter nothing: gtkgreet reaches
+# greetd over GREETD_SOCK and wants no session bus, no accessibility bridge, no
+# gvfs and no portals. Verified with the bus gone that it still loads the
+# stylesheet, the wallpaper and the /etc/greetd/environments session list.
+command = "env SWAY_UNSUPPORTED_GPU=true DBUS_SESSION_BUS_ADDRESS=unix:path=/nonexistent sway --config /etc/greetd/sway-config"
 user = "_greetd"
