@@ -174,6 +174,13 @@ if command -v systemctl > /dev/null && [ -d /run/systemd/system ]; then
   systemctl --user daemon-reload
   systemctl --user enable quickshell.service wayland-pipewire-idle-inhibit.service \
     sway-outputs.service
+  # Timers, not services: symlinking a .timer registers it but never arms it,
+  # so without this a fresh machine links the backup units and silently never
+  # runs them. Deliberately not `--now`: these are Persistent=true, and on a
+  # machine that was down past a scheduled time starting them here would fire
+  # a catch-up backup in the middle of the install.
+  systemctl --user enable backup-daily.timer backup-weekly.timer \
+    backup-yearly.timer backup-audit.timer
 fi
 
 # sway `include`s this, and sway-outputs can only fill it in once sway is
