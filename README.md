@@ -212,4 +212,4 @@ to `graphical-session.target`, so quickshell cannot outlive the compositor.
 This replaced a hand-written `/usr/local/bin/sway-run` launcher, which exported
 the same variables, sourced a `.config/sway/profile` that no longer exists, and
 ran sway without `exec` so it could stop `sway-session.target` on the way out.
-Nothing references it any more, and it can be deleted.
+Both are deleted; nothing references either.
