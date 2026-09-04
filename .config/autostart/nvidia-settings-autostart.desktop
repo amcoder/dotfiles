@@ -1,0 +1,25 @@
+[Desktop Entry]
+# Overrides /etc/xdg/autostart/nvidia-settings-autostart.desktop. An autostart
+# file in the user's own directory shadows the system one of the same name, and
+# Hidden=true means "treat as deleted" -- systemd-xdg-autostart-generator writes
+# no unit for it.
+#
+# The entry runs `nvidia-settings --load-config-only`, which exits 1 when the
+# config file does not exist, and ~/.nvidia-settings-rc does not exist here.
+# Measured: --config= a file that exists exits 0, --config= one that does not
+# exits 1, in the same session against the same binary. It is silent either way
+# -- no stderr at all -- so the failed unit is the only symptom.
+#
+# Creating an empty rc file would make it exit 0 and is still not the fix:
+# Xwayland carries no NV-CONTROL extension (xdpyinfo greps zero for it), so the
+# tool cannot apply a saved setting under this session whatever its exit code.
+# Under --verbose=all it says so, but those warnings appear in the exit-0 run
+# too and are not what fails it. The package stays installed for the GUI.
+#
+# uwsm is what made this necessary: it runs XDG autostart via
+# wayland-session-xdg-autostart@sway.desktop.target, and the sway-run launcher
+# it replaced never did, so this entry had simply never fired before.
+Type=Application
+Name=NVIDIA X Server Settings
+Exec=sh -c '/usr/bin/nvidia-settings --load-config-only'
+Hidden=true
