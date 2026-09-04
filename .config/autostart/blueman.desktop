@@ -1,0 +1,20 @@
+[Desktop Entry]
+# Overrides /etc/xdg/autostart/blueman.desktop. An autostart file in the user's
+# own directory shadows the system one of the same name, and Hidden=true means
+# "treat as deleted" -- systemd-xdg-autostart-generator writes no unit for it.
+#
+# The package stays installed, and this is why: blueman-applet is the BlueZ
+# pairing agent, which Quickshell 0.3.0 does not provide -- its Bluetooth
+# module carries Adapter1, Device1 and Battery1 and no Agent1 at all. The bar's
+# panel launches blueman-manager as the escape hatch for pairing, and that
+# D-Bus-activates the applet, agent and all, then lets it exit with the window.
+# Autostarting it resident instead only duplicates the bar's own bluetooth item
+# in the tray, since Tray.qml filters nm-applet by id and nothing else.
+#
+# uwsm is what made this necessary: it runs XDG autostart via
+# wayland-session-xdg-autostart@sway.desktop.target, and the sway-run launcher
+# it replaced never did, so this entry had simply never fired before.
+Type=Application
+Name=Blueman Applet
+Exec=blueman-applet
+Hidden=true
