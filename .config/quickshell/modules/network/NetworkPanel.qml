@@ -258,10 +258,14 @@ BarPopup {
 
     // Fixed height, holding either the access points or the password prompt.
     // See the note at the top of the file.
+    //
+    // Gated on wifiAvailable as well as wifiEnabled: wifiEnabled is the global
+    // radio flag and reads true even with no wifi device at all, which draws an
+    // empty Networks box directly under the row already saying "No adapter".
     Item {
         width: parent.width
         height: heading.height + 4 + root.listRows * root.rowHeight
-        visible: NetworkService.wifiEnabled
+        visible: NetworkService.wifiAvailable && NetworkService.wifiEnabled
 
         Heading {
             id: heading
