@@ -7,6 +7,7 @@ import qs.modules.launcher
 import qs.modules.osd
 import qs.modules.polkit
 import qs.modules.power
+import qs.modules.screencast
 import qs.modules.switcher
 import qs.windows
 
@@ -22,6 +23,8 @@ ShellRoot {
     WindowSwitcher {}
 
     PowerConfirm {}
+
+    ScreencastPicker {}
 
     Variants {
         model: Quickshell.screens

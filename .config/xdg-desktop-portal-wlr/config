@@ -1,0 +1,12 @@
+# Source picker for screencasting.
+#
+# Without this, xdg-desktop-portal-wlr walks its own list of dmenu-alikes and
+# lands on wmenu -- a one-line list of window titles with no picture of what is
+# about to be shared.
+#
+# `dmenu` is the protocol, not the program: xdpw writes one label per line to
+# the command's stdin, waits for it to exit, then reads a single label back.
+# `screencast-chooser` speaks that and draws the choice through Quickshell.
+[screencast]
+chooser_type=dmenu
+chooser_cmd=screencast-chooser

@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+"""Source picker for xdg-desktop-portal-wlr's screencast, drawn by Quickshell.
+
+xdpw forks this as its `chooser_cmd` (see .config/xdg-desktop-portal-wlr/config),
+writes one label per line on stdin, closes it, then *waits for this process to
+exit* before reading a single line back from stdout. So the whole exchange is:
+read the labels, block until the user picks, print one label verbatim, exit.
+Printing nothing is a cancel.
+
+The label is the only identity xdpw accepts -- it regenerates each one and
+strcmp's it against what comes back -- so it is echoed byte for byte and never
+rebuilt here.
+
+Window labels carry the compositor's `ext_foreign_toplevel_list_v1` identifier,
+which is the same string sway's IPC tree exposes as `foreign_toplevel_identifier`
+and the same one `grim -T` captures by. That three-way match is what makes a
+thumbnail of an individual window possible at all, including one on another
+workspace that is not currently visible.
+"""
+
+import json
+import os
+import re
+import select
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+
+# Enough resolution for the picker's thumbnails without paying for a full-size
+# grab of a 5K window.
+THUMB_WIDTH = 640
+
+# grim occasionally refuses a client's buffer ("Invalid stride"), so a capture
+# is allowed to fail and the picker falls back to the app icon.
+CAPTURE_TIMEOUT = 8
+
+# How long the picker may stay open before this gives up and cancels. Without
+# it a shell that died mid-pick would wedge xdpw's waitpid, and with it every
+# later screenshare, until the portal was restarted.
+PICK_TIMEOUT = 180
+
+# xdpw's own chooser list, used here when the shell is not reachable so a
+# broken bar cannot take screensharing down with it. Configuring `chooser_cmd`
+# replaces that list rather than prepending to it, so it has to be repeated.
+# Only wmenu is installed on this machine; it is what used to draw the picker.
+FALLBACKS = [
+    ["wmenu", "-p", "Select a source to share:", "-l", "10"],
+    ["wofi", "-d", "-n", "--prompt=Select a source to share:"],
+    ["rofi", "-dmenu", "-p", "Select a source to share:"],
+    ["bemenu", "--prompt=Select a source to share:"],
+    ["fuzzel", "-d", "-l", "10", "-p", "Select a source to share:"],
+]
+
+WINDOW_RE = re.compile(r"^Window: (?P<title>.*) \((?P<identifier>[^()]*)\)$")
+MONITOR_RE = re.compile(r"^Monitor: (?P<name>\S+)(?: (?P<description>.*))?$")
+
+
+def parse(lines):
+    """Turn xdpw's labels into targets, keeping each label exactly as received."""
+    targets = []
+
+    for label in lines:
+        window = WINDOW_RE.match(label)
+        if window:
+            # Matched with a greedy title, so the split is on the *last*
+            # parenthesised group: titles routinely contain " (" themselves,
+            # as in "Messages - (1) Google Messages for web".
+            targets.append({
+                "label": label,
+                "kind": "window",
+                "title": window["title"],
+                "identifier": window["identifier"],
+            })
+            continue
+
+        monitor = MONITOR_RE.match(label)
+        if monitor:
+            targets.append({
+                "label": label,
+                "kind": "screen",
+                "title": monitor["description"] or monitor["name"],
+                "identifier": monitor["name"],
+            })
+            continue
+
+        # Nothing xdpw offered may silently vanish from the picker, so a label
+        # in a shape this does not know still gets a row -- just no thumbnail.
+        targets.append({
+            "label": label,
+            "kind": "window",
+            "title": label,
+            "identifier": "",
+        })
+
+    return targets
+
+
+def sway_windows():
+    """Map foreign-toplevel identifier -> what sway knows about that window."""
+    try:
+        tree = json.loads(subprocess.run(
+            ["swaymsg", "-r", "-t", "get_tree"],
+            capture_output=True, text=True, timeout=5, check=True).stdout)
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return {}
+
+    found = {}
+
+    def walk(node, workspace):
+        if node.get("type") == "workspace":
+            workspace = node
+
+        identifier = node.get("foreign_toplevel_identifier")
+        if identifier:
+            rect = node.get("rect") or {}
+            found[identifier] = {
+                "appId": node.get("app_id") or (node.get("window_properties") or {}).get("class") or "",
+                "workspace": (workspace or {}).get("num", -1),
+                "width": rect.get("width", 0),
+                "height": rect.get("height", 0),
+            }
+
+        for child in node.get("nodes", []) + node.get("floating_nodes", []):
+            walk(child, workspace)
+
+    walk(tree, None)
+    return found
+
+
+def capture(targets, directory):
+    """Grab every target at once. Each thumbnail is named after its identifier."""
+    running = []
+
+    for index, target in enumerate(targets):
+        if not target["identifier"]:
+            continue
+
+        # A window is captured by its toplevel identifier rather than by the
+        # screen region it occupies, which is what lets an occluded or
+        # off-workspace window still produce a real thumbnail.
+        if target["kind"] == "window":
+            selector = ["-T", target["identifier"]]
+            width = target.get("width") or 0
+        else:
+            selector = ["-o", target["identifier"]]
+            width = 0
+
+        scale = min(1.0, THUMB_WIDTH / width) if width else 0.35
+        path = os.path.join(directory, f"{index}.png")
+
+        try:
+            running.append((target, path, subprocess.Popen(
+                ["grim", *selector, "-s", f"{scale:.3f}", "-l", "1", path],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)))
+        except OSError:
+            break
+
+    for target, path, process in running:
+        try:
+            ok = process.wait(timeout=CAPTURE_TIMEOUT) == 0
+        except subprocess.TimeoutExpired:
+            process.kill()
+            ok = False
+
+        if ok and os.path.exists(path):
+            target["thumbnail"] = path
+
+
+def ask_quickshell(targets, directory):
+    """Hand the targets to the shell and block until it answers.
+
+    The answer comes back over a FIFO because `quickshell ipc call` returns as
+    soon as the QML function does -- it cannot wait on a user.
+    """
+    fifo = os.path.join(directory, "choice")
+    os.mkfifo(fifo, 0o600)
+
+    # The targets go over a file, not an argument: `quickshell ipc call`
+    # interprets an argument that looks like JSON rather than passing it
+    # through, and an array sent inline arrives with its brackets stripped.
+    payload = os.path.join(directory, "targets.json")
+    with open(payload, "w") as handle:
+        json.dump(targets, handle)
+
+    # Opened before the shell is asked, so the writer can never arrive first.
+    # O_NONBLOCK is what lets a FIFO be opened for reading with no writer yet.
+    reader = os.open(fifo, os.O_RDONLY | os.O_NONBLOCK)
+
+    try:
+        result = subprocess.run(
+            ["quickshell", "ipc", "call", "screencast", "open", payload, fifo],
+            capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        os.close(reader)
+        return None
+
+    # `quickshell ipc call` exits 0 whether or not the call landed, reporting
+    # "Target not found." on stdout instead, so the exit code says nothing.
+    if result.returncode != 0 or "not found" in result.stdout.lower():
+        os.close(reader)
+        return None
+
+    try:
+        if not select.select([reader], [], [], PICK_TIMEOUT)[0]:
+            return None
+
+        # The picker writes the chosen label, or closes the FIFO without
+        # writing to cancel -- which arrives here as a readable end-of-file.
+        return os.read(reader, 65536).decode(errors="replace").split("\n")[0]
+    finally:
+        os.close(reader)
+
+
+def ask_fallback(lines):
+    """Walk xdpw's own chooser list, taking the answer from the first that runs."""
+    for command in FALLBACKS:
+        if shutil.which(command[0]) is None:
+            continue
+
+        try:
+            result = subprocess.run(command, input="\n".join(lines),
+                                    capture_output=True, text=True)
+        except (OSError, subprocess.SubprocessError):
+            continue
+
+        # A negative code is death by signal and 127 is a failed exec; either
+        # way the chooser never got as far as asking, so try the next one. Any
+        # other code means it ran, and an empty answer from it is a cancel.
+        if result.returncode < 0 or result.returncode == 127:
+            continue
+
+        return result.stdout.split("\n")[0]
+
+    return None
+
+
+def main():
+    lines = [line.rstrip("\n") for line in sys.stdin if line.strip()]
+    if not lines:
+        return
+
+    targets = parse(lines)
+    if not targets:
+        return
+
+    known = sway_windows()
+    for target in targets:
+        target.update(known.get(target["identifier"], {}))
+
+    # Screens first, then windows in workspace order -- the order the user
+    # already thinks of them in. xdpw's own order is its internal list order.
+    targets.sort(key=lambda t: (
+        t["kind"] == "window",
+        t.get("workspace", -1) if t.get("workspace", -1) >= 0 else 1 << 16,
+        t["title"].lower(),
+    ))
+
+    # The thumbnails are pictures of the user's windows, so a killed chooser
+    # must not leave them lying in the runtime directory. Turning the signal
+    # into SystemExit is what lets the cleanup below actually run.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(1))
+
+    directory = tempfile.mkdtemp(prefix="screencast-chooser.",
+                                 dir=os.environ.get("XDG_RUNTIME_DIR", "/tmp"))
+    try:
+        capture(targets, directory)
+        choice = ask_quickshell(targets, directory)
+        if choice is None:
+            choice = ask_fallback(lines)
+    finally:
+        subprocess.run(["rm", "-rf", directory], check=False)
+
+    # Anything but a label xdpw itself produced is a cancel: it would only be
+    # reported as "selected unknown target" and drop the session anyway.
+    if choice in lines:
+        print(choice)
+
+
+if __name__ == "__main__":
+    main()
