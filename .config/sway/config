@@ -104,6 +104,42 @@ bindsym $mod+Space exec quickshell ipc call launcher toggle
 bindsym $mod+Shift+Space exec quickshell ipc call launcher run
 bindsym $mod+Alt+Space exec quickshell ipc call windows toggle
 
+# Alt-tab-style cycling through windows in most-recently-used order, also drawn
+# by quickshell. Tapping Super+Tab switches to the last window with nothing
+# appearing on screen; holding Super brings up the picker.
+#
+# The mode is how the keyboard is handed over. It deliberately binds almost
+# nothing, so every later Tab -- and the Super release that commits the choice,
+# which sway itself cannot report -- reaches the picker's own layer surface
+# instead of a binding here. The shell returns to the default mode when the
+# gesture ends.
+set $cycle Cycle
+bindsym $mod+Tab mode $cycle, exec quickshell ipc call windows next
+bindsym $mod+Shift+Tab mode $cycle, exec quickshell ipc call windows previous
+
+# The MX Master's thumb button, which sends Ctrl+Alt+Tab -- established by
+# binding every keycode on that device alone and pressing it, since it emits no
+# mouse button at all and so does nothing by default. Scoped to the mouse by
+# identifier, so the same combo from a keyboard is left to whatever wants it.
+#
+# There is no modifier to hold, so this opens the picker drawn and the next
+# press commits, the way releasing Super does. It deliberately does *not* enter
+# the cycle mode, unlike $mod+Tab: one binding that stays live in the default
+# mode is what lets the second press reach it. Binding the combo in both modes
+# instead fires both on a single press -- sway re-matches the press in the mode
+# the first binding just switched to -- which opened the picker and immediately
+# closed it again. Nothing is lost by staying in the default mode, since the
+# picker holds the keyboard itself: Tab and Escape are unbound here and reach it.
+set $thumb 1133:45081:Logitech_Wireless_Mouse_MX_Master_2S
+bindsym --input-device=$thumb Ctrl+Alt+Tab exec quickshell ipc call windows cycle
+
+mode $cycle {
+    # The way out if the shell never takes the keyboard, which is the only way
+    # this mode can be left holding it.
+    bindsym Escape mode default, exec quickshell ipc call windows cancel
+    bindsym $mod+Escape mode default, exec quickshell ipc call windows cancel
+}
+
 # Drag floating windows by holding down $mod and left mouse button.
 # Resize them with right mouse button + $mod.
 floating_modifier $mod normal

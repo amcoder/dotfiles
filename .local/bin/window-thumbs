@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""Thumbnails of open windows, for the shell's Super+Tab window cycler.
+
+Takes `<identifier>:<width>` arguments -- the compositor's
+ext_foreign_toplevel_list_v1 identifier, which sway's IPC tree exposes per
+container as `foreign_toplevel_identifier`, plus that window's current width --
+in the order the picker wants them, and prints `<identifier> <path>` for each
+thumbnail as it lands.
+
+Printing on completion rather than at the end is the whole shape of this: a
+15-window batch takes ~500ms, and the picker is on screen after 180ms, so the
+first previews have to arrive while the rest are still being grabbed. Passing
+the windows in most-recently-used order is what puts them in the cells the user
+is most likely to be looking at.
+
+`grim -T` captures a window that is not visible -- occluded, or on another
+workspace -- which is exactly the case the picker exists for.
+
+Thumbnails live in a stable directory and every cached one is reported back
+before anything is captured, so a later cycle draws the previous picture of each
+window immediately and replaces it a few hundred milliseconds later. That is the
+only reason the files outlive this process, and why closing a window is what
+removes its thumbnail: an identifier nobody asks about any more is pruned.
+"""
+
+import os
+import re
+import signal
+import subprocess
+import sys
+import time
+
+# Wide enough for the picker's preview box in *physical* pixels, across the
+# screens this is likely to run on: the box is at most a third of the card's
+# width, which is 94% of the screen, so 1062px on the 5120x1440 ultrawide and
+# ~1134 on a 1920-logical laptop at scale 2. A capture narrower than that is
+# upscaled by the picker and looks it.
+#
+# Being generous costs nothing: measured over a 15-window batch at 240, 480,
+# 960, 1280 and 1600px, the totals were 562, 468, 485, 476 and 509ms, so the
+# cost is the per-window capture round trip and not the scaling or the encode.
+TARGET_WIDTH = 1280
+
+# A cap on the whole batch. `grim -T` can hang outright on a toplevel something
+# else is capturing -- xdg-desktop-portal-wlr streaming a window is the known
+# case -- and whatever has not arrived by then is left to the picker's app-icon
+# fallback, which a capture refused for other reasons already needs.
+BUDGET = 3.0
+
+# The identifier is used as a filename, and `-` separates it from the serial.
+IDENTIFIER = re.compile(r"[A-Za-z0-9_.]{1,64}\Z")
+
+
+def report(identifier, path):
+    print(f"{identifier} {path}", flush=True)
+
+
+def remove(path):
+    try:
+        os.unlink(path)
+    except OSError:
+        pass
+
+
+def directory():
+    root = os.path.join(os.environ.get("XDG_RUNTIME_DIR", "/tmp"), "window-thumbs")
+    # These are pictures of the user's windows, so the directory is theirs
+    # alone. It is not cleaned up on the way out -- see the module docstring.
+    os.makedirs(root, mode=0o700, exist_ok=True)
+    return root
+
+
+def cache(root):
+    """identifier -> its cached files, newest serial first."""
+    found = {}
+
+    for name in os.listdir(root):
+        identifier, _, serial = name.partition("-")
+        if not serial.endswith(".png"):
+            continue
+
+        try:
+            order = int(serial[:-4])
+        except ValueError:
+            continue
+
+        found.setdefault(identifier, []).append((order, os.path.join(root, name)))
+
+    for entries in found.values():
+        entries.sort(reverse=True)
+
+    return found
+
+
+def parse(args):
+    requested = []
+
+    for arg in args:
+        identifier, _, width = arg.partition(":")
+        if not IDENTIFIER.match(identifier):
+            continue
+
+        try:
+            requested.append((identifier, int(width)))
+        except ValueError:
+            requested.append((identifier, 0))
+
+    return requested
+
+
+def capture(requested, root, cached):
+    running = []
+    # One serial for the batch, offset per window, so a name is unique without
+    # asking the clock twice.
+    serial = int(time.time() * 1000)
+
+    for offset, (identifier, width) in enumerate(requested):
+        scale = min(1.0, TARGET_WIDTH / width) if width > 0 else 0.35
+        path = os.path.join(root, f"{identifier}-{serial + offset}.png")
+
+        try:
+            running.append([identifier, path, subprocess.Popen(
+                ["grim", "-T", identifier, "-s", f"{scale:.3f}", "-l", "1", path],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)])
+        except OSError:
+            break
+
+    deadline = time.monotonic() + BUDGET
+
+    try:
+        while running and time.monotonic() < deadline:
+            for entry in list(running):
+                identifier, path, process = entry
+                if process.poll() is None:
+                    continue
+
+                running.remove(entry)
+
+                # grim refuses some clients' buffers outright ("Invalid
+                # stride"), and which client it refuses moves around between
+                # runs, so a failed capture is expected rather than
+                # exceptional: say nothing and leave the picker its fallback.
+                if process.returncode == 0 and os.path.exists(path) and os.path.getsize(path) > 0:
+                    report(identifier, path)
+                    for _, old in cached.get(identifier, []):
+                        remove(old)
+                else:
+                    remove(path)
+
+            if running:
+                time.sleep(0.02)
+    finally:
+        for _, path, process in running:
+            process.kill()
+            process.wait()
+            remove(path)
+
+
+def main():
+    requested = parse(sys.argv[1:])
+    if not requested:
+        return
+
+    root = directory()
+    cached = cache(root)
+    wanted = {identifier for identifier, _ in requested}
+
+    for identifier, entries in cached.items():
+        if identifier not in wanted:
+            for _, path in entries:
+                remove(path)
+
+    for identifier, _ in requested:
+        entries = cached.get(identifier)
+        if entries:
+            report(identifier, entries[0][1])
+
+    # The picker kills this process when the cycle ends, which is the common
+    # case rather than an accident. Turning the signal into SystemExit is what
+    # lets the cleanup in capture() run and take the grim children with it.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(1))
+
+    capture(requested, root, cached)
+
+
+if __name__ == "__main__":
+    main()

@@ -22,6 +22,13 @@ PanelWindow {
 
     // Whether the surface behind the card is scrimmed or fully transparent.
     property bool dim: true
+
+    // Whether the card and the scrim are painted at all. A surface that is
+    // mapped but not drawn is how the window cycler catches the Super release
+    // during a tap of Super+Tab, which has to switch windows without anything
+    // appearing on screen; while it is undrawn the surface is click-through
+    // too, so it cannot swallow a pointer event meant for what is beneath it.
+    property bool drawn: true
     property bool closeOnClickOutside: false
     property int cardWidth: 480
 
@@ -82,7 +89,9 @@ PanelWindow {
     signal dismissed
 
     screen: FocusedScreen.screen
-    color: root.dim ? Theme.overlayScrim : "transparent"
+    color: root.dim && root.drawn ? Theme.overlayScrim : "transparent"
+
+    mask: root.drawn ? null : blank
 
     anchors.top: true
     anchors.left: true
@@ -107,6 +116,10 @@ PanelWindow {
             root.focusItem.forceActiveFocus();
     }
 
+    Region {
+        id: blank
+    }
+
     MouseArea {
         anchors.fill: parent
 
@@ -118,6 +131,8 @@ PanelWindow {
 
     Item {
         id: card
+
+        visible: root.drawn
 
         // The flare needs room on both sides, so an anchored card stops short
         // of the screen edge by that much.

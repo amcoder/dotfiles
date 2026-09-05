@@ -22,6 +22,8 @@ ShellRoot {
 
     WindowSwitcher {}
 
+    WindowCycler {}
+
     PowerConfirm {}
 
     ScreencastPicker {}
