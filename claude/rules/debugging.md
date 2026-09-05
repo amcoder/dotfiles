@@ -15,3 +15,25 @@ fine; presenting one as settled is not. A shotgun fix may be offered, but label
 it as a shortcut trading certainty for time — never as the recommendation. When
 instrumenting something that is also a recovery path, verify the instrumentation
 works before it becomes the only way in.
+
+# Establish that a test can see the difference
+
+Before trusting a comparison, check that it has the power to detect what it
+claims to. A number from a test that cannot separate the hypotheses is noise,
+not evidence, however carefully it was produced.
+
+**Why:** A whole-frame colour average "showed" a video was already BT.709, and
+that tag was shipped and described in the commit message as measured. It was
+noise: on dark desktop content BT.601 and BT.709 predict luma less than 3
+apart, so the average could not tell them apart at all. The test with power was
+the Y plane, which 4:2:0 does not subsample, on deliberately colourful content
+— and it said the opposite.
+
+**How to apply:** Name the discriminating quantity and check it *before*
+measuring — how far apart do the hypotheses predict the result, and is that
+above the noise floor? Prefer a control that should fail: an A/B whose two
+sides come out mirror images is trustworthy in a way a single number is not.
+Check the test artifact too, asserting it has the properties you intended
+before analysing it, since a broken harness reports plausible wrong numbers
+instead of failing — a stray shell quoting bug silently dropped a flag, and an
+off-by-one frame width turned a clean result into an apparent catastrophe.
