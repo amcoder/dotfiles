@@ -72,6 +72,13 @@ PanelWindow {
                 anchors.bottom: parent.bottom
             }
 
+            Recording {
+                anchors.right: clock.left
+                anchors.rightMargin: 12
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+            }
+
             Media {
                 anchors.left: clock.right
                 anchors.leftMargin: 12

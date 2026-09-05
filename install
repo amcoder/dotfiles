@@ -43,7 +43,7 @@ if [ "$1" = "--deps" ]; then
     # What the bar and the sway config shell out to. nm-applet and blueman stay
     # for their NetworkManager and BlueZ agents, which quickshell does not
     # register; pkexec is the apt upgrade path, wtype the emoji paste.
-    desktop="wl-clipboard wtype grim slurp grimshot pavucontrol blueman
+    desktop="wl-clipboard wtype grim slurp grimshot wf-recorder pavucontrol blueman
       network-manager network-manager-applet pkexec poweralertd
       xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-wlr"
 

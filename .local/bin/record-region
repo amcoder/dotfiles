@@ -1,0 +1,17 @@
+#!/bin/sh
+##
+## Print the region to record, in wf-recorder's `-g` format, or nothing if the
+## selection was cancelled.
+##
+## This is `grimshot anything`'s selection: slurp is handed every visible
+## window's rect on stdin and `-o` adds one more per output, so a click picks a
+## window or a whole screen and a drag picks an arbitrary area.
+##
+## It lives here rather than in RecordingService because the jq filter is full
+## of backslashes, which a QML string would eat.
+##
+set -e
+
+swaymsg -t get_tree \
+  | jq -r '.. | select(.pid? and .visible?) | .rect | "\(.x),\(.y) \(.width)x\(.height)"' \
+  | slurp -o

@@ -335,6 +335,9 @@ bindgesture swipe:3:left workspace next
 bindsym $mod+p exec grimshot copy anything
 bindsym $mod+Shift+p exec grimshot save anything
 
+# Screen recording (drawn by quickshell)
+bindsym $mod+Ctrl+p exec quickshell ipc call record toggle
+
 # App Shortcuts
 bindsym $mod+Return exec $term
 bindsym $mod+Shift+Return exec $browser
