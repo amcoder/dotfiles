@@ -1,0 +1,69 @@
+#!/bin/sh
+# Report webcam use on stdout, one line per state change: `idle`, or `active`
+# followed by one tab-separated `<command> (<pid>)` per process holding a
+# device open.
+#
+# V4L2 exposes no in-use flag, so the truth is which processes hold a
+# /dev/video* node open, and inotify's open/close events on those nodes are
+# what say when to look -- there is nothing to poll. fuser is the read, at
+# ~60ms; a shell loop over /proc/*/fd is not an alternative, measured at 15s.
+#
+# The settle delay is what keeps an app enumerating devices from flashing the
+# indicator: a probe that opens and closes inside it is never seen as use,
+# because only the settled state is ever reported.
+#
+# fuser sees only this user's processes, so a camera opened by a root process
+# reads as idle here.
+
+settle=0.25
+state=
+
+holders() {
+	# fuser names the same process once per device it holds, and the two
+	# nodes of one camera are usually opened together.
+	for pid in $(fuser /dev/video* 2>/dev/null | tr ' ' '\n' | sort -un); do
+		comm=$(cat "/proc/$pid/comm" 2>/dev/null) || continue
+		[ -n "$comm" ] || continue
+		printf '\t%s (%s)' "$comm" "$pid"
+	done
+}
+
+report() {
+	users=$(holders)
+
+	if [ -n "$users" ]; then
+		new="active$users"
+	else
+		new=idle
+	fi
+
+	[ "$new" = "$state" ] && return
+	state=$new
+	printf '%s\n' "$new"
+}
+
+while :; do
+	set -- /dev/video*
+
+	# A machine with no camera at all, or one currently unplugged: there is
+	# nothing to watch, so this is the one path that polls.
+	if [ ! -e "$1" ]; then
+		state=
+		echo idle
+		sleep 10
+		continue
+	fi
+
+	# `report` runs in the pipe's subshell below, so its `state` never
+	# reaches here: the state is re-reported from scratch on every pass,
+	# and a repeat of the current state is left for the reader to ignore.
+	state=
+	report
+
+	inotifywait -q -m -e open -e close -e delete_self "$@" | while read -r _; do
+		sleep "$settle"
+		report
+	done
+
+	sleep 2
+done

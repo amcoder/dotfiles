@@ -72,11 +72,25 @@ PanelWindow {
                 anchors.bottom: parent.bottom
             }
 
-            Recording {
+            // Everything hanging off the clock's left edge shares one Row,
+            // so an indicator that is dark most of the time takes no width:
+            // anchored individually, each would hold its own gap open beside
+            // the clock whether or not it was showing.
+            Row {
                 anchors.right: clock.left
                 anchors.rightMargin: 12
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
+
+                spacing: 12
+
+                Privacy {
+                    height: parent.height
+                }
+
+                Recording {
+                    height: parent.height
+                }
             }
 
             Media {
