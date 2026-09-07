@@ -51,15 +51,15 @@ Singleton {
 
     readonly property var activeVpns: root.vpns.filter(vpn => vpn.active)
 
-    readonly property string icon: {
-        if (root.wiredConnected)
-            return "plugs-connected";
+    readonly property string wifiIcon: {
         if (!root.wifiAvailable || !root.wifiEnabled)
             return "wifi-slash";
         if (!root.wifiConnected)
-            return "wifi-none";
+            return "wifi-x";
         return root.strengthIcon(root.wifiNetwork.signalStrength);
     }
+
+    readonly property string icon: root.wiredConnected ? "network" : root.wifiIcon
 
     readonly property string label: {
         if (root.wiredConnected)

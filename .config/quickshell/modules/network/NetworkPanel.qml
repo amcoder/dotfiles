@@ -143,7 +143,7 @@ BarPopup {
             anchors.leftMargin: 6
             anchors.verticalCenter: parent.verticalCenter
             size: Appearance.iconSize
-            name: NetworkService.wifiEnabled ? NetworkService.icon : "wifi-slash"
+            name: NetworkService.wifiEnabled ? NetworkService.wifiIcon : "wifi-slash"
             color: NetworkService.wifiEnabled ? Theme.popupText : Theme.popupSubtext
         }
 
@@ -185,7 +185,7 @@ BarPopup {
             anchors.leftMargin: 6
             anchors.verticalCenter: parent.verticalCenter
             size: Appearance.iconSize
-            name: NetworkService.wiredConnected ? "plugs-connected" : "plugs"
+            name: NetworkService.wiredConnected ? "network" : "network-slash"
             color: NetworkService.wiredConnected ? Theme.popupText : Theme.popupSubtext
         }
 
