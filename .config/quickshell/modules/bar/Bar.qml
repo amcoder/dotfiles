@@ -96,6 +96,10 @@ PanelWindow {
                     height: parent.height
                 }
 
+                IdleInhibit {
+                    height: parent.height
+                }
+
                 Privacy {
                     height: parent.height
                 }
