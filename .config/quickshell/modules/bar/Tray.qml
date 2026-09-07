@@ -15,7 +15,7 @@ Row {
     // than shown twice.
     readonly property var hidden: ["nm-applet"]
 
-    spacing: 8
+    spacing: 12
 
     Repeater {
         model: SystemTray.items.values.filter(item => !root.hidden.includes(item.id))

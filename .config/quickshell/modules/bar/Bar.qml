@@ -78,11 +78,23 @@ PanelWindow {
             // the clock whether or not it was showing.
             Row {
                 anchors.right: clock.left
-                anchors.rightMargin: 12
+                anchors.rightMargin: 20
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
 
                 spacing: 12
+
+                AptUpgrade {
+                    height: parent.height
+                }
+
+                Mail {
+                    height: parent.height
+                }
+
+                NotificationIndicator {
+                    height: parent.height
+                }
 
                 Privacy {
                     height: parent.height
@@ -95,7 +107,7 @@ PanelWindow {
 
             Media {
                 anchors.left: clock.right
-                anchors.leftMargin: 12
+                anchors.leftMargin: 20
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
             }
@@ -109,32 +121,11 @@ PanelWindow {
             anchors.bottom: parent.bottom
             anchors.rightMargin: 8
 
-            // Wider than the other sections: these items carried a separator
-            // between each pair, and the gap has to stand in for it.
-            spacing: 16
+            spacing: 12
 
-            AptUpgrade {
+            Tray {
                 height: parent.height
-            }
-
-            Volume {
-                height: parent.height
-            }
-
-            Network {
-                height: parent.height
-            }
-
-            Bluetooth {
-                height: parent.height
-            }
-
-            Battery {
-                height: parent.height
-            }
-
-            Mail {
-                height: parent.height
+                window: bar
             }
 
             ThemeToggle {
@@ -145,13 +136,20 @@ PanelWindow {
                 height: parent.height
             }
 
-            NotificationIndicator {
+            Volume {
                 height: parent.height
             }
 
-            Tray {
+            Bluetooth {
                 height: parent.height
-                window: bar
+            }
+
+            Network {
+                height: parent.height
+            }
+
+            Battery {
+                height: parent.height
             }
 
             Power {

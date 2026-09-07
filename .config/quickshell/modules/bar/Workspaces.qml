@@ -11,7 +11,7 @@ Row {
 
     readonly property var workspaces: I3.workspaces.values.filter(ws => ws.monitor && ws.monitor.name === root.screenName).sort((a, b) => a.number - b.number)
 
-    spacing: 4
+    spacing: 0
 
     // Sway workspace names look like "3: 3 <span foreground='#eed49f'>terminal-window</span>":
     // the leading "N:" is the sort key sway strips from the bar, the rest is the
@@ -48,7 +48,7 @@ Row {
             }
 
             height: root.height
-            implicitWidth: Math.max(44, content.implicitWidth + 16)
+            implicitWidth: Math.max(36, content.implicitWidth + 12)
             radius: 4
 
             color: {
