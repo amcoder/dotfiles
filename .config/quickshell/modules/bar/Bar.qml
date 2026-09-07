@@ -92,11 +92,11 @@ PanelWindow {
                     height: parent.height
                 }
 
-                NotificationIndicator {
+                IdleInhibit {
                     height: parent.height
                 }
 
-                IdleInhibit {
+                NotificationIndicator {
                     height: parent.height
                 }
 
