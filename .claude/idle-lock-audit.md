@@ -545,13 +545,23 @@ moves with Secure Boot. Verified three ways: as measured (Suspend alone, plain
 (`suspend-then-hibernate` plus a Hibernate row), and with nothing available
 (both gone).
 
+**Finding 7 is fixed too.** `LockService` calls `SetLockedHint` — true on
+`secure`, false when `locked` drops — so `LockedHint` follows reality whichever
+path locked the session. `session/auto` resolves to the user's display session
+even from a user unit with no session and no `XDG_SESSION_ID`, measured against
+a login shell, and the write needs no polkit. Exercised by driving the two
+transitions: `false` → `true` on secure → `false` on unlock, with the
+mirror control that an unlock *without* a preceding lock leaves an externally
+set hint alone, which is what keeps demo mode from reporting an unlock that
+never happened.
+
+**Hibernation will not be restored on this desktop** — decided 2026-09-08, so
+the Secure Boot question is closed rather than deferred. The runtime probe is
+still the right shape, because the laptop may answer differently.
+
 ### Still open
 
-1. **Finding 7 — `SetLockedHint` is still never called**, so logind's
-   `LockedHint` reads `no` while the screen is locked. Harmless while nothing
-   consumes it; it would quietly mislead anything added later that asks logind
-   whether the session is locked.
-2. **A swayidle restart resets its timers**, and its `delay` sleep inhibitor is
+1. **A swayidle restart resets its timers**, and its `delay` sleep inhibitor is
    not held across the restart window. Inherent to the design; recorded so it is
    not rediscovered as a bug.
 
@@ -695,9 +705,9 @@ Kept as a ledger; the reasoning is in "The design, as built" near the top.
 1. **Fix the two dead power-menu actions** (finding 1) — **done**, but not as
    proposed: rather than hardcoding this host's answer, `PowerService` probes
    logind's `CanSuspend`/`CanHibernate`/`CanSuspendThenHibernate` at startup, so
-   the laptop can differ and the answer follows Secure Boot. Whether to *restore*
-   hibernation (disabling Secure Boot, or signing for it) is a separate question
-   and remains open.
+   the laptop can differ and the answer follows Secure Boot. Restoring
+   hibernation on this desktop (disabling Secure Boot, or signing for it) was
+   considered and declined — it is not wanted here.
 2. **Fix `loginctl unlock-session`** (finding 2) — **done, and not the way this
    item proposed.** Quickshell exposes no signal handling, so there is no way to
    trap SIGTERM in `lock.qml`. Instead the unit's `ExecStop` calls a new `lock

@@ -103,6 +103,34 @@ Singleton {
         }
     }
 
+    // Tell logind the session is locked, so LockedHint follows reality whichever
+    // path locked it. Nothing here consumes it yet; it is set because anything
+    // added later that asks logind whether the session is locked would
+    // otherwise be told "no" with the lock screen up.
+    //
+    // `session/auto` is the right object even though this runs as a user unit
+    // with no session of its own and no XDG_SESSION_ID in its environment:
+    // logind falls back to the user's display session. Measured -- it resolves
+    // to the same session id from a user unit as from a login shell, and the
+    // write needs no polkit. execDetached rather than a Process because the
+    // client quits 250ms after unlocking and would tear a Process down with it.
+    //
+    // A killed client leaves the hint set, which is correct: the compositor goes
+    // on holding an abandoned lock, so the session really is still locked.
+    property bool hinted: false
+
+    function setLockedHint(value: bool): void {
+        root.hinted = value;
+        Quickshell.execDetached(["busctl", "call", "org.freedesktop.login1", "/org/freedesktop/login1/session/auto", "org.freedesktop.login1.Session", "SetLockedHint", "b", value ? "true" : "false"]);
+    }
+
+    onLockedChanged: {
+        // Only clear a hint this process set, so demo mode -- which never goes
+        // secure -- cannot report an unlock that never happened.
+        if (!root.locked && root.hinted)
+            root.setLockedHint(false);
+    }
+
     // A stale stamp cannot produce a false positive: `lock` removes it before
     // starting the unit, so its presence always means this run mapped.
     FileView {
@@ -116,7 +144,10 @@ Singleton {
     }
 
     onSecureChanged: {
-        if (root.secure)
-            stamp.setText("locked\n");
+        if (!root.secure)
+            return;
+
+        stamp.setText("locked\n");
+        root.setLockedHint(true);
     }
 }
