@@ -24,12 +24,6 @@ Singleton {
     // before-sleep hook cannot race a half-mapped surface.
     property bool secure: false
 
-    // Blank the surface after this long with no input, as a substitute for
-    // DPMS: a real modeset is trigger #2 for the lockup in
-    // .claude/sway-lockup-investigation.md.
-    readonly property int blankSeconds: 60
-    property bool blanked: false
-
     readonly property bool busy: pam.active
 
     property string status: ""
@@ -39,6 +33,20 @@ Singleton {
     property string pending: ""
 
     signal failed
+
+    // What makes `systemctl --user stop quickshell-lock.service` an unlock
+    // rather than a stranding. Dropping `locked` is what sends
+    // unlock_and_destroy; a signal cannot, and the SIGTERM systemd would send
+    // instead leaves the compositor holding an abandoned lock with no client
+    // attached -- a screen with nothing to type into. The unit's ExecStop
+    // calls this first, so the process is gone before any signal is sent.
+    IpcHandler {
+        target: "lock"
+
+        function unlock(): void {
+            root.locked = false;
+        }
+    }
 
     function tryUnlock(password: string): void {
         if (pam.active || password === "")

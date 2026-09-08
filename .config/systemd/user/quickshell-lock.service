@@ -14,6 +14,16 @@ StartLimitIntervalSec=0
 Type=simple
 ExecStart=/usr/bin/quickshell -p %h/.config/quickshell/lock.qml
 
+# Unlock properly on `systemctl --user stop`, which is swayidle's `unlock` hook
+# and so what `loginctl unlock-session` reaches. Without it systemd sends
+# SIGTERM, which abandons the lock rather than releasing it: the compositor goes
+# on holding it with no client attached. `-` because `quickshell ipc call` exits
+# 0 whether or not the call landed and 255 when nothing is running, and a failed
+# ExecStop would fail the unit; the short TimeoutStopSec is what makes the
+# SIGTERM fallback quick rather than a 90s wait.
+ExecStop=-/usr/bin/quickshell -p %h/.config/quickshell/lock.qml ipc call lock unlock
+TimeoutStopSec=5
+
 # on-failure, not always: a clean exit is a successful unlock and must stay
 # gone, while a crash while locked has to come back and re-lock.
 Restart=on-failure
@@ -21,6 +31,14 @@ RestartSec=1
 
 Environment=QT_QPA_PLATFORM=wayland
 Environment=QT_QPA_PLATFORMTHEME=kde
+
+# lock.qml is rooted at the shell's own config tree, so without this it
+# hot-reloads on any QML edit -- while the screen is locked. A reload re-creates
+# the per-output WlSessionLockSurface on an output that already has one, which
+# is ext_session_lock_v1 error 3 (duplicate_output) and fatal: it killed this
+# process on 2026-09-05 and only Restart=on-failure got a prompt back. Measured
+# A/B: an edit reloads the process without this and does not with it.
+Environment=QS_DISABLE_FILE_WATCHER=1
 
 # No [Install] section: started on demand by `lock`, never part of the session
 # target.

@@ -1,57 +1,42 @@
 pragma Singleton
 
-import QtQuick
 import Quickshell
-import Quickshell.Wayland
+import Quickshell.Io
 
-// Idle policy for the session: dim as a warning, then lock.
+// The dim that warns the session is about to lock -- and nothing else.
 //
-// These timeouts used to be swayidle's. It is now a policy-free adapter that
-// only forwards logind's own Lock/Unlock/PrepareForSleep signals, because
-// Quickshell 0.3.0 has no logind client and so cannot hear them itself.
+// Idle *policy* is swayidle's (../../systemd/user/swayidle.service): it owns
+// every timeout, the lock, the screen power-off and logind's Lock, Unlock and
+// PrepareForSleep hooks. This service only draws, and is driven over IPC:
 //
-// Both monitors respect Wayland idle inhibitors, which sway enforces
-// compositor-side, so a fullscreen video or wayland-pipewire-idle-inhibit
-// holds them off. They cannot see *logind* idle inhibitors -- neither could
-// swayidle, measured -- which is why Insomnia is consulted directly below
-// rather than through `systemd-inhibit --what=idle`.
+//     quickshell ipc call idle dim
+//     quickshell ipc call idle undim
+//
+// Keeping the timeouts there rather than here is what leaves one mechanism
+// instead of two. It also means both kinds of inhibitor reach the dim and the
+// lock without this service knowing anything about either: swayidle respects
+// Wayland idle inhibitors compositor-side, and disables all of its timeouts
+// while a logind idle inhibitor is held -- so `noidle` and Insomnia's third
+// mode work through the ordinary path and need no special case here.
+//
+// A singleton is created when it is first referenced, so an IPC-only service
+// would never register its handler. IdleDim.qml's unconditional `visible`
+// binding on `dimmed` is what warms this one; do not make that read
+// conditional.
 Singleton {
     id: root
 
-    readonly property int dimSeconds: 240
-    readonly property int lockSeconds: 300
-
-    // Insomnia's third mode asks for idle to be inhibited. Its logind
-    // inhibitor never reached swayidle and does not reach an IdleMonitor
-    // either; now that idle policy lives in this process, honouring it is one
-    // binding.
-    readonly property bool inhibited: InsomniaService.mode.inhibitIdle
-
     property bool dimmed: false
 
-    IdleMonitor {
-        enabled: !root.inhibited
-        timeout: root.dimSeconds
-        respectInhibitors: true
+    IpcHandler {
+        target: "idle"
 
-        onIsIdleChanged: root.dimmed = this.isIdle && !root.inhibited
-    }
-
-    IdleMonitor {
-        enabled: !root.inhibited
-        timeout: root.lockSeconds
-        respectInhibitors: true
-
-        // `lock` is idempotent and waits for the lock to map, so calling it
-        // when already locked is a no-op.
-        onIsIdleChanged: {
-            if (this.isIdle && !root.inhibited)
-                Quickshell.execDetached(["lock"]);
+        function dim(): void {
+            root.dimmed = true;
         }
-    }
 
-    onInhibitedChanged: {
-        if (root.inhibited)
+        function undim(): void {
             root.dimmed = false;
+        }
     }
 }

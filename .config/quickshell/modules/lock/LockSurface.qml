@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Wayland
 import qs.config
 import qs.services
 import qs.widgets
@@ -14,11 +13,6 @@ import qs.widgets
 Item {
     id: root
 
-    // Nothing here wakes the surface by hand: idle is tracked by the compositor,
-    // so the IdleMonitor below drops isIdle on any input at all and unblanks.
-    // A Keys handler on this Item could not have done it anyway -- key events
-    // bubble up from the focused TextInput, which consumes every printable key
-    // long before they reach here.
     focus: true
 
     // The same centred, unscaled, clipped composition Wallpaper.qml draws, over
@@ -131,34 +125,10 @@ Item {
         }
     }
 
-    // Standing in for DPMS. A real `output power off` is a full modeset, which
-    // is trigger #2 for the lockup in .claude/sway-lockup-investigation.md, so
-    // the screen is only painted black instead.
-    Rectangle {
-        anchors.fill: parent
-        color: "black"
-        opacity: LockService.blanked ? 1 : 0
-        visible: opacity > 0
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 400
-            }
-        }
-    }
-
     SystemClock {
         id: clock
 
         precision: SystemClock.Minutes
-    }
-
-    IdleMonitor {
-        enabled: true
-        timeout: LockService.blankSeconds
-        respectInhibitors: true
-
-        onIsIdleChanged: LockService.blanked = isIdle
     }
 
     // A failed attempt leaves the field empty and focused, ready for the retry.

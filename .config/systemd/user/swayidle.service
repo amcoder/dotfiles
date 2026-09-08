@@ -1,0 +1,48 @@
+[Unit]
+Description=Idle policy for the sway session
+Documentation=man:swayidle(1)
+PartOf=graphical-session.target
+After=graphical-session.target
+
+# Deliberately no StartLimit, for the reason quickshell-lock.service has none:
+# swayidle owns every idle timeout *and* the logind Lock/Unlock/PrepareForSleep
+# hooks, so a unit that gives up restarting leaves a session that never dims,
+# never locks and does not lock before suspending -- silently.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+
+# A restart while the outputs are powered off would otherwise strand a black
+# screen: the new swayidle starts un-idle and so never fires the resume that
+# turns them back on. Guarded on the current state, because a `swaymsg output`
+# is a full modeset and an ordinary start must issue none.
+ExecStartPre=/bin/sh -c "swaymsg -t get_outputs -r | grep -q 'power.: false' && swaymsg output '*' power on || true"
+
+# Every timeout lives here rather than in the shell. The quoting is
+# load-bearing twice over: systemd's double quotes make each command one
+# argument, and the single quotes inside survive into the /bin/sh swayidle runs
+# the command through, where a bare * would glob against the working directory.
+#
+# before-sleep is `lock` and not `systemctl start`, and that difference is the
+# whole point of the script: -w blocks until the command returns, and `lock`
+# does not return until the compositor confirms the lock surfaces are mapped.
+# `systemctl start` on a Type=simple unit returns as soon as the process forks,
+# which would release logind's sleep inhibitor over a half-mapped surface and
+# resume to an unlocked desktop.
+ExecStart=/usr/bin/swayidle -w \
+    idlehint 120 \
+    timeout 240 "quickshell ipc call idle dim" \
+    resume "quickshell ipc call idle undim" \
+    timeout 300 "loginctl lock-session" \
+    timeout 600 "swaymsg output '*' power off" \
+    resume "swaymsg output '*' power on" \
+    lock "systemctl --user start quickshell-lock.service" \
+    unlock "systemctl --user stop quickshell-lock.service" \
+    before-sleep "%h/.local/bin/lock"
+
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=graphical-session.target

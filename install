@@ -172,7 +172,7 @@ echo "export DOTFILES_DIR=$dir" > "$ZDOTDIR/dotfiles-dir.zsh"
 # still needs `systemctl --user daemon-reload`; this covers a fresh machine.
 if command -v systemctl > /dev/null && [ -d /run/systemd/system ]; then
   systemctl --user daemon-reload
-  systemctl --user enable quickshell.service wayland-pipewire-idle-inhibit.service \
+  systemctl --user enable quickshell.service swayidle.service wayland-pipewire-idle-inhibit.service \
     sway-outputs.service
   # Timers, not services: symlinking a .timer registers it but never arms it,
   # so without this a fresh machine links the backup units and silently never

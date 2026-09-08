@@ -2,16 +2,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import qs.config
-import qs.services
 import qs.widgets
 
 PanelWindow {
     id: bar
-
-    IdleInhibitor {
-        window: bar
-        enabled: InsomniaService.mode.inhibitIdle
-    }
 
     aboveWindows: true
     anchors.top: true
