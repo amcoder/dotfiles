@@ -533,19 +533,25 @@ cases (`noidle` and Insomnia's third mode now really do hold the dim and the
 lock off, which they never did before), sleep and lid, and the recovery cases —
 including editing QML while locked, which used to kill the lock client.
 
+**Finding 1 is fixed as a result.** `PowerService.qml` now asks logind at
+startup, with one `busctl` loop over `CanSuspend`, `CanHibernate` and
+`CanSuspendThenHibernate` — they are methods rather than properties, so
+`busctl get-property` cannot read them. Suspend dispatches
+`suspend-then-hibernate` where it is offered and plain `suspend` where it is
+not; Hibernate is dropped from the list rather than shown and refused. Probed
+rather than hardcoded because the two machines need not agree and the answer
+moves with Secure Boot. Verified three ways: as measured (Suspend alone, plain
+`systemctl suspend`), with hibernation forced available
+(`suspend-then-hibernate` plus a Hibernate row), and with nothing available
+(both gone).
+
 ### Still open
 
-1. **Finding 1 — the two dead power-menu actions.** `PowerService.qml` still
-   dispatches `systemctl suspend-then-hibernate` and `systemctl hibernate`, both
-   of which logind refuses here under Secure Boot's lockdown. Deliberately left
-   out of this change so it did not muddy the test. The fix should gate on
-   `CanSuspendThenHibernate`/`CanHibernate` at runtime rather than hardcode this
-   host's answer, since the laptop may differ.
-2. **Finding 7 — `SetLockedHint` is still never called**, so logind's
+1. **Finding 7 — `SetLockedHint` is still never called**, so logind's
    `LockedHint` reads `no` while the screen is locked. Harmless while nothing
    consumes it; it would quietly mislead anything added later that asks logind
    whether the session is locked.
-3. **A swayidle restart resets its timers**, and its `delay` sleep inhibitor is
+2. **A swayidle restart resets its timers**, and its `delay` sleep inhibitor is
    not held across the restart window. Inherent to the design; recorded so it is
    not rediscovered as a bug.
 
@@ -680,16 +686,18 @@ The design has **not** survived review intact. Beyond principle 3 above:
 Stages 1 and 2 are independent of each other; 3 depends on both; 4 and 5 are
 independent of all of it.
 
-## Action items
+## Action items — all settled
 
 Kept as a ledger; the reasoning is in "The design, as built" near the top.
 
 0. **Stop the lock client watching the shell's config tree** (finding 2b) —
    **done**, `QS_DISABLE_FILE_WATCHER=1` in `quickshell-lock.service`. A/B'd.
-1. **Fix the two dead power-menu actions** (finding 1) — **still open.**
-   `PowerService.qml` hardcodes `suspend-then-hibernate` and `hibernate`, which
-   logind refuses here. Gate on `CanSuspendThenHibernate`/`CanHibernate` at
-   runtime rather than on this host's answer, since the laptop may differ.
+1. **Fix the two dead power-menu actions** (finding 1) — **done**, but not as
+   proposed: rather than hardcoding this host's answer, `PowerService` probes
+   logind's `CanSuspend`/`CanHibernate`/`CanSuspendThenHibernate` at startup, so
+   the laptop can differ and the answer follows Secure Boot. Whether to *restore*
+   hibernation (disabling Secure Boot, or signing for it) is a separate question
+   and remains open.
 2. **Fix `loginctl unlock-session`** (finding 2) — **done, and not the way this
    item proposed.** Quickshell exposes no signal handling, so there is no way to
    trap SIGTERM in `lock.qml`. Instead the unit's `ExecStop` calls a new `lock
