@@ -180,7 +180,7 @@ if command -v systemctl > /dev/null && [ -d /run/systemd/system ]; then
   # machine that was down past a scheduled time starting them here would fire
   # a catch-up backup in the middle of the install.
   systemctl --user enable backup-daily.timer backup-weekly.timer \
-    backup-yearly.timer backup-audit.timer
+    backup-yearly.timer backup-audit.timer nvidia-driver-check.timer
 fi
 
 # sway `include`s this, and sway-outputs can only fill it in once sway is

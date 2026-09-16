@@ -1,0 +1,38 @@
+#!/bin/sh
+# Report, through the notification daemon, when NVIDIA's apt repo carries a
+# driver newer than any seen before, and when the pinned version has stopped
+# being what apt would install. Silent on a machine without the driver.
+#
+# The first run records the newest version on offer and says nothing, so
+# arming this on a machine already holding back a known-bad release does not
+# announce that release.
+
+set -eu
+
+pkg=nvidia-open
+state="${XDG_STATE_HOME:-$HOME/.local/state}/nvidia-driver-check"
+
+installed=$(dpkg-query -W -f='${Version}' "$pkg" 2>/dev/null) || exit 0
+[ -n "$installed" ] || exit 0
+
+newest=$(apt-cache madison "$pkg" | awk -F' \\| ' '{ print $2 }' | sort -V | tail -1)
+candidate=$(apt-cache policy "$pkg" | awk '/^  Candidate:/ { print $2 }')
+
+notify() {
+	notify-send --app-name="NVIDIA driver" --urgency=normal "$1" "$2"
+}
+
+mkdir -p "$state"
+if [ -r "$state/newest" ]; then
+	seen=$(cat "$state/newest")
+	if dpkg --compare-versions "$newest" gt "$seen"; then
+		notify "New NVIDIA driver: $newest" \
+			"Running $installed. Test a lock → power-off → wake cycle before trusting it."
+	fi
+fi
+echo "$newest" > "$state/newest"
+
+if [ "$candidate" != "$installed" ]; then
+	notify "NVIDIA driver pin no longer holds" \
+		"apt would install $candidate over $installed. Check /etc/apt/preferences.d/nvidia-driver."
+fi

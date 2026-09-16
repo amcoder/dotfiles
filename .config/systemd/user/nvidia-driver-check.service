@@ -1,0 +1,8 @@
+[Unit]
+Description=Check for a newer NVIDIA driver
+Documentation=file:/home/amcoder/.local/bin/nvidia-driver-check
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/amcoder/.local/bin/nvidia-driver-check

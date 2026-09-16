@@ -1,0 +1,10 @@
+[Unit]
+Description=Check for a newer NVIDIA driver
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target

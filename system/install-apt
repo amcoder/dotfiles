@@ -1,0 +1,24 @@
+#!/bin/sh
+# Install the apt preferences under system/apt into /etc/apt/preferences.d.
+#
+# Like the rest of system/, these are root-owned files that are *copied*
+# rather than linked, so re-run this after editing anything in system/apt.
+#
+# Run as: sudo ./system/install-apt
+
+set -eu
+
+root="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
+src="$root/system/apt"
+
+if [ "$(id -u)" -ne 0 ]; then
+	echo "install-apt: must be run as root (try: sudo $0)" >&2
+	exit 1
+fi
+
+for f in "$src"/*; do
+	install -m 0644 -o root -g root "$f" "/etc/apt/preferences.d/$(basename "$f")"
+done
+
+echo "nvidia-open:"
+apt-cache policy nvidia-open | sed -n '2,3p'

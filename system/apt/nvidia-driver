@@ -1,0 +1,8 @@
+# Hold the NVIDIA driver at 610.57.04: 615.71.09 hangs sway inside a modeset
+# on DPMS resume (see .claude/nvidia-gsp-hang.md in the dotfiles). Priority
+# 1001 keeps this version the candidate however many newer ones the repo
+# carries; nvidia-driver-check reports when one appears. `:any` covers the
+# i386 packages too -- a bare name matches the native architecture only.
+Package: /nvidia/:any libcuda1 libcudadebugger1 libnvcuvid1 libnvoptix1 libxnvctrl0
+Pin: version 610.57.04-1
+Pin-Priority: 1001
