@@ -36,3 +36,31 @@ been pushed is still fair game if it is a PR branch (force-push with
 `--force-with-lease`); `master`/`main` and any other shared branch are not —
 never rewrite those, and if a merge is the only way to bring one forward,
 merge.
+
+# Commit messages and PR descriptions
+
+Write them in Andy's voice: a short imperative subject, then at most a
+paragraph or two saying what the problem was and what the change does about
+it. Nothing about how the answer was reached.
+
+**Why:** Generated messages have run to five or six paragraphs recording every
+measurement, rejected theory and dead end from the session. That is the story
+of the work, not a description of the change, and it buries the one sentence a
+reader of `git log` wants.
+
+**How to apply:** Subject under about 70 characters, no trailing full stop, no
+prefix. Body only when the subject does not cover it: plain prose, problem
+then fix, plus anything non-obvious the diff cannot show in a line. Leave out
+the investigation, what was tried first, and what was measured along the way;
+if any of that is worth keeping it belongs in the repo's CLAUDE.md or the chat
+summary. A commit from Andy's own log for calibration:
+
+    Add a C# rule for XML documentation comments
+
+    Comments on classes, methods and properties in .cs files are /// XML doc
+    comments rather than // above the member. Scoped with paths: to **/*.cs
+    so it costs no context outside C# work.
+
+PR descriptions follow the same shape: what was wrong, what this does, and a
+line on how it was verified if that is not obvious. No section headings, no
+bullet lists of every file touched.
