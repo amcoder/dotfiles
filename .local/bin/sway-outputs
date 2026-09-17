@@ -278,6 +278,41 @@ cmd_mode() {
     print -r -- "$(mode_str $w $h $r)"
 }
 
+# Everything the ladder resolves for every active output, as one JSON array,
+# for the bar's display panel: the native mode, the default scale and the DPI,
+# plus the best mode at $1 (16:9 unless given) that fits inside the native one,
+# or null where the panel has none. An output that cannot be resolved -- no
+# EDID, no usable mode -- is simply absent.
+cmd_json() {
+    local want=${1:-16:9} outputs name identifier resolved mode scale dpi
+    local best nw nh w h r conventional
+    [[ $want == (#b)([0-9]##):([0-9]##) ]] || die "cannot parse aspect ratio \"$want\""
+    local aspect=$(( 1.0 * match[1] / match[2] ))
+    outputs=$(get_outputs) || exit 1
+
+    for name in ${(f)"$(active_names $outputs)"}; do
+        identifier=$(identifier_of $name $outputs)
+        resolved=$(resolve "$outputs" "$name" "$identifier" 2>/dev/null) || continue
+        read -r mode scale dpi <<< "$resolved"
+        nw=${mode%%x*} nh=${${mode#*x}%%@*}
+        conventional=""
+        best=$(best_mode "$outputs" "$name" "$aspect" "" $nw $nh)
+        if [[ -n $best ]]; then
+            read -r w h r <<< "$best"
+            conventional=$(mode_str $w $h $r)
+        fi
+        printf '%s\t%s\t%s\t%s\t%s\n' "$name" "$mode" "$scale" "$dpi" "$conventional"
+    done | jq -Rs '
+        split("\n") | map(select(length > 0) | split("\t") | {
+            name: .[0],
+            mode: .[1],
+            scale: (.[2] | tonumber),
+            dpi: (.[3] | tonumber),
+            conventional: (if .[4] == "" then null else .[4] end)
+        })
+    '
+}
+
 # Sway resets an output it has no config for to its EDID preferred mode and its
 # default scale on *every* apply -- `swaymsg reload` included (see
 # sway/config/output.c, queue_output_config). Applying over IPC therefore only
@@ -388,5 +423,6 @@ case ${1:-apply} in
     generate) generate "$(get_outputs || exit 1)" ;;
     mode)  cmd_mode ${2:-} ${3:-} ;;
     scale) resolve_field 2 ${2:-} ;;
-    *) die "usage: $self {apply|watch|show|generate|mode [output] [W:H]|scale [output]}" ;;
+    json)  cmd_json ${2:-} ;;
+    *) die "usage: $self {apply|watch|show|generate|mode [output] [W:H]|scale [output]|json [W:H]}" ;;
 esac

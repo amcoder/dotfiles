@@ -138,6 +138,10 @@ PanelWindow {
                 height: parent.height
             }
 
+            Display {
+                height: parent.height
+            }
+
             Volume {
                 height: parent.height
             }
