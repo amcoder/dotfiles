@@ -371,7 +371,9 @@ for_window {
     [app_id="org.gnome.tweaks"] floating enable
     [app_id="org.gnome.baobab"] floating enable
     [app_id="org.gnome.FileRoller"] floating enable
+    [app_id="org.gnome.Nautilus"] floating enable
     [app_id="org.gnome.NautilusPreviewer"] floating enable
+    [app_id="org.gnome.SystemMonitor"] floating enable
     [app_id="gnome-disks"] floating enable
     [app_id="software-properties-gtk"] floating enable
 
