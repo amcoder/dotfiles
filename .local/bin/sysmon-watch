@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+"""Report system resource use on stdout, one JSON object per second.
+
+Every sample carries CPU (total and per core, as 0..1 fractions of the
+interval), memory and swap, the load averages, uptime, and network throughput
+summed over every physical interface. The per-process list is only scanned
+while `detail on` has been read from stdin -- it is the one part that costs
+anything, and nothing needs it while the panel is closed.
+
+CPU figures are fractions of the interval's jiffies, so a process's `cpu` is
+its share of *all* cores and sums consistently with the total.
+"""
+
+import json
+import os
+import select
+import sys
+import time
+
+INTERVAL = 1.0
+TOP = 12
+PAGE = os.sysconf("SC_PAGE_SIZE")
+
+
+def read(path):
+    with open(path) as f:
+        return f.read()
+
+
+def cpu_times():
+    """[(busy, total)] with the whole machine first, then one per core."""
+    rows = []
+    for line in read("/proc/stat").splitlines():
+        if not line.startswith("cpu"):
+            break
+        fields = [int(x) for x in line.split()[1:]]
+        idle = fields[3] + fields[4]
+        total = sum(fields)
+        rows.append((total - idle, total))
+    return rows
+
+
+def meminfo():
+    info = {}
+    for line in read("/proc/meminfo").splitlines():
+        key, value = line.split(":", 1)
+        info[key] = int(value.split()[0]) * 1024
+    return info
+
+
+def net_bytes():
+    rx = tx = 0
+    for line in read("/proc/net/dev").splitlines()[2:]:
+        name, data = line.split(":", 1)
+        name = name.strip()
+        if name == "lo" or not os.path.exists(f"/sys/class/net/{name}/device"):
+            continue
+        fields = data.split()
+        rx += int(fields[0])
+        tx += int(fields[8])
+    return rx, tx
+
+
+def proc_times():
+    """{pid: (name, jiffies, rss_bytes)} for every process readable here."""
+    procs = {}
+    for entry in os.scandir("/proc"):
+        if not entry.name.isdigit():
+            continue
+        try:
+            stat = read(f"/proc/{entry.name}/stat")
+            with open(f"/proc/{entry.name}/statm") as f:
+                rss = int(f.read().split()[1]) * PAGE
+        except OSError:
+            continue
+        # Kernel threads have no resident memory and are not what anyone is
+        # looking for in a top list.
+        if rss == 0:
+            continue
+        # The command is in parentheses and may contain spaces or ')'.
+        close = stat.rindex(")")
+        name = stat[stat.index("(") + 1 : close]
+        fields = stat[close + 2 :].split()
+        # Fields 14 and 15 of stat, utime and stime; the split starts at 3.
+        jiffies = int(fields[11]) + int(fields[12])
+        procs[int(entry.name)] = (name, jiffies, rss)
+    return procs
+
+
+def top_processes(before, after, jiffies):
+    rows = []
+    for pid, (name, now, rss) in after.items():
+        then = before.get(pid)
+        cpu = 0.0
+        if then is not None and jiffies > 0 and then[0] == name:
+            cpu = (now - then[1]) / jiffies
+        rows.append({"pid": pid, "name": name, "cpu": round(cpu, 4), "mem": rss})
+
+    by_cpu = sorted(rows, key=lambda r: r["cpu"], reverse=True)[:TOP]
+    by_mem = sorted(rows, key=lambda r: r["mem"], reverse=True)[:TOP]
+    seen = set()
+    merged = []
+    for row in by_cpu + by_mem:
+        if row["pid"] not in seen:
+            seen.add(row["pid"])
+            merged.append(row)
+    return merged
+
+
+def main():
+    detail = False
+    last_cpu = cpu_times()
+    last_net = net_bytes()
+    last_procs = {}
+    last_time = time.monotonic()
+    next_tick = last_time + INTERVAL
+    stdin = sys.stdin if not sys.stdin.closed else None
+
+    while True:
+        # Sleep on stdin so a `detail` command lands without waiting a tick.
+        wait = max(0.0, next_tick - time.monotonic())
+        ready, _, _ = select.select([stdin] if stdin else [], [], [], wait)
+        if ready:
+            line = stdin.readline()
+            if line == "":
+                stdin = None
+            else:
+                detail = line.strip() == "detail on"
+                if not detail:
+                    last_procs = {}
+                continue
+
+        now = time.monotonic()
+        elapsed = max(now - last_time, 1e-3)
+        last_time = now
+        next_tick += INTERVAL
+        if next_tick < now:
+            next_tick = now + INTERVAL
+
+        cpu = cpu_times()
+        usage = []
+        for (busy, total), (busy0, total0) in zip(cpu, last_cpu):
+            span = total - total0
+            usage.append(round((busy - busy0) / span, 4) if span > 0 else 0.0)
+        machine_jiffies = cpu[0][1] - last_cpu[0][1]
+        last_cpu = cpu
+
+        mem = meminfo()
+        net = net_bytes()
+        rate = ((net[0] - last_net[0]) / elapsed, (net[1] - last_net[1]) / elapsed)
+        last_net = net
+
+        load = read("/proc/loadavg").split()[:3]
+        uptime = float(read("/proc/uptime").split()[0])
+
+        sample = {
+            "cpu": usage[0] if usage else 0.0,
+            "cores": usage[1:],
+            "mem": {
+                "total": mem.get("MemTotal", 0),
+                "used": mem.get("MemTotal", 0) - mem.get("MemAvailable", 0),
+                "cached": mem.get("Cached", 0) + mem.get("Buffers", 0),
+            },
+            "swap": {
+                "total": mem.get("SwapTotal", 0),
+                "used": mem.get("SwapTotal", 0) - mem.get("SwapFree", 0),
+            },
+            "load": [float(x) for x in load],
+            "uptime": uptime,
+            "net": {"rx": round(rate[0]), "tx": round(rate[1])},
+        }
+
+        # The first scan after `detail on` has nothing to difference against,
+        # so it only takes the baseline; a list of all-zero CPU would sort by
+        # pid and lead with kernel threads.
+        if detail:
+            procs = proc_times()
+            if last_procs:
+                sample["procs"] = top_processes(last_procs, procs, machine_jiffies)
+            last_procs = procs
+
+        try:
+            sys.stdout.write(json.dumps(sample, separators=(",", ":")) + "\n")
+            sys.stdout.flush()
+        except BrokenPipeError:
+            return
+
+
+if __name__ == "__main__":
+    main()

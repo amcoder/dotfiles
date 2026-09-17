@@ -134,6 +134,10 @@ PanelWindow {
                 height: parent.height
             }
 
+            SystemMonitor {
+                height: parent.height
+            }
+
             Volume {
                 height: parent.height
             }
