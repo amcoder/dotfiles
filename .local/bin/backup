@@ -20,8 +20,22 @@ timestamp=`date "+%Y-%m-%dT%H-%M-%S"`
 
 tempfile=$targetdir/$interval-tmp-$timestamp
 
+# Where backup-record reads the rsync summary from. The log carries only the
+# stats lines (an empty --log-file-format drops the per-file ones), so it stays
+# small however large the transfer; the per-file listing still goes to the
+# journal.
+statedir=${XDG_STATE_HOME:-/home/$user/.local/state}/backup
+mkdir -p $statedir
+rsynclog=$statedir/last.log
+rm -f $rsynclog
+
+# A stopped backup (systemctl stop, or the unit's timeout) takes its unfinished
+# snapshot with it rather than leaving a *-tmp-* directory on the NAS.
+trap 'ssh $backup_user@$backup_server "rm -rf $tempfile"; exit 143' TERM
+
 # Create new backup using rsync and output to log
 rsync -avzh --partial --delete --delete-excluded -e ssh \
+  --stats --log-file=$rsynclog --log-file-format='' \
   --exclude-from=/home/$user/.config/backup_exclude \
   --link-dest=$targetdir/latest \
   $sourcedir \

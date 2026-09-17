@@ -1,0 +1,237 @@
+#!/usr/bin/env python3
+"""Read the backup snapshots on the NAS for the backup browser, as JSON.
+
+    backup-browse snapshots
+    backup-browse list <snapshot> <relative path>
+    backup-browse restore <snapshot> <relative path> replace|keep
+
+The snapshots are the `daily.N` / `weekly.N` / `yearly.N` directories the
+backup script rotates, reached through the CIFS automount; a name is what the
+directory is called on the NAS, and a snapshot's time is its directory mtime,
+which the script touches when the rotation lands.
+
+`list` also says what changed in that snapshot relative to the next-older one.
+The backup links unchanged files against the previous snapshot with
+--link-dest, and rsync's rule for "unchanged" is size and mtime, so comparing
+those two fields against the previous snapshot's copy reproduces exactly what
+rsync decided. A directory carries the same comparison of its own listing --
+its mtime moves when an entry is added, removed or renamed, not when a file
+inside it is edited. Entries in the previous snapshot that this one lacks are
+reported as deleted, so a file that went missing can be found where it was.
+"""
+
+import json
+import os
+import re
+import shutil
+import socket
+import stat
+import subprocess
+import sys
+import time
+
+HOME = os.path.expanduser("~")
+ROOT = os.path.join(HOME, "beedle", "backup", socket.gethostname(), os.environ.get("USER") or os.path.basename(HOME))
+SNAPSHOT = re.compile(r"^(daily|weekly|yearly)\.(\d+)$")
+
+
+def fail(message):
+    print(json.dumps({"error": message}))
+    sys.exit(1)
+
+
+def snapshots():
+    """Every completed snapshot, newest first."""
+    try:
+        names = os.listdir(ROOT)
+    except OSError as e:
+        fail(f"{ROOT}: {e.strerror}")
+    found = []
+    for name in names:
+        m = SNAPSHOT.match(name)
+        if not m:
+            continue
+        try:
+            st = os.stat(os.path.join(ROOT, name))
+        except OSError:
+            continue
+        found.append({"name": name, "interval": m.group(1), "time": int(st.st_mtime), "mtime": st.st_mtime})
+    # By the full-resolution mtime: the daily and the weekly of the same night
+    # land within a minute of each other, and the order decides which one the
+    # other was linked against.
+    found.sort(key=lambda s: (-s["mtime"], s["name"]))
+    return found
+
+
+def previous_of(snapshot):
+    """The snapshot the backup would have linked this one against."""
+    older = [s for s in snapshots() if (s["mtime"], s["name"]) < (snapshot["mtime"], snapshot["name"]) and s["name"] != snapshot["name"]]
+    return older[0] if older else None
+
+
+def find_snapshot(name):
+    for s in snapshots():
+        if s["name"] == name:
+            return s
+    fail(f"no snapshot named {name}")
+
+
+def safe_relative(rel):
+    rel = rel.strip("/")
+    if rel and any(part in ("", ".", "..") for part in rel.split("/")):
+        fail("bad path")
+    return rel
+
+
+def kind_of(st):
+    if stat.S_ISDIR(st.st_mode):
+        return "dir"
+    if stat.S_ISLNK(st.st_mode):
+        return "link"
+    return "file"
+
+
+def scan(path):
+    entries = {}
+    try:
+        with os.scandir(path) as it:
+            for entry in it:
+                try:
+                    entries[entry.name] = entry.stat(follow_symlinks=False)
+                except OSError:
+                    continue
+    except FileNotFoundError:
+        return None
+    except OSError as e:
+        fail(f"{path}: {e.strerror}")
+    return entries
+
+
+def change_of(kind, st, old):
+    if old is None:
+        return "new"
+    if kind_of(old) != kind:
+        return "changed"
+    if kind == "dir":
+        return "changed" if int(old.st_mtime) != int(st.st_mtime) else "same"
+    if old.st_size != st.st_size or int(old.st_mtime) != int(st.st_mtime):
+        return "changed"
+    return "same"
+
+
+def listing(name, rel):
+    snapshot = find_snapshot(name)
+    rel = safe_relative(rel)
+    previous = previous_of(snapshot)
+    current = scan(os.path.join(ROOT, name, rel))
+    if current is None:
+        print(json.dumps({"error": f"{rel or '/'} is not in {name}", "missing": True}))
+        sys.exit(1)
+    old = scan(os.path.join(ROOT, previous["name"], rel)) if previous else {}
+    if old is None:
+        old = {}
+
+    # Whether each entry still exists at home decides what a restore asks.
+    home = os.path.join(HOME, rel)
+
+    entries = []
+    for entry_name, st in current.items():
+        kind = kind_of(st)
+        entries.append({
+            "name": entry_name,
+            "kind": kind,
+            "size": st.st_size if kind == "file" else None,
+            "mtime": int(st.st_mtime),
+            "change": change_of(kind, st, old.get(entry_name)) if previous else None,
+            "atHome": os.path.lexists(os.path.join(home, entry_name)),
+        })
+    for entry_name, st in old.items():
+        if entry_name in current:
+            continue
+        kind = kind_of(st)
+        entries.append({
+            "name": entry_name,
+            "kind": kind,
+            "size": st.st_size if kind == "file" else None,
+            "mtime": int(st.st_mtime),
+            "change": "deleted",
+            "atHome": os.path.lexists(os.path.join(home, entry_name)),
+        })
+    entries.sort(key=lambda e: (e["kind"] != "dir", e["name"].lower()))
+    return {
+        "snapshot": snapshot,
+        "previous": previous,
+        "path": rel,
+        "entries": entries,
+    }
+
+
+def unique_destination(directory, base, ext, label):
+    candidate = os.path.join(directory, f"{base} ({label}){ext}")
+    n = 2
+    while os.path.lexists(candidate):
+        candidate = os.path.join(directory, f"{base} ({label} {n}){ext}")
+        n += 1
+    return candidate
+
+
+def copy(src, dest):
+    if os.path.islink(src):
+        os.symlink(os.readlink(src), dest)
+    elif os.path.isdir(src):
+        shutil.copytree(src, dest, symlinks=True)
+    else:
+        shutil.copy2(src, dest)
+
+
+def restore(name, rel, mode):
+    snapshot = find_snapshot(name)
+    rel = safe_relative(rel)
+    if not rel:
+        fail("restore a file or a directory, not the whole snapshot")
+    src = os.path.join(ROOT, name, rel)
+    if not os.path.lexists(src):
+        fail(f"{rel} is not in {name}")
+    dest = os.path.join(HOME, rel)
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+
+    if mode == "keep" and os.path.lexists(dest):
+        directory, filename = os.path.split(dest)
+        base, ext = os.path.splitext(filename) if not os.path.isdir(src) else (filename, "")
+        label = "backup " + time.strftime("%Y-%m-%d", time.localtime(snapshot["time"]))
+        dest = unique_destination(directory, base, ext, label)
+    elif mode == "replace" and os.path.lexists(dest):
+        if os.path.isdir(dest) and not os.path.islink(dest) and os.path.isdir(src) and not os.path.islink(src):
+            # Directory over directory: make it identical to the snapshot.
+            result = subprocess.run(["rsync", "-a", "--delete", src + "/", dest + "/"], capture_output=True, text=True)
+            if result.returncode != 0:
+                fail(result.stderr.strip() or f"rsync exited {result.returncode}")
+            return {"ok": True, "dest": dest}
+        if os.path.isdir(dest) and not os.path.islink(dest):
+            shutil.rmtree(dest)
+        else:
+            os.remove(dest)
+    elif mode not in ("replace", "keep"):
+        fail("mode must be replace or keep")
+
+    try:
+        copy(src, dest)
+    except OSError as e:
+        fail(f"{dest}: {e.strerror}")
+    return {"ok": True, "dest": dest}
+
+
+def main():
+    args = sys.argv[1:]
+    if args[:1] == ["snapshots"] and len(args) == 1:
+        print(json.dumps({"root": ROOT, "snapshots": snapshots()}))
+    elif args[:1] == ["list"] and len(args) == 3:
+        print(json.dumps(listing(args[1], args[2])))
+    elif args[:1] == ["restore"] and len(args) == 4:
+        print(json.dumps(restore(args[1], args[2], args[3])))
+    else:
+        sys.exit(__doc__.strip().split("\n\n")[1])
+
+
+if __name__ == "__main__":
+    main()

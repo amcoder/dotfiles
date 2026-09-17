@@ -10,8 +10,16 @@ Type=oneshot
 # 1-254, so it must normalise to 1: an exit of 255 counts as a failure, and
 # 255 is exactly what ssh returns for a connection error.
 ExecCondition=/bin/sh -c 'nc -z -w 5 beedle 22 || exit 1'
+# The bar's backup indicator reads what these two record; ExecStopPost runs
+# on every outcome, a condition skip included, with the result in
+# $SERVICE_RESULT.
+ExecStartPre=/home/amcoder/.local/bin/backup-record start daily
 ExecStart=/home/amcoder/.local/bin/backup daily 30
+ExecStopPost=/home/amcoder/.local/bin/backup-record finish daily
 TimeoutStartSec=6h
+# 143 is the script's TERM trap, a stop from the bar's panel: not a failure
+# to notify about, and backup-record records it as stopped.
+SuccessExitStatus=143
 # rsync -v is a line per transferred file, which on a first run is enough to
 # trip journald's rate limit and drop the error this unit exists to report.
 LogRateLimitIntervalSec=0

@@ -1,0 +1,164 @@
+#!/usr/bin/env python3
+"""Record what the backup units are doing, for the bar's backup indicator.
+
+    backup-record start <interval>     from ExecStartPre
+    backup-record finish <interval>    from ExecStopPost
+
+Keeps $XDG_STATE_HOME/backup/status.json:
+
+    {
+      "state": "running" | "idle",
+      "current": {"interval", "started"},            while running
+      "last": {"interval", "started", "finished", "result", "exit",
+               "message", "stats"},                  the most recent run
+      "lastSuccess": {...}                           the most recent success
+    }
+
+ExecStopPost runs on every outcome, and systemd hands it the result in
+$SERVICE_RESULT ("success", "exit-code", "exec-condition", "timeout", ...), so
+`finish` is the one place a run's fate is decided; a stop lands as "stopped". The rsync figures come from
+the --log-file the backup script writes, which carries only the stats lines.
+"""
+
+import json
+import os
+import re
+import subprocess
+import sys
+import time
+
+STATE_DIR = os.path.join(
+    os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state"), "backup"
+)
+STATUS = os.path.join(STATE_DIR, "status.json")
+RSYNC_LOG = os.path.join(STATE_DIR, "last.log")
+
+# rsync -h suffixes, so "8.62G" reads back as bytes.
+UNITS = {"": 1, "K": 1024, "M": 1024**2, "G": 1024**3, "T": 1024**4}
+
+STAT_LINES = {
+    "files": r"Number of files: ([\d,]+)",
+    "transferred": r"Number of regular files transferred: ([\d,]+)",
+    "created": r"Number of created files: ([\d,]+)",
+    "deleted": r"Number of deleted files: ([\d,]+)",
+    "totalSize": r"Total file size: ([\d.,]+[KMGT]?) bytes",
+    "transferredSize": r"Total transferred file size: ([\d.,]+[KMGT]?) bytes",
+    "sent": r"Total bytes sent: ([\d.,]+[KMGT]?)",
+    "received": r"Total bytes received: ([\d.,]+[KMGT]?)",
+}
+
+
+def load():
+    try:
+        with open(STATUS) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return {"state": "idle"}
+
+
+def save(status):
+    os.makedirs(STATE_DIR, exist_ok=True)
+    tmp = STATUS + ".tmp"
+    with open(tmp, "w") as f:
+        json.dump(status, f, indent=2)
+        f.write("\n")
+    os.replace(tmp, STATUS)
+
+
+def number(text):
+    text = text.replace(",", "")
+    unit = text[-1] if text[-1] in "KMGT" else ""
+    value = float(text[:-1]) if unit else float(text)
+    return int(value * UNITS[unit])
+
+
+def stats():
+    try:
+        with open(RSYNC_LOG) as f:
+            log = f.read()
+    except OSError:
+        return None
+    found = {}
+    for key, pattern in STAT_LINES.items():
+        m = re.search(pattern, log)
+        if m:
+            found[key] = number(m.group(1))
+    return found or None
+
+
+def journal_errors():
+    """The lines from this invocation's journal that explain a failure."""
+    invocation = os.environ.get("INVOCATION_ID")
+    if not invocation:
+        return ""
+    try:
+        out = subprocess.run(
+            ["journalctl", "--user", "-o", "cat", "_SYSTEMD_INVOCATION_ID=" + invocation],
+            capture_output=True, text=True, timeout=10,
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    interesting = [
+        line for line in out.splitlines()
+        if re.search(r"rsync failed|rsync error|rsync:|^ssh:|Permission denied|No such file", line)
+    ]
+    return "\n".join(interesting[-5:])
+
+
+def message(result, exit_status):
+    if result == "success":
+        return ""
+    if result == "stopped":
+        return "Stopped before it finished"
+    if result == "exec-condition":
+        return "Skipped: beedle is not reachable"
+    if result == "timeout":
+        return "Timed out"
+    if result == "signal":
+        return "Stopped"
+    if result == "exit-code":
+        errors = journal_errors()
+        return errors or f"Exited with status {exit_status}"
+    return result
+
+
+def start(interval):
+    status = load()
+    status["state"] = "running"
+    status["current"] = {"interval": interval, "started": int(time.time())}
+    save(status)
+
+
+def finish(interval):
+    status = load()
+    result = os.environ.get("SERVICE_RESULT", "unknown")
+    exit_status = os.environ.get("EXIT_STATUS", "")
+    # 143 is the script's TERM trap: stopped, and the unit's SuccessExitStatus.
+    if result == "success" and exit_status == "143":
+        result = "stopped"
+    now = int(time.time())
+    current = status.pop("current", None) or {"interval": interval, "started": now}
+    run = {
+        "interval": interval,
+        "started": current.get("started", now),
+        "finished": now,
+        "result": result,
+        "exit": exit_status,
+        "message": message(result, exit_status),
+        "stats": stats() if result == "success" else None,
+    }
+    status["state"] = "idle"
+    status["last"] = run
+    if result == "success":
+        status["lastSuccess"] = run
+    save(status)
+
+
+def main():
+    if len(sys.argv) != 3 or sys.argv[1] not in ("start", "finish"):
+        sys.exit("usage: backup-record start|finish <interval>")
+    {"start": start, "finish": finish}[sys.argv[1]](sys.argv[2])
+
+
+if __name__ == "__main__":
+    main()

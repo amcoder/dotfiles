@@ -130,6 +130,10 @@ PanelWindow {
                 height: parent.height
             }
 
+            Backup {
+                height: parent.height
+            }
+
             Insomnia {
                 height: parent.height
             }

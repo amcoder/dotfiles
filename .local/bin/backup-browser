@@ -1,0 +1,17 @@
+#!/bin/sh
+# Open the backup browser, or bring the one already open to the front.
+#
+# The browser is its own quickshell instance over backups.qml, so a second
+# launch is asked over IPC first: `ipc call` exits 255 when no instance of
+# that config is running, and 0 -- printing "Target not found." -- when one is
+# but the handler is not registered, which cannot happen once the window
+# exists.
+set -eu
+
+config="${XDG_CONFIG_HOME:-$HOME/.config}/quickshell/backups.qml"
+
+if quickshell -p "$config" ipc call browser raise >/dev/null 2>&1; then
+    exit 0
+fi
+
+exec quickshell -p "$config"

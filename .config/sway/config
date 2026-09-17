@@ -389,6 +389,8 @@ for_window {
 
     [app_id="wdisplays"] floating enable
 
+    [app_id="org.quickshell" title="^Backups$"] floating enable
+
     [window_role="pop-up"] floating enable
     [window_role="bubble"] floating enable
     [window_role="dialog"] floating enable
