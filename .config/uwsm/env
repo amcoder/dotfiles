@@ -14,3 +14,7 @@ export XCURSOR_SIZE=24
 # it lives here. Inert on a machine with no nvidia modules loaded, so it is set
 # unconditionally rather than per-machine.
 export SWAY_UNSUPPORTED_GPU=true
+
+# wlroots' HDR, 10-bit output and colour profiles need the Vulkan renderer;
+# the default is GLES2. Gated to demise: untested on the laptop's Intel GPU.
+[ "$(uname -n)" = demise ] && export WLR_RENDERER=vulkan

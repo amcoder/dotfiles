@@ -1,0 +1,7 @@
+#!/bin/sh
+# Runs a command with every output in HDR mode and returns them to SDR when
+# it exits, however it exits. Steam launch options:
+#   hdr-run env PROTON_ENABLE_WAYLAND=1 PROTON_ENABLE_HDR=1 gamemoderun mangohud %command%
+swaymsg output '*' hdr on >/dev/null
+trap 'swaymsg output "*" hdr off >/dev/null' EXIT INT TERM
+"$@"
