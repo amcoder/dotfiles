@@ -49,9 +49,10 @@ exec_always sway-laptop-lid
 # sway-session.target, so there is nothing to start here and a reload does not
 # restart it. The shell only draws the dim, over `quickshell ipc call idle dim`.
 
-# Hide cursor after timeout, or when typing. Unclutter.
+# Hide cursor after a timeout. Not when typing: sway's typing hide clears the
+# pointer focus even while a button is held, so a locked-pointer game loses
+# mouse motion and the button release the moment a key is pressed.
 seat * hide_cursor 5000
-seat * hide_cursor when-typing enable
 
 # Set the cursor theme
 seat * xcursor_theme Breeze_Light 24
