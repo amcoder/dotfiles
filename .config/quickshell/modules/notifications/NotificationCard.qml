@@ -28,12 +28,26 @@ Rectangle {
         return root.live.hints.value === undefined ? -1 : Math.round(root.live.hints.value);
     }
 
+    // An image:// URL whose provider failed to load, so the app icon is drawn instead.
+    property string failedImage: ""
+
     readonly property string imageSource: {
-        if (root.values.image)
-            return root.values.image;
-        if (root.values.appIcon)
-            return `image://icon/${root.values.appIcon}`;
-        return "";
+        const image = root.values.image === root.failedImage ? "" : root.iconSource(root.values.image);
+        return image !== "" ? image : root.iconSource(root.values.appIcon);
+    }
+
+    // Resolves a themed icon name or a path through iconPath, which returns "" for a
+    // missing one where the image://icon/ provider draws a placeholder instead.
+    function iconSource(name: string): string {
+        if (!name)
+            return "";
+        if (name.startsWith("image://icon/"))
+            name = name.slice("image://icon/".length);
+        else if (name.startsWith("file://"))
+            name = name.slice("file://".length);
+        else if (name.startsWith("image://"))
+            return name;
+        return Quickshell.iconPath(name, true);
     }
 
     // Actions other than "default", which is what clicking the body invokes.
@@ -93,16 +107,21 @@ Rectangle {
         sourceSize.width: root.imageSize
         sourceSize.height: root.imageSize
         source: root.imageSource
+
+        onStatusChanged: {
+            if (status === Image.Error && String(source) === root.values.image)
+                root.failedImage = root.values.image;
+        }
     }
 
     Column {
         id: body
 
-        anchors.left: image.visible ? image.right : parent.left
+        anchors.left: image.right
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.margins: root.padding
-        anchors.leftMargin: image.visible ? 12 : root.padding
+        anchors.leftMargin: 12
         spacing: 4
 
         Item {
