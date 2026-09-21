@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/lib/claude-desktop/claude-desktop --password-store=gnome-libsecret "$@"
