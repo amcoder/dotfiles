@@ -5,9 +5,9 @@ import qs.widgets
 import qs.windows
 
 // The panel behind the bar's monitor icon: every output with its power, its
-// resolution and refresh, its scale, and -- on an ultrawide -- the swap
-// between its native shape and the conventional 16:9 mode inside it, which is
-// what sway-toggle-aspect does from the keyboard.
+// adaptive sync and HDR switches, its resolution and refresh, its scale, and
+// -- on an ultrawide -- the swap between its native shape and the conventional
+// 16:9 mode inside it, which is what sway-toggle-aspect does from the keyboard.
 //
 // Anything the panel changes holds until the next `swaymsg reload`, when sway
 // reasserts what sway-outputs generated; "reset" is the same value a reload
@@ -128,7 +128,7 @@ BarPopup {
         }
     }
 
-    component PowerSwitch: MouseArea {
+    component Toggle: MouseArea {
         id: toggle
 
         required property bool on
@@ -157,6 +157,36 @@ BarPopup {
                     duration: 100
                 }
             }
+        }
+    }
+
+    // A labelled switch for an on/off output property.
+    component SwitchRow: Item {
+        id: switchRow
+
+        required property string label
+        required property bool on
+
+        signal toggled(bool on)
+
+        width: parent.width
+        implicitHeight: 28
+
+        Text {
+            anchors.left: parent.left
+            anchors.verticalCenter: parent.verticalCenter
+            text: switchRow.label
+            color: Theme.popupText
+            font.family: Appearance.fontFamily
+            font.pixelSize: Appearance.smallFontSize
+        }
+
+        Toggle {
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            on: switchRow.on
+
+            onClicked: switchRow.toggled(!switchRow.on)
         }
     }
 
@@ -295,7 +325,7 @@ BarPopup {
                     onActivated: DisplayService.reset(section.output)
                 }
 
-                PowerSwitch {
+                Toggle {
                     id: power
 
                     anchors.right: parent.right
@@ -304,6 +334,28 @@ BarPopup {
                     enabled: !section.output.active || DisplayService.canDisable(section.output)
 
                     onClicked: DisplayService.setEnabled(section.output, !section.output.active)
+                }
+            }
+
+            Column {
+                width: parent.width
+                spacing: 4
+                visible: section.output.active && (section.output.adaptiveSyncCapable || section.output.hdrCapable)
+
+                SwitchRow {
+                    visible: section.output.adaptiveSyncCapable
+                    label: "Adaptive sync"
+                    on: section.output.adaptiveSync
+
+                    onToggled: on => DisplayService.setAdaptiveSync(section.output, on)
+                }
+
+                SwitchRow {
+                    visible: section.output.hdrCapable
+                    label: "HDR"
+                    on: section.output.hdr
+
+                    onToggled: on => DisplayService.setHdr(section.output, on)
                 }
             }
 

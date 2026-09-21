@@ -6,8 +6,8 @@ import Quickshell.Io
 import Quickshell.I3
 
 // Every output sway knows about and what can be done to it: mode, scale,
-// enable and disable, and for an ultrawide the swap between its native shape
-// and the best conventional mode that fits inside it.
+// enable and disable, adaptive sync and HDR, and for an ultrawide the swap
+// between its native shape and the best conventional mode that fits inside it.
 //
 // Two reads feed this. `get_outputs` is what sway reports -- the modes on
 // offer and the current state -- and `sway-outputs json` is what the ladder
@@ -104,6 +104,10 @@ Singleton {
             active: output.active === true,
             power: output.power === true,
             focused: output.focused === true,
+            adaptiveSync: output.adaptive_sync_status === "enabled",
+            adaptiveSyncCapable: output.features?.adaptive_sync === true,
+            hdr: output.hdr === true,
+            hdrCapable: output.features?.hdr === true,
             current: current,
             scale: scale,
             logicalWidth: current ? Math.round(current.width / scale) : 0,
@@ -155,6 +159,23 @@ Singleton {
             return;
 
         I3.dispatch(`output ${output.name} ${enabled ? "enable" : "disable"}`);
+    }
+
+    // Both are connector properties rather than modes, so neither commit is a
+    // modeset. A refused `hdr on` (a renderer without HDR support) produces no
+    // output event, and the switch, bound to the reported state, stays off.
+    function setAdaptiveSync(output: var, on: bool): void {
+        if (output.adaptiveSync === on)
+            return;
+
+        I3.dispatch(`output ${output.name} adaptive_sync ${on ? "on" : "off"}`);
+    }
+
+    function setHdr(output: var, on: bool): void {
+        if (output.hdr === on)
+            return;
+
+        I3.dispatch(`output ${output.name} hdr ${on ? "on" : "off"}`);
     }
 
     // Native shape to the conventional one and back; from any third mode, back
