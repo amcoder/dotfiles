@@ -391,6 +391,8 @@ for_window {
 
     [app_id="wdisplays"] floating enable
 
+    [class="^steam$"] floating enable
+
     [app_id="org.quickshell" title="^Backups$"] floating enable
 
     [window_role="pop-up"] floating enable
