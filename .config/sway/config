@@ -392,6 +392,7 @@ for_window {
     [app_id="wdisplays"] floating enable
 
     [class="^steam$"] floating enable
+    [app_id="org.prismlauncher.PrismLauncher"] floating enable
 
     [app_id="org.quickshell" title="^Backups$"] floating enable
 
