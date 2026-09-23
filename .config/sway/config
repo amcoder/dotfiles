@@ -393,6 +393,7 @@ for_window {
 
     [class="^steam$"] floating enable
     [app_id="org.prismlauncher.PrismLauncher"] floating enable
+    [app_id="org.remmina.Remmina"] floating enable
 
     [app_id="org.quickshell" title="^Backups$"] floating enable
 
