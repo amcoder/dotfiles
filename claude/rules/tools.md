@@ -17,10 +17,10 @@ installed.
 **How to apply:** a tool missing from `$PATH` is not evidence it is missing from
 the machine — look in the directories above before saying anything about it.
 `~/.profile` adds each of them with a `[ -d ]` guard and runs once at login, so
-a toolchain installed since then is absent from a running session's `PATH`
-until the next one; that is exactly why `/opt/mssql-tools18/bin` can be missing
-while `sqlcmd` is sitting in it. nvm itself is sourced only by interactive zsh,
-so a non-interactive shell needs `. "$NVM_DIR/nvm.sh"` before `nvm use`, or the
+a toolchain installed since then is absent from a running session's `PATH` until
+the next one; that is exactly why `/opt/mssql-tools18/bin` can be missing while
+`sqlcmd` is sitting in it. nvm itself is sourced only by interactive zsh, so a
+non-interactive shell needs `. "$NVM_DIR/nvm.sh"` before `nvm use`, or the
 version's `bin` directory named directly.
 
 If what you need genuinely is not on the machine, ask Andy to install it rather

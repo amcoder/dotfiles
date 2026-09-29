@@ -48,15 +48,13 @@ CanSuspendThenHibernate  na
 ```
 
 The cause is one level down. Secure Boot is enabled, which puts the kernel in
-`lockdown=integrity`, which disables hibernation:
-`/sys/power/disk` reads `[disabled]` and `/sys/power/state` offers only
-`freeze mem`.
+`lockdown=integrity`, which disables hibernation: `/sys/power/disk` reads
+`[disabled]` and `/sys/power/state` offers only `freeze mem`.
 
-It *looks* ready and is not: there is 31.8G of swap and
-`/etc/initramfs-tools/conf.d/resume` names it
-(`/dev/mapper/demise--vg-swap_1`), so every artefact of a hibernate-capable
-setup is present except the capability. Plain `systemctl suspend` would work and
-is not offered by the menu.
+It _looks_ ready and is not: there is 31.8G of swap and
+`/etc/initramfs-tools/conf.d/resume` names it (`/dev/mapper/demise--vg-swap_1`),
+so every artefact of a hibernate-capable setup is present except the capability.
+Plain `systemctl suspend` would work and is not offered by the menu.
 
 The logind properties were read directly; the **refusal is derived from them,
 not executed** — running the command to confirm would have suspended the machine
@@ -65,7 +63,7 @@ if the reading were wrong.
 ### 2. `loginctl unlock-session` abandons the lock instead of unlocking — BROKEN
 
 **Settled 2026-09-07.** An earlier version of this finding claimed that killing
-the lock client *unlocks* the session. That was **wrong**, twice over, and
+the lock client _unlocks_ the session. That was **wrong**, twice over, and
 CLAUDE.md's original claim was right. The real defect is the inverse.
 
 Sway logs its own lock state, which needs no rendering and is not a pixel, so it
@@ -84,8 +82,9 @@ session lock abandoned                  ← SIGTERM: the lock is KEPT
 Client 3 received `finished()` and not `locked()` — so the rule the original
 experiment leaned on ("a compositor still holding a lock must answer
 `finished()`") is true for a **live** lock, and the `locked()` that was observed
-came from the *abandoned* path, which sway deliberately replaces. `WAYLAND_DEBUG`
-also shows `unlock_and_destroy` is never sent under either signal.
+came from the _abandoned_ path, which sway deliberately replaces.
+`WAYLAND_DEBUG` also shows `unlock_and_destroy` is never sent under either
+signal.
 
 The protocol says the same, and the text is on disk in
 `wayland-protocols-*/protocols/staging/ext-session-lock/ext-session-lock-v1.xml`:
@@ -117,7 +116,7 @@ host's lock screen** once the host is locked.
 
 ### 2b. A QML edit while locked can kill the lock client — BROKEN
 
-*(Found last, by review; belongs here by severity rather than at the end.)*
+_(Found last, by review; belongs here by severity rather than at the end.)_
 
 `quickshell-lock.service` runs `quickshell -p ~/.config/quickshell/lock.qml`,
 which roots its config at the **same tree the shell watches**. So the lock
@@ -140,16 +139,16 @@ This host's own journal already contains it, 2026-09-05, on real hardware:
 
 **CLAUDE.md's justification for the separate lock process is therefore only half
 right.** It says isolating it means "every bar edit and
-`systemctl --user restart quickshell` is lock-safe". The *process* is isolated;
-the *config watcher* is not. Editing any QML while the screen is locked drops the
-lock client, leaving an abandoned lock — a screen with nothing to type into —
-for the `RestartSec=1` window plus quickshell's startup.
+`systemctl --user restart quickshell` is lock-safe". The _process_ is isolated;
+the _config watcher_ is not. Editing any QML while the screen is locked drops
+the lock client, leaving an abandoned lock — a screen with nothing to type into
+— for the `RestartSec=1` window plus quickshell's startup.
 
 Two consequences:
 
 - **`Restart=on-failure` is load-bearing in ordinary operation**, not merely for
-  crashes. An earlier version of finding 2 called it "not the safety net it reads
-  as"; the opposite is true, and this event is the proof.
+  crashes. An earlier version of finding 2 called it "not the safety net it
+  reads as"; the opposite is true, and this event is the proof.
 - The fix is to stop the lock client watching the shell's tree — give `lock.qml`
   its own config root, or disable hot-reload in that process — rather than to
   make the reload idempotent.
@@ -161,9 +160,9 @@ provides the natural experiment.
 ### 3. One Wayland inhibitor suspends the whole chain, with no ceiling — RISK
 
 Both `IdleMonitor`s set `respectInhibitors: true`, so while any application idle
-inhibitor sits on a **visible** window there is no dim and no lock — indefinitely,
-silently, nothing logged. Chrome PWAs leak these and the Claude desktop app holds
-one for the length of every turn.
+inhibitor sits on a **visible** window there is no dim and no lock —
+indefinitely, silently, nothing logged. Chrome PWAs leak these and the Claude
+desktop app holds one for the length of every turn.
 
 ~~The lock surface's own 60s blanking uses the same monitor, so locking by hand
 while an inhibitor is held leaves the lock screen lit at full brightness.~~
@@ -184,14 +183,14 @@ a nested sway with no other clients, probing with
 `swayidle -w timeout 3 <marker>`; the first and last rows are the controls that
 give the test power, and they come out mirror images.
 
-| Case | Inhibitor attached to | Idle notification |
-| --- | --- | --- |
-| A | nothing (control) | **fires** |
-| B | visible `xdg_toplevel` | inhibited |
-| C | quickshell layer surface (`PanelWindow` + `IdleInhibitor`) | **fires** — not inhibited |
-| D | `xdg_toplevel` on a hidden workspace | **fires** — not inhibited |
-| E | `wayland-pipewire-idle-inhibit`'s layer surface | inhibited |
-| E′ | same process, inhibitor released | **fires** |
+| Case | Inhibitor attached to                                      | Idle notification         |
+| ---- | ---------------------------------------------------------- | ------------------------- |
+| A    | nothing (control)                                          | **fires**                 |
+| B    | visible `xdg_toplevel`                                     | inhibited                 |
+| C    | quickshell layer surface (`PanelWindow` + `IdleInhibitor`) | **fires** — not inhibited |
+| D    | `xdg_toplevel` on a hidden workspace                       | **fires** — not inhibited |
+| E    | `wayland-pipewire-idle-inhibit`'s layer surface            | inhibited                 |
+| E′   | same process, inhibitor released                           | **fires**                 |
 
 Re-run 2026-09-07 in a **headless** nested sway, which renders independently of
 the host session and so removes the failure that invalidated the first re-run.
@@ -203,12 +202,12 @@ matching `destroy`, and both controls behave. Row C reproduced. Setting an
 explicit `screen`, anchoring all four edges and moving to the background layer
 changed nothing.
 
-**The mechanism is not established, and the obvious theories are all wrong.**
-A reviewer reading sway's `sway_idle_inhibit_v1_is_active` reports that a mapped
-layer surface should inhibit and a view-less surface should not — the opposite of
-both C and E. "It is about the surface role" does not survive either, because E
-turned out **not** to be a roleless surface: the trace shows
-`zwlr_layer_shell_v1.get_layer_surface(...)`. So E and C are *both* layer
+**The mechanism is not established, and the obvious theories are all wrong.** A
+reviewer reading sway's `sway_idle_inhibit_v1_is_active` reports that a mapped
+layer surface should inhibit and a view-less surface should not — the opposite
+of both C and E. "It is about the surface role" does not survive either, because
+E turned out **not** to be a roleless surface: the trace shows
+`zwlr_layer_shell_v1.get_layer_surface(...)`. So E and C are _both_ layer
 surfaces, and they behave differently. The one difference visible in the traces
 is that w-p-i-i never attaches a buffer (its surface is never mapped) while
 quickshell's is mapped and painted — which is backwards from the source. Treat
@@ -229,7 +228,7 @@ Two consequences that do **not** depend on the mechanism:
   the mechanism, since E is a layer surface too.
 
 This makes the "one protocol, two producers" option viable: `noidle` and
-Insomnia's third mode can hold a *Wayland* inhibitor through a small helper with
+Insomnia's third mode can hold a _Wayland_ inhibitor through a small helper with
 no visible window, after which a single mechanism governs the dim, the lock and
 any screen-off, all enforced compositor-side. `noidle` would keep its logind
 inhibitor for the `sleep` half, which still matters on the laptop.
@@ -246,15 +245,15 @@ It is started by `exec_always` in `.config/sway/config` — not a unit, no
 `Restart=`, nothing watching it. Three of the four ways this session locks run
 through it:
 
-| Trigger | Route | Via swayidle |
-| --- | --- | --- |
-| `$mod+Escape` | `loginctl lock-session` → logind `Lock` → swayidle → `lock` | yes |
-| Power menu → Lock | identical to the keybind | yes |
-| Idle at 300s | `IdleService` → `execDetached(["lock"])` | no |
-| Before sleep | logind `PrepareForSleep` → swayidle → `lock` | yes |
+| Trigger           | Route                                                       | Via swayidle |
+| ----------------- | ----------------------------------------------------------- | ------------ |
+| `$mod+Escape`     | `loginctl lock-session` → logind `Lock` → swayidle → `lock` | yes          |
+| Power menu → Lock | identical to the keybind                                    | yes          |
+| Idle at 300s      | `IdleService` → `execDetached(["lock"])`                    | no           |
+| Before sleep      | logind `PrepareForSleep` → swayidle → `lock`                | yes          |
 
-If it dies, all three **fail silently**: the keybind appears to do nothing, and a
-manual `systemctl suspend` would sleep an unlocked desktop. Only the 300s idle
+If it dies, all three **fail silently**: the keybind appears to do nothing, and
+a manual `systemctl suspend` would sleep an unlocked desktop. Only the 300s idle
 lock survives.
 
 All four converge on `.local/bin/lock`, which is idempotent, starts
@@ -265,15 +264,16 @@ suspending over a half-mapped surface.
 
 ### 5. The screen never powers off, for a reason belonging to another machine — RISK
 
-Both the idle dim and the lock blank are *paints*, never a modeset. The reason on
-record is `sway-lockup-investigation.md`, whose root cause is
+Both the idle dim and the lock blank are _paints_, never a modeset. The reason
+on record is `sway-lockup-investigation.md`, whose root cause is
 `Failed to disable CRTC` on **Intel Iris Xe** with connectors `eDP-1` and
 `HDMI-A-1` — that is the laptop.
 
-This host is an **RTX 4080 SUPER** driving a single DisplayPort output. The policy
-is shared through the dotfiles and has never been re-tested here, so the G9 is held
-at full display power around the clock on the strength of a different GPU's bug.
-Whether DPMS is safe here is **unknown** — worth an experiment, not a blind change.
+This host is an **RTX 4080 SUPER** driving a single DisplayPort output. The
+policy is shared through the dotfiles and has never been re-tested here, so the
+G9 is held at full display power around the clock on the strength of a different
+GPU's bug. Whether DPMS is safe here is **unknown** — worth an experiment, not a
+blind change.
 
 ### 6. logind's idle machinery is inert — NOTE
 
@@ -284,7 +284,7 @@ swayidle's `idlehint 120` sets a hint with no consumer.
 logind idle inhibitor "changes no behaviour on this machine at all". That is
 wrong. **swayidle itself honours them**: `strings /usr/bin/swayidle` carries
 `BlockInhibited`, `Logind idle inhibitor found` and
-`Not enabling timeouts: idle inhibitor found`, and upstream disables *all* its
+`Not enabling timeouts: idle inhibitor found`, and upstream disables _all_ its
 timeouts while logind reports idle blocked, re-enabling them on the
 `BlockInhibited` property change. So a logind idle inhibitor already suppresses
 `idlehint 120` today, and would suppress the dim, the lock and the screen-off
@@ -295,7 +295,7 @@ nothing, and that quickshell's `IdleMonitor`s do not see logind inhibitors. The
 live value is `BlockInhibited = ""` on this host, so the effect is latent rather
 than active.
 
-Note also that logind refuses a *delay*-mode idle inhibitor outright ("Delay
+Note also that logind refuses a _delay_-mode idle inhibitor outright ("Delay
 inhibitors only supported for shutdown and sleep"), so every idle row in
 `ListInhibitors` is a block.
 
@@ -310,19 +310,20 @@ session's idleness itself — it knows only what a session reports through
 else.
 
 **Would `IdleAction=lock` help?** Partly, and not the part that matters.
-Measured 2026-09-07 with `WAYLAND_DEBUG=1`: swayidle binds `ext_idle_notifier_v1`
-at **version 1** and calls `get_idle_notification` for both its timeouts,
-including the idlehint one. It never calls `get_input_idle_notification`, the
-inhibitor-ignoring variant, which requires version 2 — although sway advertises
-version 2. So **the idle hint is suppressed by Wayland idle inhibitors exactly
-like everything else**: a leaked Chrome inhibitor stops the hint being set,
-logind's countdown never starts, and `IdleAction=lock` cannot serve as the
-ceiling finding 3 wants. It does not help with finding 4 either, since both the
-hint and the action route through swayidle.
+Measured 2026-09-07 with `WAYLAND_DEBUG=1`: swayidle binds
+`ext_idle_notifier_v1` at **version 1** and calls `get_idle_notification` for
+both its timeouts, including the idlehint one. It never calls
+`get_input_idle_notification`, the inhibitor-ignoring variant, which requires
+version 2 — although sway advertises version 2. So **the idle hint is suppressed
+by Wayland idle inhibitors exactly like everything else**: a leaked Chrome
+inhibitor stops the hint being set, logind's countdown never starts, and
+`IdleAction=lock` cannot serve as the ceiling finding 3 wants. It does not help
+with finding 4 either, since both the hint and the action route through
+swayidle.
 
 What it does buy is one real redundancy — if quickshell dies or is restarted
 while the session is unattended, swayidle still sets the hint and logind still
-emits `Lock` → swayidle → `lock`, which starts a *separate* unit — plus the side
+emits `Lock` → swayidle → `lock`, which starts a _separate_ unit — plus the side
 effect of giving logind idle inhibitors their first consumer, so `noidle` and
 Insomnia's third mode would begin inhibiting something real. `IdleActionSec`
 should then stay far from IdleService's 300s so the two never race; the default
@@ -332,41 +333,41 @@ fires when the shell is not doing its job.
 ### 7. logind is never told the session is locked — NOTE
 
 Nothing calls `SetLockedHint` — not the lock client, not swayidle — so
-`LockedHint` reads `no` whether or not the screen is locked. Harmless today, since
-nothing consumes it; it would quietly mislead anything added later that asks
-logind whether the session is locked.
+`LockedHint` reads `no` whether or not the screen is locked. Harmless today,
+since nothing consumes it; it would quietly mislead anything added later that
+asks logind whether the session is locked.
 
 ## What unlocks the session
 
-| Route | Detail |
-| --- | --- |
+| Route    | Detail                                                                                                                                                                            |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Password | `PamContext(config: "swaylock")` → `/etc/pam.d/swaylock` → `common-auth` → `pam_unix`. On success the lock drops and the process quits 250ms later. Nothing else is in the stack. |
-| Signal | SIGTERM or SIGKILL to the lock client — finding 2. Also how `loginctl unlock-session` works, via swayidle's `unlock` hook. |
+| Signal   | SIGTERM or SIGKILL to the lock client — finding 2. Also how `loginctl unlock-session` works, via swayidle's `unlock` hook.                                                        |
 
 The keyring is not implicated either way: `pam_gnome_keyring` appears in
 `common-password` and `cinnamon-screensaver` but in neither greetd's nor
-swaylock's stack, and the Secret Service default collection reads
-`Locked=false` regardless.
+swaylock's stack, and the Secret Service default collection reads `Locked=false`
+regardless.
 
 ## What holds idle off
 
-| Kind | Reaches the dim and lock? |
-| --- | --- |
-| Application (Wayland) | **Yes**, but only while the window is visible. |
-| sway `inhibit_idle` | **Yes** — `$mod+Shift+i` marks a window `no idle`, with a visible border. |
-| wayland-pipewire-idle-inhibit | **Yes** — takes a Wayland inhibitor whenever audio plays. |
-| Insomnia, third mode | **Yes**, by a side door: `IdleService` reads `InsomniaService.mode.inhibitIdle` directly. Its own `IdleInhibitor` sits on the bar's layer surface, which sway ignores. |
-| logind (`systemd-inhibit`, `noidle`) | **Not** quickshell's `IdleMonitor`s — but **yes** to swayidle, which disables every timeout while `BlockInhibited` names idle. See finding 6. |
+| Kind                                 | Reaches the dim and lock?                                                                                                                                              |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Application (Wayland)                | **Yes**, but only while the window is visible.                                                                                                                         |
+| sway `inhibit_idle`                  | **Yes** — `$mod+Shift+i` marks a window `no idle`, with a visible border.                                                                                              |
+| wayland-pipewire-idle-inhibit        | **Yes** — takes a Wayland inhibitor whenever audio plays.                                                                                                              |
+| Insomnia, third mode                 | **Yes**, by a side door: `IdleService` reads `InsomniaService.mode.inhibitIdle` directly. Its own `IdleInhibitor` sits on the bar's layer surface, which sway ignores. |
+| logind (`systemd-inhibit`, `noidle`) | **Not** quickshell's `IdleMonitor`s — but **yes** to swayidle, which disables every timeout while `BlockInhibited` names idle. See finding 6.                          |
 
 ## What could not be measured
 
 **The 240s dim and 300s lock were not clocked.** Doing so needs the session
-genuinely idle, and the Claude desktop app holds a Wayland idle inhibitor for the
-whole length of every turn — so any idle probe run from an agent session is
-inhibited by the act of running it. A number from that test could not distinguish
-"the timeout is wrong" from "my own client blocked it", so the constants are
-reported as constants. Measuring them needs a detached probe (`systemd-run --user`)
-started and then left alone, or a hand test.
+genuinely idle, and the Claude desktop app holds a Wayland idle inhibitor for
+the whole length of every turn — so any idle probe run from an agent session is
+inhibited by the act of running it. A number from that test could not
+distinguish "the timeout is wrong" from "my own client blocked it", so the
+constants are reported as constants. Measuring them needs a detached probe
+(`systemd-run --user`) started and then left alone, or a hand test.
 
 **Finding 1's refusal is derived, not executed**, for the reason given there.
 
@@ -376,12 +377,12 @@ started and then left alone, or a hand test.
   commands through a `zsh -c '…'` whose command line contains the pattern being
   searched for, so `pgrep -f "quickshell -p …/lock.qml"` returns the shell's pid
   and `pkill -f "sleep 600"` kills the shell running the command. Both happened
-  here; the first produced a "kill: no such process" that briefly looked like the
-  lock client had died on its own. Match on the binary (`pgrep -x`) and
+  here; the first produced a "kill: no such process" that briefly looked like
+  the lock client had died on its own. Match on the binary (`pgrep -x`) and
   disambiguate with `/proc/<pid>/environ`.
-- **`swaymsg workspace "<name>"` collapses runs of spaces**, so restoring a saved
-  workspace name creates a *duplicate* workspace and leaves the original hidden
-  with its windows on it. Return by focusing a window that was there
+- **`swaymsg workspace "<name>"` collapses runs of spaces**, so restoring a
+  saved workspace name creates a _duplicate_ workspace and leaves the original
+  hidden with its windows on it. Return by focusing a window that was there
   (`swaymsg '[app_id="…"] focus'`) instead.
 - **Capture a nested compositor through its own display, not the host output.**
   `WAYLAND_DISPLAY=<nested> grim out.png` asks the nested compositor for its own
@@ -441,7 +442,7 @@ before-sleep ~/.local/bin/lock
 ### What the review objected to, and what became of it
 
 - **"A logind idle inhibitor silently suppresses everything."** True, and now
-  intended: swayidle disables *all* its timeouts while one is held, so `noidle`
+  intended: swayidle disables _all_ its timeouts while one is held, so `noidle`
   and Insomnia's third mode inhibit the dim, the lock and the screen-off for
   real, through the ordinary path. The objection was that the second channel was
   unmonitored; the bar's coffee cup, added 2026-09-07, is what answers it.
@@ -460,10 +461,10 @@ before-sleep ~/.local/bin/lock
   **by choice**: a 30-minute ceiling would lock during any film, since
   `wayland-pipewire-idle-inhibit` holds an inhibitor whenever audio plays. The
   coffee cup is the answer instead. Action item 5 is **withdrawn**.
-- **"The dim has no failure signal."** Still true — `quickshell ipc call idle
-  dim` exits 0 and prints `Target not found.` when the shell is down. The
-  consequence is now bounded: a dead shell costs the dim and nothing else,
-  because the lock does not go through the shell at all.
+- **"The dim has no failure signal."** Still true —
+  `quickshell ipc call idle dim` exits 0 and prints `Target not found.` when the
+  shell is down. The consequence is now bounded: a dead shell costs the dim and
+  nothing else, because the lock does not go through the shell at all.
 - **"before-sleep must stay `lock`."** Kept, and it is the one place the line
   departs from a plain `systemctl --user start`. `-w` blocks until the command
   returns; `.local/bin/lock` does not return until the compositor confirms the
@@ -482,19 +483,20 @@ before-sleep ~/.local/bin/lock
 ### Measured while building this (2026-09-08)
 
 - **`QS_DISABLE_FILE_WATCHER=1` disables quickshell's config watcher.** A/B on a
-  scratch config, editing the loaded file: the control logged `Reloading
-  configuration` once, the guarded run zero times. That is the whole fix for
-  finding 2b — one `Environment=` line in `quickshell-lock.service` — and it is
-  cheaper than the config-root split the finding proposed. There is no CLI flag;
-  the variable is the only lever.
+  scratch config, editing the loaded file: the control logged
+  `Reloading configuration` once, the guarded run zero times. That is the whole
+  fix for finding 2b — one `Environment=` line in `quickshell-lock.service` —
+  and it is cheaper than the config-root split the finding proposed. There is no
+  CLI flag; the variable is the only lever.
 - **systemd's quoting carries the commands through intact.** Probed with a
-  script that dumps its own argv from a real unit: `timeout 240 "quickshell ipc
-  call idle dim"` arrives as one argument and `%h` expands inside the quotes.
-  The single quotes in `"swaymsg output '*' power off"` are load-bearing —
-  systemd keeps inner quotes literally and swayidle runs the string through
-  `/bin/sh`, where a bare `*` globs against the working directory. Confirmed:
-  unquoted, `output * power off` expanded to the contents of `$HOME`.
-  `systemctl show` cannot check this, since it joins argv with spaces.
+  script that dumps its own argv from a real unit:
+  `timeout 240 "quickshell ipc call idle dim"` arrives as one argument and `%h`
+  expands inside the quotes. The single quotes in
+  `"swaymsg output '*' power off"` are load-bearing — systemd keeps inner quotes
+  literally and swayidle runs the string through `/bin/sh`, where a bare `*`
+  globs against the working directory. Confirmed: unquoted, `output * power off`
+  expanded to the contents of `$HOME`. `systemctl show` cannot check this, since
+  it joins argv with spaces.
 - **The dim paints and unpaints exactly.** `grim` luma over the whole screen:
   27.25 → **10.74** → 27.25 across dim/undim, i.e. 0.394 of baseline against the
   shade's 0.6 opacity. Both IPC edges work and undim restores the frame exactly.
@@ -550,10 +552,10 @@ moves with Secure Boot. Verified three ways: as measured (Suspend alone, plain
 path locked the session. `session/auto` resolves to the user's display session
 even from a user unit with no session and no `XDG_SESSION_ID`, measured against
 a login shell, and the write needs no polkit. Exercised by driving the two
-transitions: `false` → `true` on secure → `false` on unlock, with the
-mirror control that an unlock *without* a preceding lock leaves an externally
-set hint alone, which is what keeps demo mode from reporting an unlock that
-never happened.
+transitions: `false` → `true` on secure → `false` on unlock, with the mirror
+control that an unlock _without_ a preceding lock leaves an externally set hint
+alone, which is what keeps demo mode from reporting an unlock that never
+happened.
 
 **Hibernation will not be restored on this desktop** — decided 2026-09-08, so
 the Secure Boot question is closed rather than deferred. The runtime probe is
@@ -575,18 +577,18 @@ Three principles:
 
 1. **swayidle owns idle policy; quickshell only draws.** swayidle is the only
    thing here that can hear logind's `Lock`/`Unlock`/`PrepareForSleep` —
-   quickshell 0.3.0 has no logind client — so it is already load-bearing.
-   Moving the timeouts into it takes quickshell out of the decision to lock,
-   which is the security-relevant half. Reimplementing it in quickshell is not
-   worth it: the subtle part is `-w`'s blocking `before-sleep`, and the rest is
-   a few hundred lines that already exist and are packaged.
+   quickshell 0.3.0 has no logind client — so it is already load-bearing. Moving
+   the timeouts into it takes quickshell out of the decision to lock, which is
+   the security-relevant half. Reimplementing it in quickshell is not worth it:
+   the subtle part is `-w`'s blocking `before-sleep`, and the rest is a few
+   hundred lines that already exist and are packaged.
 2. **Every lock request funnels through `loginctl lock-session`** → logind
    `Lock` → swayidle's `lock 'lock'` hook. `$mod+Escape` and the power menu
    already do this; the idle timeout would join them. One path, and it keeps
    working if quickshell is restarted.
 3. ~~**Inhibition is Wayland-only**, enforced compositor-side.~~ **Falsified
-   2026-09-07** — see finding 6. swayidle disables *every* timeout while a logind
-   idle inhibitor is held, so moving the timeouts into it makes any
+   2026-09-07** — see finding 6. swayidle disables _every_ timeout while a
+   logind idle inhibitor is held, so moving the timeouts into it makes any
    `systemd-inhibit --what=idle` from anything silently suppress the dim, the
    lock and the screen-off, on a second unmonitored channel with nothing logged.
    That is finding 3's unbounded-inhibitor risk made strictly worse. Latent
@@ -636,20 +638,20 @@ removes from the lock path anyway. Action item 6 is withdrawn.
 
 The design has **not** survived review intact. Beyond principle 3 above:
 
-- **Step 2 (the windowless helper) is viable** — row E re-ran clean — but it must
-  copy `wayland-pipewire-idle-inhibit`'s recipe (an unmapped layer surface
+- **Step 2 (the windowless helper) is viable** — row E re-ran clean — but it
+  must copy `wayland-pipewire-idle-inhibit`'s recipe (an unmapped layer surface
   anchored to all edges on an explicit output), **not** quickshell's
-  `IdleInhibitor`, which is measured not to work. Since the mechanism behind that
-  difference is unexplained, the helper needs its own regression check.
+  `IdleInhibitor`, which is measured not to work. Since the mechanism behind
+  that difference is unexplained, the helper needs its own regression check.
 - **Redundancy goes down, not up.** Today two independent things can lock the
   session — quickshell's 300s monitor and swayidle's logind hooks. The design
-  collapses both into swayidle and offers `Restart=always` as the mitigation, but
-  supervision covers *exit*, not a swayidle wedged in a `-w` command, nor the
-  restart window during which its `delay` sleep inhibitor is not held
-  (`DelayInhibited = "sleep"` confirms it is held today), nor timers resetting on
-  restart. The objection raised against `IdleAction=lock` — "it only helps while
-  swayidle is alive" — then applies to the whole lock chain.
-- **Principle 1's premise is overstated.** Quickshell has no logind *binding*,
+  collapses both into swayidle and offers `Restart=always` as the mitigation,
+  but supervision covers _exit_, not a swayidle wedged in a `-w` command, nor
+  the restart window during which its `delay` sleep inhibitor is not held
+  (`DelayInhibited = "sleep"` confirms it is held today), nor timers resetting
+  on restart. The objection raised against `IdleAction=lock` — "it only helps
+  while swayidle is alive" — then applies to the whole lock chain.
+- **Principle 1's premise is overstated.** Quickshell has no logind _binding_,
   but this codebase already runs `nmcli monitor`, `swaymsg -t subscribe` and
   `camera-watch` as long-lived `Process`es for exactly this, and
   `InsomniaService` already holds a logind inhibitor through `systemd-inhibit`.
@@ -659,7 +661,7 @@ The design has **not** survived review intact. Beyond principle 3 above:
   timeouts in `IdleService` and change its lock call to
   `execDetached(["loginctl", "lock-session"])`. Same single funnel, both lock
   paths stay independent, the action-item-5 ceiling stays implementable
-  (`respectInhibitors: false` is available *only* to quickshell — swayidle binds
+  (`respectInhibitors: false` is available _only_ to quickshell — swayidle binds
   `ext_idle_notifier_v1` at version 1 and structurally cannot ignore
   inhibitors), and it needs no IPC handler, no helper and no swayidle unit.
 - **The ceiling and the design are in direct conflict** and the design does not
@@ -678,14 +680,14 @@ The design has **not** survived review intact. Beyond principle 3 above:
 
 ### Work in dependency order
 
-1. **Supervise swayidle** (`swayidle.service`, `PartOf=graphical-session.target`,
-   `Restart=always`), replacing the `exec_always killall swayidle` line. This
-   moves from an improvement to a **prerequisite**: today swayidle's death costs
-   three of four lock paths, and under this design it costs all of them plus the
-   dim and the screen-off.
-2. **A windowless Wayland idle-inhibit helper**, so `noidle` and Insomnia's third
-   mode inhibit the same way everything else does. `noidle` keeps its logind
-   inhibitor for the `sleep` half, which still matters on the laptop.
+1. **Supervise swayidle** (`swayidle.service`,
+   `PartOf=graphical-session.target`, `Restart=always`), replacing the
+   `exec_always killall swayidle` line. This moves from an improvement to a
+   **prerequisite**: today swayidle's death costs three of four lock paths, and
+   under this design it costs all of them plus the dim and the screen-off.
+2. **A windowless Wayland idle-inhibit helper**, so `noidle` and Insomnia's
+   third mode inhibit the same way everything else does. `noidle` keeps its
+   logind inhibitor for the `sleep` half, which still matters on the laptop.
    `IdleService`'s side-door read of `InsomniaService.mode.inhibitIdle` and
    `Bar.qml`'s dead `IdleInhibitor` both go.
 3. **Add the `idle` IPC handler to `IdleService`** and move the timeouts into
@@ -710,10 +712,10 @@ Kept as a ledger; the reasoning is in "The design, as built" near the top.
    considered and declined — it is not wanted here.
 2. **Fix `loginctl unlock-session`** (finding 2) — **done, and not the way this
    item proposed.** Quickshell exposes no signal handling, so there is no way to
-   trap SIGTERM in `lock.qml`. Instead the unit's `ExecStop` calls a new `lock
-   unlock` IPC handler, which drops `LockService.locked` so the client sends
-   `unlock_and_destroy` and exits before any signal is sent. The finding's claim
-   about SIGKILL was right and has not been touched.
+   trap SIGTERM in `lock.qml`. Instead the unit's `ExecStop` calls a new
+   `lock unlock` IPC handler, which drops `LockService.locked` so the client
+   sends `unlock_and_destroy` and exits before any signal is sent. The finding's
+   claim about SIGKILL was right and has not been touched.
 3. **Put swayidle under supervision** — **done**, `swayidle.service`,
    `Restart=always`, no start limit. It went from an improvement to a
    prerequisite when swayidle took over every timeout.

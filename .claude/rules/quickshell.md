@@ -13,12 +13,14 @@ part there before changing any mechanism described here.
 
 - Entry points: `shell.qml` (the shell), `lock.qml` (lock screen, its own
   process), `backups.qml` (backup browser, its own process), and `dev.qml` for
-  working on one surface (`quickshell -p ~/.dotfiles/.config/quickshell/dev.qml`).
-  Never instantiate the polkit agent, `SystemTray` or a notification server in
-  `dev.qml`: each claims a D-Bus name and fights the running shell.
-- `systemctl --user restart quickshell` restarts it, `journalctl --user -u
-  quickshell` is its log. QML edits hot-reload, but a **new** file (a singleton
-  especially) needs a restart or the shell dies with "X is not defined".
+  working on one surface
+  (`quickshell -p ~/.dotfiles/.config/quickshell/dev.qml`). Never instantiate
+  the polkit agent, `SystemTray` or a notification server in `dev.qml`: each
+  claims a D-Bus name and fights the running shell.
+- `systemctl --user restart quickshell` restarts it,
+  `journalctl --user -u quickshell` is its log. QML edits hot-reload, but a
+  **new** file (a singleton especially) needs a restart or the shell dies with
+  "X is not defined".
 - A new, renamed or moved file needs `./install`, and a dangling old link kills
   the shell at load: `find ~/.config/quickshell -xtype l` must print nothing.
 
@@ -40,50 +42,50 @@ part there before changing any mechanism described here.
   reference inside a short-circuited conditional does not count). Every such
   service here is warmed by a `visible:` or similar binding; keep it that way.
 - `DesktopEntries`, `Networking`, `Mpris.players` and Pipewire defaults are
-  empty or null at `Component.onCompleted` and fill in asynchronously. Read
-  them through bindings, never once.
+  empty or null at `Component.onCompleted` and fill in asynchronously. Read them
+  through bindings, never once.
 - `Quickshell.env()` returns `null` for an unset variable: test `!!env(…)`.
 - `StdioCollector.data` is bytes; the string is `.text`.
-- `children` is read-only on every QML object, and `native` is reserved even
-  as a local: neither can be a function or variable name.
-- A signal handler written at an instantiation site replaces the component's
-  own rather than running beside it.
-- A QML template literal eats backslashes and `${…}`: embedded shell or awk
-  must use neither (see `LauncherService`'s awk).
+- `children` is read-only on every QML object, and `native` is reserved even as
+  a local: neither can be a function or variable name.
+- A signal handler written at an instantiation site replaces the component's own
+  rather than running beside it.
+- A QML template literal eats backslashes and `${…}`: embedded shell or awk must
+  use neither (see `LauncherService`'s awk).
 - `image://icon/` draws a pink checkerboard for a missing name and reports
   `Ready`. Resolve icons through `Quickshell.iconPath(name, true)` (returns `""`
   when missing) or `iconPath(name, fallbackName)`.
 - `FileView`: `path: ""` is silent; a watch on a path that does not exist yet
   never fires when it appears (retry on a timer); the watch survives a rename;
   writing sysfs needs `atomicWrites: false`.
-- A clipboard write takes the Wayland selection only from inside an input
-  event handler.
-- `WheelHandler` does not fire where a `MouseArea` does; use a `MouseArea`
-  with `acceptedButtons: Qt.NoButton` so clicks still pass.
+- A clipboard write takes the Wayland selection only from inside an input event
+  handler.
+- `WheelHandler` does not fire where a `MouseArea` does; use a `MouseArea` with
+  `acceptedButtons: Qt.NoButton` so clicks still pass.
 
 ## IPC
 
 - Sway reaches the shell only through `quickshell ipc call <target> <fn>`.
-- Name functions `open`/`close`, never `show` (swallowed by the CLI's own `ipc
-  show`).
-- `ipc call` exits 0 when the call did not land, printing `Target not found.`
-  or `Function not found.` on stdout; 255 means no shell running. Check both.
+- Name functions `open`/`close`, never `show` (swallowed by the CLI's own
+  `ipc show`).
+- `ipc call` exits 0 when the call did not land, printing `Target not found.` or
+  `Function not found.` on stdout; 255 means no shell running. Check both.
 - It reinterprets JSON-looking arguments: pass structured data through a file.
 
 ## Windows and surfaces
 
 - Launch apps with `I3.dispatch("exec …")`, never a `Process`, which would die
-  with every shell restart. `exec` takes no `--`. The screen recorder is the
-  one deliberate exception.
+  with every shell restart. `exec` takes no `--`. The screen recorder is the one
+  deliberate exception.
 - **Never use `PopupWindow` for anything that takes keys**: it cannot hold
   keyboard focus. Panels are `windows/BarPopup`, a `ModalOverlay` with an
   `anchorItem`.
-- `WlrLayershell.keyboardFocus` applies only when the surface is created: hold
-  a constant `Exclusive` and toggle `visible`, as `ModalOverlay` does.
+- `WlrLayershell.keyboardFocus` applies only when the surface is created: hold a
+  constant `Exclusive` and toggle `visible`, as `ModalOverlay` does.
 - A `PanelWindow` is visible by default; a dropdown must say `visible: false`.
 - `BarPopup`: dismiss with `expanded = false`, never `visible = false`. A popup
-  opened both by click and by IPC assigns `expanded` from a `Connections`
-  rather than binding it. Keep `visible: expanded || cardHeight > 0`.
+  opened both by click and by IPC assigns `expanded` from a `Connections` rather
+  than binding it. Keep `visible: expanded || cardHeight > 0`.
 - A list must never reorder under the cursor: sort by name or label, never by
   state or signal strength, and give lists whose rows arrive late a fixed
   height.
@@ -114,48 +116,46 @@ part there before changing any mechanism described here.
 - **Wallpaper**: `WlrLayer.Bottom`, not `Background`. No `sourceSize` (center
   mode means no scaling). Crossfade only for changes nobody watched; preview
   swaps are instant. New wallpapers go through `themes/unmat-wallpaper`.
-- **Notifications** (replaced dunst, which is masked): `expireTimeout` is ms,
-  -1 means default. `notify-send -i` lands in `image`, not `appIcon`.
-  Replacing by id mutates the object in place with no new signal, so cards
-  read the live `entry.notification`. `trackedNotifications` lags the
-  `notification` signal; the service keeps its own arrays. The popup cap is in
-  the view. The popup stack is a focus-less `PanelWindow`, not a `BarPopup`.
-- **Launcher**: `DesktopEntry.command` is already the stripped argv;
-  `NoDisplay` is already filtered; `OnlyShowIn`/`NotShowIn` are not, so
-  `LauncherService` re-reads the desktop files. `FilterList`: `fields` fall off
-  multiplicatively, `weight` is added to the score, Home/End only via
-  `TextField.keyHandlers`.
-- **Window switcher**: the list is sway's tree from the service's own `swaymsg
-  subscribe`, MRU from the `focus` arrays; row 1 is preselected.
+- **Notifications** (replaced dunst, which is masked): `expireTimeout` is ms, -1
+  means default. `notify-send -i` lands in `image`, not `appIcon`. Replacing by
+  id mutates the object in place with no new signal, so cards read the live
+  `entry.notification`. `trackedNotifications` lags the `notification` signal;
+  the service keeps its own arrays. The popup cap is in the view. The popup
+  stack is a focus-less `PanelWindow`, not a `BarPopup`.
+- **Launcher**: `DesktopEntry.command` is already the stripped argv; `NoDisplay`
+  is already filtered; `OnlyShowIn`/`NotShowIn` are not, so `LauncherService`
+  re-reads the desktop files. `FilterList`: `fields` fall off multiplicatively,
+  `weight` is added to the score, Home/End only via `TextField.keyHandlers`.
+- **Window switcher**: the list is sway's tree from the service's own
+  `swaymsg subscribe`, MRU from the `focus` arrays; row 1 is preselected.
 - **Window cycler** ($mod+Tab): sway cannot see the Super release, so the
-  surface catches it inside a nearly empty `$cycle` mode, and the shell
-  returns to `mode default` on every exit path. The thumb button's binding is
-  scoped to the mouse and never switches modes. Thumbnails come from
+  surface catches it inside a nearly empty `$cycle` mode, and the shell returns
+  to `mode default` on every exit path. The thumb button's binding is scoped to
+  the mouse and never switches modes. Thumbnails come from
   `.local/bin/window-thumbs` (`grim -T`) at 1280px physical; both Images in a
-  cell share `sourceSize`; the capture batch must outlive the gesture. No
-  hover selection. Test with `quickshell ipc call windows next` and `wtype -P
-  Super_L -p Super_L`; with `wlrctl`, scroll 10 is one notch.
+  cell share `sourceSize`; the capture batch must outlive the gesture. No hover
+  selection. Test with `quickshell ipc call windows next` and
+  `wtype -P Super_L -p Super_L`; with `wlrctl`, scroll 10 is one notch.
 - **Power menu**: suspend and hibernate are gated on logind's `Can*`.
   `CountdownDialog` accepts at zero, focuses accept, and `Button` ignores key
   autorepeat.
 - **OSD, audio, brightness**: one OSD surface for all sources. Pipewire lists
   filter on node `type` (readable untracked) and then track; sort by label;
-  writing `preferredDefaultAudioSink` sets the default and the tick follows
-  the effective one. Brightness writes sysfs directly with `atomicWrites:
-  false` and `onSaveFailed: reload()`, floor one raw unit.
+  writing `preferredDefaultAudioSink` sets the default and the tick follows the
+  effective one. Brightness writes sysfs directly with `atomicWrites: false` and
+  `onSaveFailed: reload()`, floor one raw unit.
 - **Bluetooth**: Quickshell has no BlueZ agent, so no pairing or discovery in
   the panel; "advanced…" opens `blueman-manager`.
 - **Network**: nm-applet stays resident as NetworkManager's secret agent. The
   scanner runs only while the panel is open. VPNs come from `nmcli`; split its
   `-t` output from the right.
 - **Media**: `MprisService` rebuilds from an `Instantiator` over the
-  `Mpris.players` model (not `.values`), filters out non-media players, and
-  sets `activeName` on appearance as well as on play. `position` extrapolates
+  `Mpris.players` model (not `.values`), filters out non-media players, and sets
+  `activeName` on appearance as well as on play. `position` extrapolates
   locally.
 - **Calendar**: always six rows.
-- **Emoji**: copy and paste run straight from the activation handler; paste is
-  a sway `exec` after a 100ms sleep. Test pastes in a GUI field, not a
-  terminal.
+- **Emoji**: copy and paste run straight from the activation handler; paste is a
+  sway `exec` after a 100ms sleep. Test pastes in a GUI field, not a terminal.
 - **Polkit**: `PolkitDialog`, once, in `shell.qml`. Report failures from
   `authenticationFailed`.
 - **Lock**: `lock.qml` runs as `quickshell-lock.service` with

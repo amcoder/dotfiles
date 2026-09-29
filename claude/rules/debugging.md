@@ -24,16 +24,16 @@ not evidence, however carefully it was produced.
 
 **Why:** A whole-frame colour average "showed" a video was already BT.709, and
 that tag was shipped and described in the commit message as measured. It was
-noise: on dark desktop content BT.601 and BT.709 predict luma less than 3
-apart, so the average could not tell them apart at all. The test with power was
-the Y plane, which 4:2:0 does not subsample, on deliberately colourful content
-— and it said the opposite.
+noise: on dark desktop content BT.601 and BT.709 predict luma less than 3 apart,
+so the average could not tell them apart at all. The test with power was the Y
+plane, which 4:2:0 does not subsample, on deliberately colourful content — and
+it said the opposite.
 
-**How to apply:** Name the discriminating quantity and check it *before*
+**How to apply:** Name the discriminating quantity and check it _before_
 measuring — how far apart do the hypotheses predict the result, and is that
-above the noise floor? Prefer a control that should fail: an A/B whose two
-sides come out mirror images is trustworthy in a way a single number is not.
-Check the test artifact too, asserting it has the properties you intended
-before analysing it, since a broken harness reports plausible wrong numbers
-instead of failing — a stray shell quoting bug silently dropped a flag, and an
-off-by-one frame width turned a clean result into an apparent catastrophe.
+above the noise floor? Prefer a control that should fail: an A/B whose two sides
+come out mirror images is trustworthy in a way a single number is not. Check the
+test artifact too, asserting it has the properties you intended before analysing
+it, since a broken harness reports plausible wrong numbers instead of failing —
+a stray shell quoting bug silently dropped a flag, and an off-by-one frame width
+turned a clean result into an apparent catastrophe.

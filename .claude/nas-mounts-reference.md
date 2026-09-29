@@ -1,18 +1,82 @@
 # NAS mounts reference
 
-The full notes behind `rules/nas-mounts.md`: how each fact there was established, what was measured, and what was tried first. Moved verbatim from CLAUDE.md.
+The full notes behind `rules/nas-mounts.md`: how each fact there was
+established, what was measured, and what was tried first. Moved verbatim from
+CLAUDE.md.
 
-**NAS mounts** (`system/mounts/`, `system/install-mounts`): the two Synology shares — `//beedle/media` and `//beedle/backup` — are **CIFS automounts**, mounted on first access at `~/beedle/{media,backup}` and unmounted after 10 minutes idle. Like `system/greetd/` these are root-owned files in `/etc`, so they are **copied, not linked**: `sudo ./system/install-mounts` after any edit, or the change does nothing. That script also owns the non-file steps — creating `/etc/cifs/beedle.cred`, `daemon-reload`, and `enable --now` on the two `.automount` units.
+**NAS mounts** (`system/mounts/`, `system/install-mounts`): the two Synology
+shares — `//beedle/media` and `//beedle/backup` — are **CIFS automounts**,
+mounted on first access at `~/beedle/{media,backup}` and unmounted after 10
+minutes idle. Like `system/greetd/` these are root-owned files in `/etc`, so
+they are **copied, not linked**: `sudo ./system/install-mounts` after any edit,
+or the change does nothing. That script also owns the non-file steps — creating
+`/etc/cifs/beedle.cred`, `daemon-reload`, and `enable --now` on the two
+`.automount` units.
 
-They replaced unprivileged **sshfs** `.mount` units in `~/.config/systemd/user`, which were `WantedBy=default.target` and so tried to mount at user-manager start — before wifi associates and before 1Password's agent socket exists. A `.mount` unit that fails once is failed for the whole session with no retry, which is why every login ended with two failed units. **That is structural, not incidental: mounting a network filesystem at login is the bug.** An `.automount` unit nobody touches cannot fail, and one that is touched retries on the next access.
+They replaced unprivileged **sshfs** `.mount` units in `~/.config/systemd/user`,
+which were `WantedBy=default.target` and so tried to mount at user-manager start
+— before wifi associates and before 1Password's agent socket exists. A `.mount`
+unit that fails once is failed for the whole session with no retry, which is why
+every login ended with two failed units. **That is structural, not incidental:
+mounting a network filesystem at login is the bug.** An `.automount` unit nobody
+touches cannot fail, and one that is touched retries on the next access.
 
-Three things the units settle. A `.mount` unit's name must be the escaped form of its `Where=` or systemd refuses it at `daemon-reload` with a mismatch, so `install-mounts` checks that with `systemd-escape --path --suffix=` first, where the message can name the offending file. `x-systemd.idle-timeout` is an **fstab** option and is silently ignored in a native unit — the equivalent is `TimeoutIdleSec` in the `.automount`'s `[Automount]` section. And the mount points are deliberately not created by the installer: creating them under `sudo` leaves them root-owned, and autofs will not adopt a directory the accessing user cannot traverse.
+Three things the units settle. A `.mount` unit's name must be the escaped form
+of its `Where=` or systemd refuses it at `daemon-reload` with a mismatch, so
+`install-mounts` checks that with `systemd-escape --path --suffix=` first, where
+the message can name the offending file. `x-systemd.idle-timeout` is an
+**fstab** option and is silently ignored in a native unit — the equivalent is
+`TimeoutIdleSec` in the `.automount`'s `[Automount]` section. And the mount
+points are deliberately not created by the installer: creating them under `sudo`
+leaves them root-owned, and autofs will not adopt a directory the accessing user
+cannot traverse.
 
-CIFS rather than NFS or sshfs, for a laptop that sleeps and roams: `uid=1000,gid=1000` maps ownership client-side, so the NAS's `uid 1026` never has to line up with the local one; `soft` is mount.cifs's default, so a mount attempt against an absent NAS fails instead of hanging; and it reconnects across suspend where NFS wedges. The cost is a password on disk — `/etc/cifs/beedle.cred`, 0600 under `/etc/cifs` 0700, **never in the repo**, written as a `CHANGEME` template on first install so a missing credential fails with an auth error rather than a missing-file one. `actimeo=30` is what makes browsing a large library bearable; `mfsymlinks` is for the backup share, whose rsync `--link-dest` tree carries a `latest` symlink.
+CIFS rather than NFS or sshfs, for a laptop that sleeps and roams:
+`uid=1000,gid=1000` maps ownership client-side, so the NAS's `uid 1026` never
+has to line up with the local one; `soft` is mount.cifs's default, so a mount
+attempt against an absent NAS fails instead of hanging; and it reconnects across
+suspend where NFS wedges. The cost is a password on disk —
+`/etc/cifs/beedle.cred`, 0600 under `/etc/cifs` 0700, **never in the repo**,
+written as a `CHANGEME` template on first install so a missing credential fails
+with an auth error rather than a missing-file one. `actimeo=30` is what makes
+browsing a large library bearable; `mfsymlinks` is for the backup share, whose
+rsync `--link-dest` tree carries a `latest` symlink.
 
-The one thing to know about putting an automount inside `$HOME`: autofs triggers on **stat of the mount point**, not just on entry, so `ls -l ~` pokes the NAS, and an `rg`/`fd` rooted at `$HOME` will descend into the whole media library. That was equally true of the sshfs mounts it replaces, and the idle timeout bounds it. Mounting at `/mnt/beedle/*` with symlinks from `~/beedle/*` is the way out if it ever bites — stat'ing a symlink does not trigger.
+The one thing to know about putting an automount inside `$HOME`: autofs triggers
+on **stat of the mount point**, not just on entry, so `ls -l ~` pokes the NAS,
+and an `rg`/`fd` rooted at `$HOME` will descend into the whole media library.
+That was equally true of the sshfs mounts it replaces, and the idle timeout
+bounds it. Mounting at `/mnt/beedle/*` with symlinks from `~/beedle/*` is the
+way out if it ever bites — stat'ing a symlink does not trigger.
 
-**Diagnosing this class of failure: the reset happens before the SSH banner.** sshfs reports a failure to reach the NAS as `read: Connection reset by peer`, which reads like an authentication problem and is not one. The discriminator is a raw socket that connects and *sends nothing*: if the server closes with zero bytes before the client has spoken, nothing about keys, agents or usernames is involved. Measured that way, this laptop got a bare FIN while `hestu` on the same LAN got a banner and a completed pubkey login **using this laptop's own agent over `ProxyJump`** — so same client, same key, same instant, differing only in source IP. The cause was DSM's **Auto Block** list (Control Panel → Security → Protection), and its signature is exactly this: DSM 7's sshd checks the block DB right after `accept()` and closes without a banner, while the web UI on 5001 keeps serving pages, because auto-block gates *logins* and not page fetches. So "SSH is refused but DSM answers" is evidence *for* an auto-block, not against it. `/etc/hosts.{allow,deny}` stay stock and empty — the list is in the root-only `/etc/synoautoblock.db`, whose mtime is readable and did fall inside the failure window.
+**Diagnosing this class of failure: the reset happens before the SSH banner.**
+sshfs reports a failure to reach the NAS as `read: Connection reset by peer`,
+which reads like an authentication problem and is not one. The discriminator is
+a raw socket that connects and _sends nothing_: if the server closes with zero
+bytes before the client has spoken, nothing about keys, agents or usernames is
+involved. Measured that way, this laptop got a bare FIN while `hestu` on the
+same LAN got a banner and a completed pubkey login **using this laptop's own
+agent over `ProxyJump`** — so same client, same key, same instant, differing
+only in source IP. The cause was DSM's **Auto Block** list (Control Panel →
+Security → Protection), and its signature is exactly this: DSM 7's sshd checks
+the block DB right after `accept()` and closes without a banner, while the web
+UI on 5001 keeps serving pages, because auto-block gates _logins_ and not page
+fetches. So "SSH is refused but DSM answers" is evidence _for_ an auto-block,
+not against it. `/etc/hosts.{allow,deny}` stay stock and empty — the list is in
+the root-only `/etc/synoautoblock.db`, whose mtime is readable and did fall
+inside the failure window.
 
-**What earns the block is `Host *  IdentityAgent`.** With every key in the 1Password agent and no `IdentitiesOnly`, ssh offers all of them to every host, and each offer is a *failed login* the NAS counts. `beedle-back` was the worst case: six agent keys ahead of its own `IdentityFile`, against sshd's default `MaxAuthTries` of 6, which never reaches the right key and reports `Too many authentication failures`. `~/.ssh/config` (untracked — `.ssh` is not one of the four mirrored roots) now pins `IdentitiesOnly yes` plus a single `IdentityFile` per NAS host; pointing it at a **`.pub`** file selects one identity out of the agent without putting a private key on disk. Verified by counting `Offering public key` lines: three before, one after. Note that under `-J`/`ProxyJump` the jump host's own offers interleave into the same `-v` stream, so count with the proxy quieted (`-o 'ProxyCommand=ssh -q -W %h:%p <jump>'`) or the fix looks like it did nothing.
-
+**What earns the block is `Host *  IdentityAgent`.** With every key in the
+1Password agent and no `IdentitiesOnly`, ssh offers all of them to every host,
+and each offer is a _failed login_ the NAS counts. `beedle-back` was the worst
+case: six agent keys ahead of its own `IdentityFile`, against sshd's default
+`MaxAuthTries` of 6, which never reaches the right key and reports
+`Too many authentication failures`. `~/.ssh/config` (untracked — `.ssh` is not
+one of the four mirrored roots) now pins `IdentitiesOnly yes` plus a single
+`IdentityFile` per NAS host; pointing it at a **`.pub`** file selects one
+identity out of the agent without putting a private key on disk. Verified by
+counting `Offering public key` lines: three before, one after. Note that under
+`-J`/`ProxyJump` the jump host's own offers interleave into the same `-v`
+stream, so count with the proxy quieted
+(`-o 'ProxyCommand=ssh -q -W %h:%p <jump>'`) or the fix looks like it did
+nothing.

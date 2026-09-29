@@ -1,24 +1,101 @@
 # Autostart reference
 
-The full notes behind `rules/autostart.md`: how each fact there was established, what was measured, and what was tried first. Moved verbatim from CLAUDE.md.
+The full notes behind `rules/autostart.md`: how each fact there was established,
+what was measured, and what was tried first. Moved verbatim from CLAUDE.md.
 
-**Autostart** (`.config/autostart/`): apps are started by **XDG autostart**, not by a sway `exec` block. uwsm runs it through `wayland-session-xdg-autostart@sway.desktop.target`, and the `sway-run` launcher it replaced never did — so on the first uwsm login a pile of entries under `/etc/xdg/autostart` and `~/.config/autostart` fired for the very first time, several of them into things the bar had already replaced. That is the trap to remember here: **an autostart entry that has "always been fine" may simply never have run.**
+**Autostart** (`.config/autostart/`): apps are started by **XDG autostart**, not
+by a sway `exec` block. uwsm runs it through
+`wayland-session-xdg-autostart@sway.desktop.target`, and the `sway-run` launcher
+it replaced never did — so on the first uwsm login a pile of entries under
+`/etc/xdg/autostart` and `~/.config/autostart` fired for the very first time,
+several of them into things the bar had already replaced. That is the trap to
+remember here: **an autostart entry that has "always been fine" may simply never
+have run.**
 
-Anything the compositor does not itself need goes here rather than in `sway/config`, so systemd owns the lifecycle — a unit, its own log, a cgroup, and teardown with `graphical-session.target` instead of an orphaned child of the compositor. `sway/config` keeps only what is genuinely sway's: `sway-laptop-lid` and the one quoted `exec` that starts `sway-session.target`. swayidle moved out of it into a unit for the reason everything else did — it is now the single point of failure for every lock path, and an `exec_always` has no supervision at all.
+Anything the compositor does not itself need goes here rather than in
+`sway/config`, so systemd owns the lifecycle — a unit, its own log, a cgroup,
+and teardown with `graphical-session.target` instead of an orphaned child of the
+compositor. `sway/config` keeps only what is genuinely sway's: `sway-laptop-lid`
+and the one quoted `exec` that starts `sway-session.target`. swayidle moved out
+of it into a unit for the reason everything else did — it is now the single
+point of failure for every lock path, and an `exec_always` has no supervision at
+all.
 
-Three mechanisms, in order of preference. A **system entry that already exists** needs nothing — `nm-applet` is started by `/etc/xdg/autostart/nm-applet.desktop` (whose `NotShowIn=KDE;GNOME;` does not exclude `sway:wlroots`), so its sway `exec` line was pure duplication. A **new tracked entry** in `.config/autostart/` covers what ships none: `kdeconnect-indicator.desktop` (there is a system entry for the kdeconnect *daemon*, but not for the indicator) and `calibre.desktop`. And a **`Hidden=true` shadow** suppresses a system entry — a user file of the same name overrides it, `Hidden=true` means "treat as deleted", and the generator then writes no unit at all (confirmed: it reports `not-found`). `blueman.desktop` is the one such shadow, and the reason it is a shadow rather than an `apt remove` is that blueman-applet is the BlueZ pairing agent Quickshell does not provide.
+Three mechanisms, in order of preference. A **system entry that already exists**
+needs nothing — `nm-applet` is started by `/etc/xdg/autostart/nm-applet.desktop`
+(whose `NotShowIn=KDE;GNOME;` does not exclude `sway:wlroots`), so its sway
+`exec` line was pure duplication. A **new tracked entry** in
+`.config/autostart/` covers what ships none: `kdeconnect-indicator.desktop`
+(there is a system entry for the kdeconnect _daemon_, but not for the indicator)
+and `calibre.desktop`. And a **`Hidden=true` shadow** suppresses a system entry
+— a user file of the same name overrides it, `Hidden=true` means "treat as
+deleted", and the generator then writes no unit at all (confirmed: it reports
+`not-found`). `blueman.desktop` is the one such shadow, and the reason it is a
+shadow rather than an `apt remove` is that blueman-applet is the BlueZ pairing
+agent Quickshell does not provide.
 
-Two things measured rather than assumed. **A duplicate start is silent, not an error**: while both paths were live, `app-1password@autostart.service` ran, found sway's instance, logged `1Password is already running, closing`, and exited `Result=success` — 517ms of CPU and an 88MB peak with nothing to show for it, and a unit sitting `inactive` that looks like it never ran. And **ordering does not matter for tray apps**, unlike `poweralertd`: an SNI item owns its own bus name and the watcher picks it up whenever it appears, so an applet starting before quickshell is fine.
+Two things measured rather than assumed. **A duplicate start is silent, not an
+error**: while both paths were live, `app-1password@autostart.service` ran,
+found sway's instance, logged `1Password is already running, closing`, and
+exited `Result=success` — 517ms of CPU and an 88MB peak with nothing to show for
+it, and a unit sitting `inactive` that looks like it never ran. And **ordering
+does not matter for tray apps**, unlike `poweralertd`: an SNI item owns its own
+bus name and the watcher picks it up whenever it appears, so an applet starting
+before quickshell is fine.
 
-`poweralertd.service.d/ignore-startup-events.conf` is the counter-example, and the one unit here whose startup ordering mattered at all. poweralertd sends a state-update notification the instant it starts and exits 1 if the call fails, so under uwsm it and quickshell race off `graphical-session.target` — measured at one login: poweralertd started at `22:13:09.009`, failed three times in 0.67s, and hit the stock 5-in-10s `StartLimitBurst` at `22:13:09.676`, while quickshell only started at `22:13:11.182`.
+`poweralertd.service.d/ignore-startup-events.conf` is the counter-example, and
+the one unit here whose startup ordering mattered at all. poweralertd sends a
+state-update notification the instant it starts and exits 1 if the call fails,
+so under uwsm it and quickshell race off `graphical-session.target` — measured
+at one login: poweralertd started at `22:13:09.009`, failed three times in
+0.67s, and hit the stock 5-in-10s `StartLimitBurst` at `22:13:09.676`, while
+quickshell only started at `22:13:11.182`.
 
-The fix is **`poweralertd -s`**, which ignores the events at startup, so there is no notification to fail and the daemon need not exist yet. Measured with quickshell stopped: bare `poweralertd` exits 1 immediately, `poweralertd -s` runs indefinitely. Later events still notify. The lesson generalises past this unit — **read the daemon's own options before reaching for unit ordering**, because three ordering fixes were tried first, each looking right and each worse than the last:
+The fix is **`poweralertd -s`**, which ignores the events at startup, so there
+is no notification to fail and the daemon need not exist yet. Measured with
+quickshell stopped: bare `poweralertd` exits 1 immediately, `poweralertd -s`
+runs indefinitely. Later events still notify. The lesson generalises past this
+unit — **read the daemon's own options before reaching for unit ordering**,
+because three ordering fixes were tried first, each looking right and each worse
+than the last:
 
-1. **`After=quickshell.service` deadlocks at parse time.** poweralertd carries `Requires=graphical-session.target` and quickshell is ordered `After=` that same target, so the edge closes a cycle; systemd breaks a cycle by deleting a job, and it picked poweralertd's own `start`. The unit then never ran, never failed, and never appeared in `--state=failed` — worse than the race, since the boot looks clean and the battery alerts are simply gone.
-2. **A retry budget alone does not work at any size.** `RestartSec` is *not honoured while the session is coming up*, where systemd logs `Scheduled restart job immediately on client request` and restarts with no delay, so 20 attempts burned in 0.35s against a quickshell that started 0.9s later. It is invisible from a hand-started unit, where `RestartSec` applies normally — so verify a startup race across a real reboot, never by starting the unit by hand.
-3. **`gdbus wait` as an `ExecStartPre` deadlocks the whole session**, and is much the worst of the three. `ExecStartPre` blocks the start *job*; `graphical-session.target` is ordered after poweralertd and quickshell is ordered after that target, so poweralertd waited 30s for a quickshell that could not start until poweralertd finished, timed out, restarted immediately, and waited again — ten minutes with no bar, no wallpaper and no notification daemon. Recovery is `systemctl --user stop poweralertd.service`, which releases the target at once. The same wait moved *inside* `ExecStart` is safe, because a `Type=simple` unit is active as soon as it forks — but with `-s` none of it is needed.
+1. **`After=quickshell.service` deadlocks at parse time.** poweralertd carries
+   `Requires=graphical-session.target` and quickshell is ordered `After=` that
+   same target, so the edge closes a cycle; systemd breaks a cycle by deleting a
+   job, and it picked poweralertd's own `start`. The unit then never ran, never
+   failed, and never appeared in `--state=failed` — worse than the race, since
+   the boot looks clean and the battery alerts are simply gone.
+2. **A retry budget alone does not work at any size.** `RestartSec` is _not
+   honoured while the session is coming up_, where systemd logs
+   `Scheduled restart job immediately on client request` and restarts with no
+   delay, so 20 attempts burned in 0.35s against a quickshell that started 0.9s
+   later. It is invisible from a hand-started unit, where `RestartSec` applies
+   normally — so verify a startup race across a real reboot, never by starting
+   the unit by hand.
+3. **`gdbus wait` as an `ExecStartPre` deadlocks the whole session**, and is
+   much the worst of the three. `ExecStartPre` blocks the start _job_;
+   `graphical-session.target` is ordered after poweralertd and quickshell is
+   ordered after that target, so poweralertd waited 30s for a quickshell that
+   could not start until poweralertd finished, timed out, restarted immediately,
+   and waited again — ten minutes with no bar, no wallpaper and no notification
+   daemon. Recovery is `systemctl --user stop poweralertd.service`, which
+   releases the target at once. The same wait moved _inside_ `ExecStart` is
+   safe, because a `Type=simple` unit is active as soon as it forks — but with
+   `-s` none of it is needed.
 
-`kde-baloo.service` is **masked** (`systemctl --user mask kde-baloo.service`), machine-local like the dunst mask rather than tracked. Debian's preset enables it `WantedBy=graphical-session.target`, but `baloo_file` exits 0 immediately with "Baloo File Indexing has been disabled", so it does nothing except get re-activated by whatever KIO worker asks next — and those activations occasionally bunch up enough to trip the stock 5-in-10s start limit and report a failed unit. It is **not** a uwsm regression, which is worth knowing before chasing it: it started 4, 14 and 4 times on the three boots *before* the migration and simply never crossed the limit there.
+`kde-baloo.service` is **masked** (`systemctl --user mask kde-baloo.service`),
+machine-local like the dunst mask rather than tracked. Debian's preset enables
+it `WantedBy=graphical-session.target`, but `baloo_file` exits 0 immediately
+with "Baloo File Indexing has been disabled", so it does nothing except get
+re-activated by whatever KIO worker asks next — and those activations
+occasionally bunch up enough to trip the stock 5-in-10s start limit and report a
+failed unit. It is **not** a uwsm regression, which is worth knowing before
+chasing it: it started 4, 14 and 4 times on the three boots _before_ the
+migration and simply never crossed the limit there.
 
-`~/.config/autostart/1password.desktop` is deliberately **not** tracked: 1Password writes it itself and it is 0600. The `polkit-kde-authentication-agent-1.desktop` symlink there is inert — it carries `OnlyShowIn=KDE;` against uwsm's `XDG_CURRENT_DESKTOP=sway:wlroots`, so no unit is generated and nothing contends with Quickshell's own polkit agent. Worth knowing, because a second agent would be hard to diagnose.
-
+`~/.config/autostart/1password.desktop` is deliberately **not** tracked:
+1Password writes it itself and it is 0600. The
+`polkit-kde-authentication-agent-1.desktop` symlink there is inert — it carries
+`OnlyShowIn=KDE;` against uwsm's `XDG_CURRENT_DESKTOP=sway:wlroots`, so no unit
+is generated and nothing contends with Quickshell's own polkit agent. Worth
+knowing, because a second agent would be hard to diagnose.

@@ -6,8 +6,8 @@ paths:
 
 # Login (greetd + gtkgreet)
 
-How each rule here was established is in `.claude/login-reference.md`; read
-the relevant part there before changing a mechanism described here.
+How each rule here was established is in `.claude/login-reference.md`; read the
+relevant part there before changing a mechanism described here.
 
 - greetd on VT7 runs a bare sway hosting gtkgreet; choosing a session runs
   `uwsm start -- sway.desktop`. Neither machine autologins.
@@ -34,10 +34,10 @@ the relevant part there before changing a mechanism described here.
   `XDG_CURRENT_DESKTOP`) were measured and do not help.
 - greetd's journal carries no sway or gtkgreet output: redirect `command`'s
   output to a file to see it. Reproduce outside the login path with a real
-  `user@105.service` and `setpriv` inside a headless nested sway. A
-  hand-started `dbus-daemon` is not equivalent.
-- `_greetd` reaches the GPU by logind ACL and cannot read `~`: the wallpaper
-  is copied to `/etc/greetd/`, and `GTK_THEME=Adwaita:dark`.
+  `user@105.service` and `setpriv` inside a headless nested sway. A hand-started
+  `dbus-daemon` is not equivalent.
+- `_greetd` reaches the GPU by logind ACL and cannot read `~`: the wallpaper is
+  copied to `/etc/greetd/`, and `GTK_THEME=Adwaita:dark`.
 - `gtkgreet.css` is hand-written Catppuccin Mocha and not in `theme`'s targets
   (`theme` never needs root). Widget ids: `#body`, `#clock`, `#input-field`,
   `#command-selector`.

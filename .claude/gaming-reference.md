@@ -1,36 +1,241 @@
 # Gaming reference
 
-The full notes behind `rules/gaming.md`: how each fact there was established, what was measured, and what was tried first. Moved verbatim from CLAUDE.md.
+The full notes behind `rules/gaming.md`: how each fact there was established,
+what was measured, and what was tried first. Moved verbatim from CLAUDE.md.
 
-**Gaming** (`.config/gamemode.ini`, `.config/MangoHud/MangoHud.conf`, `output * adaptive_sync on` in `sway/config`): what the gaming distros (CachyOS, Bazzite) do that is worth having here, measured on demise rather than assumed. Most of the kernel side is already in Debian's kernel: `PREEMPT_DYNAMIC` + `PREEMPT_LAZY`, `NO_HZ_FULL`, `sched_ext` support, ntsync as a module, `vm.max_map_count` at 1048576. The two things that measurably mattered were both userland: a daemon to flip the CPU governor while a game runs, and the ntsync module being loaded. A custom kernel (1000Hz, BORE), an x86-64-v3 userland, zram, THP `always` and ananicy were all deliberately not done; the first because it would mean rebuilding the NVIDIA module against a third-party kernel on a machine whose driver is held at 610 for a reason, the rest because they are for 16G handhelds or measure as a wash.
+**Gaming** (`.config/gamemode.ini`, `.config/MangoHud/MangoHud.conf`,
+`output * adaptive_sync on` in `sway/config`): what the gaming distros (CachyOS,
+Bazzite) do that is worth having here, measured on demise rather than assumed.
+Most of the kernel side is already in Debian's kernel: `PREEMPT_DYNAMIC` +
+`PREEMPT_LAZY`, `NO_HZ_FULL`, `sched_ext` support, ntsync as a module,
+`vm.max_map_count` at 1048576. The two things that measurably mattered were both
+userland: a daemon to flip the CPU governor while a game runs, and the ntsync
+module being loaded. A custom kernel (1000Hz, BORE), an x86-64-v3 userland,
+zram, THP `always` and ananicy were all deliberately not done; the first because
+it would mean rebuilding the NVIDIA module against a third-party kernel on a
+machine whose driver is held at 610 for a reason, the rest because they are for
+16G handhelds or measure as a wash.
 
-**gamemode** is the governor switch, on demand. `gamemoded` is D-Bus activated (`gamemoded.service`, nothing to enable) and `gamemoderun` is only `LD_PRELOAD=libgamemodeauto.so.0`; a Steam launch option of `gamemoderun mangohud %command%` is the whole integration. While a client is registered it sets the governor to `performance` (EPP `performance` under `intel_pstate`), `kernel.split_lock_mitigate=0`, and renices the game to -4, and restores every one of them on exit. It is measured to do nothing else: an ordinary run-and-quit leaves the governor at `powersave` and split lock at 1. The day-to-day setting stays `powersave`/`balance_performance`, which on a desktop is a heat and noise question rather than a battery one, and the governor only matters for bursty per-frame loads, which is exactly the case the daemon covers.
+**gamemode** is the governor switch, on demand. `gamemoded` is D-Bus activated
+(`gamemoded.service`, nothing to enable) and `gamemoderun` is only
+`LD_PRELOAD=libgamemodeauto.so.0`; a Steam launch option of
+`gamemoderun mangohud %command%` is the whole integration. While a client is
+registered it sets the governor to `performance` (EPP `performance` under
+`intel_pstate`), `kernel.split_lock_mitigate=0`, and renices the game to -4, and
+restores every one of them on exit. It is measured to do nothing else: an
+ordinary run-and-quit leaves the governor at `powersave` and split lock at 1.
+The day-to-day setting stays `powersave`/`balance_performance`, which on a
+desktop is a heat and noise question rather than a battery one, and the governor
+only matters for bursty per-frame loads, which is exactly the case the daemon
+covers.
 
-Three things about Debian's package, each of which looks like gamemode not working. **The `gamemode` group does not exist until `systemd-sysusers` runs** (the postinst does not), and the polkit policy has `allow_active=no` for all four helpers, granting them only through `rules.d/gamemode.rules` to that group; without membership the governor switch prompts or fails. Membership works for polkit immediately, since polkit resolves groups from NSS rather than from the process. **The renice needs `Max nice priority` above 0 in the daemon**, which comes from `limits.d/10-gamemode.conf` (`@gamemode - nice -10`) via `pam_limits`, and that is in the `systemd-user` PAM stack but **not** in greetd's (Debian's `common-session` carries no `pam_limits`; only `/etc/pam.d/login` does). So the daemon gets it and terminals never do, which is fine because `setpriority` checks the caller's limit and the caller is the daemon. But the daemon inherits it from `user@1000.service`, and with **linger on (rootless Docker needs it) that manager survives logout**, so a re-login changes nothing: measured, the same `gamemoded` pid with the old groups and limit 0 was still running after a logout and login. A reboot fixes it; without one, `sudo prlimit --pid <user@ pid> --nice=30:30` then `systemctl --user restart gamemoded` does the same. And **gamemode refuses to renice a process that is not at nice 0** (`prio was (5) but we expected (0)`) or whose ioprio is not the default, as a safety check; Claude's Bash tool starts children at a non-zero nice, so renice and ioprio can never be verified from there, only from a real terminal or a Steam launch. The group, the limits and the module load below are machine-local state, not tracked, the same as the dunst mask.
+Three things about Debian's package, each of which looks like gamemode not
+working. **The `gamemode` group does not exist until `systemd-sysusers` runs**
+(the postinst does not), and the polkit policy has `allow_active=no` for all
+four helpers, granting them only through `rules.d/gamemode.rules` to that group;
+without membership the governor switch prompts or fails. Membership works for
+polkit immediately, since polkit resolves groups from NSS rather than from the
+process. **The renice needs `Max nice priority` above 0 in the daemon**, which
+comes from `limits.d/10-gamemode.conf` (`@gamemode - nice -10`) via
+`pam_limits`, and that is in the `systemd-user` PAM stack but **not** in
+greetd's (Debian's `common-session` carries no `pam_limits`; only
+`/etc/pam.d/login` does). So the daemon gets it and terminals never do, which is
+fine because `setpriority` checks the caller's limit and the caller is the
+daemon. But the daemon inherits it from `user@1000.service`, and with **linger
+on (rootless Docker needs it) that manager survives logout**, so a re-login
+changes nothing: measured, the same `gamemoded` pid with the old groups and
+limit 0 was still running after a logout and login. A reboot fixes it; without
+one, `sudo prlimit --pid <user@ pid> --nice=30:30` then
+`systemctl --user restart gamemoded` does the same. And **gamemode refuses to
+renice a process that is not at nice 0** (`prio was (5) but we expected (0)`) or
+whose ioprio is not the default, as a safety check; Claude's Bash tool starts
+children at a non-zero nice, so renice and ioprio can never be verified from
+there, only from a real terminal or a Steam launch. The group, the limits and
+the module load below are machine-local state, not tracked, the same as the
+dunst mask.
 
-`inhibit_screensaver=0` because nothing on this session bus provides `org.freedesktop.ScreenSaver` (a cinnamon one is activatable and must not be), so the call would only log a failure; Steam and SDL games take a Wayland idle inhibitor themselves, which swayidle honours and the coffee cup shows. `igpu_power_threshold=-1` because the KF has no iGPU. The daemon re-reads the file every `reaper_freq` (5s), so edits need no restart, but a running client keeps the settings it registered with.
+`inhibit_screensaver=0` because nothing on this session bus provides
+`org.freedesktop.ScreenSaver` (a cinnamon one is activatable and must not be),
+so the call would only log a failure; Steam and SDL games take a Wayland idle
+inhibitor themselves, which swayidle honours and the coffee cup shows.
+`igpu_power_threshold=-1` because the KF has no iGPU. The daemon re-reads the
+file every `reaper_freq` (5s), so edits need no restart, but a running client
+keeps the settings it registered with.
 
-**`pin_cores` is the one setting the right answer depends on the game, and it is `no`.** gamemode detects the 14700K's hybrid layout correctly (affinity 0-15, the eight P-cores with their SMT siblings, verified against `lscpu`). Measured on Cyberpunk's built-in benchmark, three runs per configuration at a mixed CPU/GPU-bound profile, 1% low fps: nothing 95.7, gamemode pinned 174.0, **gamemode unpinned 194.0**, a control run afterwards 100.1. Pinning cost 10% on the lows because the game has enough worker threads to use all 28; the E-cores are worth having. Measured on Factorio (`--benchmark`, flame_Sla 10k belt module, interleaved cycles on an idle machine), ms/update: nothing 6.86, `taskset` to P-cores under `powersave` 4.90, gamemode unpinned 4.17, gamemode pinned 3.90. Opposite sign, +6% from pinning, because Factorio's update is one serial thread that only wants the fastest core; under `powersave` the scheduler lets it land on E-cores often enough to cost 29% and triple the variance, and `performance` mostly cures that by itself. The config is global, so it follows the many-threaded case where the lows are felt; `taskset -c 0-15` in a launch option is the per-game override for a serial game.
+**`pin_cores` is the one setting the right answer depends on the game, and it is
+`no`.** gamemode detects the 14700K's hybrid layout correctly (affinity 0-15,
+the eight P-cores with their SMT siblings, verified against `lscpu`). Measured
+on Cyberpunk's built-in benchmark, three runs per configuration at a mixed
+CPU/GPU-bound profile, 1% low fps: nothing 95.7, gamemode pinned 174.0,
+**gamemode unpinned 194.0**, a control run afterwards 100.1. Pinning cost 10% on
+the lows because the game has enough worker threads to use all 28; the E-cores
+are worth having. Measured on Factorio (`--benchmark`, flame_Sla 10k belt
+module, interleaved cycles on an idle machine), ms/update: nothing 6.86,
+`taskset` to P-cores under `powersave` 4.90, gamemode unpinned 4.17, gamemode
+pinned 3.90. Opposite sign, +6% from pinning, because Factorio's update is one
+serial thread that only wants the fastest core; under `powersave` the scheduler
+lets it land on E-cores often enough to cost 29% and triple the variance, and
+`performance` mostly cures that by itself. The config is global, so it follows
+the many-threaded case where the lows are felt; `taskset -c 0-15` in a launch
+option is the per-game override for a serial game.
 
-**The governor is where nearly all of gamemode's value is.** Cyberpunk's 1% low doubled (96 to 194) and its 0.1% low doubled (65 to 154) from the bundle with pinning off, with the GPU going from 88% to 97% busy and the CPU total *falling* from 50% to 33%: the GPU had been starved between frames by threads that were stalling. Factorio put the governor alone at 39%. Proton-GE (GE-Proton11-7, in `~/.steam/root/compatibilitytools.d/`) measured identical to Proton Experimental on Cyberpunk, so it stays installed for games that need its codecs or a fix and is not the default.
+**The governor is where nearly all of gamemode's value is.** Cyberpunk's 1% low
+doubled (96 to 194) and its 0.1% low doubled (65 to 154) from the bundle with
+pinning off, with the GPU going from 88% to 97% busy and the CPU total _falling_
+from 50% to 33%: the GPU had been starved between frames by threads that were
+stalling. Factorio put the governor alone at 39%. Proton-GE (GE-Proton11-7, in
+`~/.steam/root/compatibilitytools.d/`) measured identical to Proton Experimental
+on Cyberpunk, so it stays installed for games that need its codecs or a fix and
+is not the default.
 
-**Two traps in benchmarking this.** A game the user has running under `gamemoderun` puts the whole machine in `performance` for the duration, so a "baseline" run at the same time is nothing of the kind: two sequential Factorio baselines disagreed by 8% for exactly this reason, and `journalctl --user -u gamemoded` (`Entering Game Mode` / `Leaving Game Mode`) is the check before trusting any number. And interleave configurations (A B C A B C) rather than running each as a block, so drift lands on all of them equally; the Cyberpunk sets were blocks and needed the control run afterwards to stand. Cyberpunk's benchmark is a fixed camera path, so `Left Shift+F2` at the start of the flythrough with `log_duration=60` logs the same segment every run; noise there is about 1% on the average and 5% on the 1% low over three runs. `~/.local/state/MangoHud/summarise.py` reads the CSVs.
+**Two traps in benchmarking this.** A game the user has running under
+`gamemoderun` puts the whole machine in `performance` for the duration, so a
+"baseline" run at the same time is nothing of the kind: two sequential Factorio
+baselines disagreed by 8% for exactly this reason, and
+`journalctl --user -u gamemoded` (`Entering Game Mode` / `Leaving Game Mode`) is
+the check before trusting any number. And interleave configurations (A B C A B
+C) rather than running each as a block, so drift lands on all of them equally;
+the Cyberpunk sets were blocks and needed the control run afterwards to stand.
+Cyberpunk's benchmark is a fixed camera path, so `Left Shift+F2` at the start of
+the flythrough with `log_duration=60` logs the same segment every run; noise
+there is about 1% on the average and 5% on the 1% low over three runs.
+`~/.local/state/MangoHud/summarise.py` reads the CSVs.
 
-**MangoHud from Debian is the DFSG build with NVML stripped out**, so on this card the GPU rows read 0% / 0°C / 0 MHz, which is worse than no row. It is rebuilt locally with NVML (`0.8.4+dfsg-1+nvml1`, held: `apt-mark hold mangohud mangohud:i386 mangohudctl mangoplot`, the debs kept in `~/.local/share/mangohud-nvml/`). The recipe: `dpkg-source -x` on the Debian source (fetched from the pool with curl; there is no `deb-src` line for sid), upstream's `include/nvml.h` from the matching tag restored (**the CUDA 13 header does not work**, it already defines the `nvmlProcessInfo_v1_t` typedef that MangoHud's loader adds itself), `-Dwith_nvml=enabled` and `-Dwith_xnvctrl=disabled` in `debian/rules` with `libxnvctrl-dev` dropped from `Build-Depends` (its dev package is version-locked to the 615 driver held back here, and XNVCtrl is X11-only anyway), a `+nvml1` changelog entry, `dpkg-buildpackage -us -uc -b`. `mangohud` is `Multi-Arch: same`, so the i386 instance (32-bit games) must be the identical version with byte-identical shared files: it is built natively in an `i386/debian:sid` container on the rootless Docker (no emulation, a 32-bit userland on the 64-bit kernel) from a copy of the same tree, and `cmp` over the files both packages ship is the check before installing. Build-deps went in with `apt install --mark-auto` so `autoremove` takes them back out. NVML is `dlopen`ed from the driver's `libnvidia-ml.so.1` at runtime, so only the header is needed at build time.
+**MangoHud from Debian is the DFSG build with NVML stripped out**, so on this
+card the GPU rows read 0% / 0°C / 0 MHz, which is worse than no row. It is
+rebuilt locally with NVML (`0.8.4+dfsg-1+nvml1`, held:
+`apt-mark hold mangohud mangohud:i386 mangohudctl mangoplot`, the debs kept in
+`~/.local/share/mangohud-nvml/`). The recipe: `dpkg-source -x` on the Debian
+source (fetched from the pool with curl; there is no `deb-src` line for sid),
+upstream's `include/nvml.h` from the matching tag restored (**the CUDA 13 header
+does not work**, it already defines the `nvmlProcessInfo_v1_t` typedef that
+MangoHud's loader adds itself), `-Dwith_nvml=enabled` and
+`-Dwith_xnvctrl=disabled` in `debian/rules` with `libxnvctrl-dev` dropped from
+`Build-Depends` (its dev package is version-locked to the 615 driver held back
+here, and XNVCtrl is X11-only anyway), a `+nvml1` changelog entry,
+`dpkg-buildpackage -us -uc -b`. `mangohud` is `Multi-Arch: same`, so the i386
+instance (32-bit games) must be the identical version with byte-identical shared
+files: it is built natively in an `i386/debian:sid` container on the rootless
+Docker (no emulation, a 32-bit userland on the 64-bit kernel) from a copy of the
+same tree, and `cmp` over the files both packages ship is the check before
+installing. Build-deps went in with `apt install --mark-auto` so `autoremove`
+takes them back out. NVML is `dlopen`ed from the driver's `libnvidia-ml.so.1` at
+runtime, so only the header is needed at build time.
 
-Three more things about MangoHud. **`MANGOHUD_CONFIG` replaces the config file rather than adding to it**, so a test that sets one option through the environment tests the default layout, not ours; `MANGOHUD_CONFIGFILE` pointing at a copy is how to test the real file plus a line. `cpu_power` can never work unprivileged (Intel RAPL's `energy_uj` is root-only since the Platypus fix) and the logger tries to initialise it regardless, so the `Failed to initialize CPU power data` lines are noise. And `no_display` is set: the layer is in every game's launch options all the time (its idle cost is a timestamp per frame), `Right Shift+F12` shows it and `Left Shift+F2` logs 60s to `~/.local/state/MangoHud/` whether it is shown or not, which is what makes a stutter answerable without relaunching. **The `GAMEMODE` line is not the daemon's state**: it is `lib_loaded("gamemode")` over the process's own `map_files`, checked once at startup, so it reads ON for a `gamemoderun` launch (the preloaded `libgamemodeauto`) and OFF for a client that registered over D-Bus, which is how Prism Launcher's checkbox does it; `gamemoded -s` is the truth, and the journal names the client pid.
+Three more things about MangoHud. **`MANGOHUD_CONFIG` replaces the config file
+rather than adding to it**, so a test that sets one option through the
+environment tests the default layout, not ours; `MANGOHUD_CONFIGFILE` pointing
+at a copy is how to test the real file plus a line. `cpu_power` can never work
+unprivileged (Intel RAPL's `energy_uj` is root-only since the Platypus fix) and
+the logger tries to initialise it regardless, so the
+`Failed to initialize CPU power data` lines are noise. And `no_display` is set:
+the layer is in every game's launch options all the time (its idle cost is a
+timestamp per frame), `Right Shift+F12` shows it and `Left Shift+F2` logs 60s to
+`~/.local/state/MangoHud/` whether it is shown or not, which is what makes a
+stutter answerable without relaunching. **The `GAMEMODE` line is not the
+daemon's state**: it is `lib_loaded("gamemode")` over the process's own
+`map_files`, checked once at startup, so it reads ON for a `gamemoderun` launch
+(the preloaded `libgamemodeauto`) and OFF for a client that registered over
+D-Bus, which is how Prism Launcher's checkbox does it; `gamemoded -s` is the
+truth, and the journal names the client pid.
 
-**ntsync** is `/etc/modules-load.d/ntsync.conf` (machine-local); the kernel gives `/dev/ntsync` mode 0666 itself, no udev rule needed. **Proton Experimental uses it whenever the device exists**, no launch option: the implementation is in `wineserver` (`/dev/ntsync`, `ntsync: up and running.`), which checks `PROTON_NO_NTSYNC` itself, so a grep of `ntdll.so` and the `proton` script finds nothing and wrongly concludes it is absent. Proton-GE is the same, with `WINENTSYNC=1` set in its script. MangoHud's `winesync` line is the confirmation. Measured on Cyberpunk with `PROTON_NO_NTSYNC=1` as the A/B: fsync 1% low 173.4 against ntsync 194.0, 0.1% low 131.0 against 153.6, frametime sd doubled, and **the CPU total at 57% against 38%** for the same frames, which is the mechanism: fsync emulates Windows waits with futexes and spinning, ntsync hands them to a kernel object. Against the expectation that ntsync is a wash versus fsync, it is not on this game.
+**ntsync** is `/etc/modules-load.d/ntsync.conf` (machine-local); the kernel
+gives `/dev/ntsync` mode 0666 itself, no udev rule needed. **Proton Experimental
+uses it whenever the device exists**, no launch option: the implementation is in
+`wineserver` (`/dev/ntsync`, `ntsync: up and running.`), which checks
+`PROTON_NO_NTSYNC` itself, so a grep of `ntdll.so` and the `proton` script finds
+nothing and wrongly concludes it is absent. Proton-GE is the same, with
+`WINENTSYNC=1` set in its script. MangoHud's `winesync` line is the
+confirmation. Measured on Cyberpunk with `PROTON_NO_NTSYNC=1` as the A/B: fsync
+1% low 173.4 against ntsync 194.0, 0.1% low 131.0 against 153.6, frametime sd
+doubled, and **the CPU total at 57% against 38%** for the same frames, which is
+the mechanism: fsync emulates Windows waits with futexes and spinning, ntsync
+hands them to a kernel object. Against the expectation that ntsync is a wash
+versus fsync, it is not on this game.
 
-**HDR** works, for a game and for a film, through three pieces that each have to be in place. **The gate is the renderer**: wlroots' HDR (and its 10-bit output and `color_profile`) is Vulkan-only, and wlroots defaults to GLES2, so `.config/uwsm/env` exports `WLR_RENDERER=vulkan`, gated to demise because the laptop's Intel path is untested. Sway does not log which renderer it chose at the default log level and the loaded libraries do not tell either (both `libEGL_nvidia` and `libGLX_nvidia`, which is also the Vulkan ICD, are mapped under both), so **the renderer test is `swaymsg output DP-2 hdr on`**: refused on GLES2, and on Vulkan `drm_info` shows the connector at `Colorspace = BT2020_RGB` with an `HDR_OUTPUT_METADATA` blob, with VRR still enabled beside it. The G9's EDID carries the HDR static metadata block (PQ, BT.2020) with a declared max luminance of ~400 nits against the HDR1000 marketing, so the game's peak-brightness slider is set by eye against a highlight, not from either number. `.local/bin/hdr-run` turns HDR on for every output, runs its arguments, and turns it off on any exit; it is a script receiving `"$@"` and **not** a `sh -c` wrapper, because Steam expands `%command%` with each argument single-quoted (the game lives in `…/Cyberpunk 2077/`) and those quotes terminate a single-quoted `sh -c` string, so the launcher got a broken path and the trailing `hdr off` became stray arguments that never ran. Launch options are therefore `hdr-run env PROTON_ENABLE_WAYLAND=1 PROTON_ENABLE_HDR=1 gamemoderun mangohud %command%`, with `env` because the variables are arguments to a script rather than shell assignments.
+**HDR** works, for a game and for a film, through three pieces that each have to
+be in place. **The gate is the renderer**: wlroots' HDR (and its 10-bit output
+and `color_profile`) is Vulkan-only, and wlroots defaults to GLES2, so
+`.config/uwsm/env` exports `WLR_RENDERER=vulkan`, gated to demise because the
+laptop's Intel path is untested. Sway does not log which renderer it chose at
+the default log level and the loaded libraries do not tell either (both
+`libEGL_nvidia` and `libGLX_nvidia`, which is also the Vulkan ICD, are mapped
+under both), so **the renderer test is `swaymsg output DP-2 hdr on`**: refused
+on GLES2, and on Vulkan `drm_info` shows the connector at
+`Colorspace = BT2020_RGB` with an `HDR_OUTPUT_METADATA` blob, with VRR still
+enabled beside it. The G9's EDID carries the HDR static metadata block (PQ,
+BT.2020) with a declared max luminance of ~400 nits against the HDR1000
+marketing, so the game's peak-brightness slider is set by eye against a
+highlight, not from either number. `.local/bin/hdr-run` turns HDR on for every
+output, runs its arguments, and turns it off on any exit; it is a script
+receiving `"$@"` and **not** a `sh -c` wrapper, because Steam expands
+`%command%` with each argument single-quoted (the game lives in
+`…/Cyberpunk 2077/`) and those quotes terminate a single-quoted `sh -c` string,
+so the launcher got a broken path and the trailing `hdr off` became stray
+arguments that never ran. Launch options are therefore
+`hdr-run env PROTON_ENABLE_WAYLAND=1 PROTON_ENABLE_HDR=1 gamemoderun mangohud %command%`,
+with `env` because the variables are arguments to a script rather than shell
+assignments.
 
-**HDR stays off at the desktop, and the reason is not what it looks like.** With `hdr on` the desktop looks the same, since wlroots maps SDR to a fixed reference white inside the PQ signal; what changes is every *capture* of it. Measured: `grim` reads the bar background as `(24, 24, 37)`, the theme's `mantle` exactly, with HDR off, and `(40, 40, 53)` with it on, because the capture is the PQ-encoded framebuffer read out as sRGB, so every dark tone is lifted. The same applies to `wf-recorder` and the screencast portal, so a screenshare with HDR on shows the other side a grey, washed-out desktop. Per-program is the shape: `hdr-run mpv film.mkv` for a film (mpv 0.41 needs nothing else: `gpu-next`, Vulkan and `target-colorspace-hint=auto` are its defaults on Wayland, and `.config/mpv/mpv.conf` only adds `hwdec=auto-safe` so a 4K HEVC decodes on NVDEC rather than in software). Browsers do not output HDR on Linux and the streaming services cap Linux at 1080p SDR anyway, so HDR film means local files.
+**HDR stays off at the desktop, and the reason is not what it looks like.** With
+`hdr on` the desktop looks the same, since wlroots maps SDR to a fixed reference
+white inside the PQ signal; what changes is every _capture_ of it. Measured:
+`grim` reads the bar background as `(24, 24, 37)`, the theme's `mantle` exactly,
+with HDR off, and `(40, 40, 53)` with it on, because the capture is the
+PQ-encoded framebuffer read out as sRGB, so every dark tone is lifted. The same
+applies to `wf-recorder` and the screencast portal, so a screenshare with HDR on
+shows the other side a grey, washed-out desktop. Per-program is the shape:
+`hdr-run mpv film.mkv` for a film (mpv 0.41 needs nothing else: `gpu-next`,
+Vulkan and `target-colorspace-hint=auto` are its defaults on Wayland, and
+`.config/mpv/mpv.conf` only adds `hwdec=auto-safe` so a 4K HEVC decodes on NVDEC
+rather than in software). Browsers do not output HDR on Linux and the streaming
+services cap Linux at 1080p SDR anyway, so HDR film means local files.
 
-**Proton Experimental cannot do HDR**: its Wine ships only `winex11.so`, so every game under it is an XWayland client and X11 has no HDR. Proton-GE ships the Wayland driver (`PROTON_ENABLE_WAYLAND=1`) and `PROTON_ENABLE_HDR=1` sets `DXVK_HDR=1`, which is what makes Cyberpunk's HDR toggle appear. Under the Wayland driver the game is a native `xdg_shell` window with a locked pointer; the log line `MESA-EGL: egl: failed to create dri2 screen` for the NVIDIA device is Wine trying Mesa's EGL first and falling through, not a failure.
+**Proton Experimental cannot do HDR**: its Wine ships only `winex11.so`, so
+every game under it is an XWayland client and X11 has no HDR. Proton-GE ships
+the Wayland driver (`PROTON_ENABLE_WAYLAND=1`) and `PROTON_ENABLE_HDR=1` sets
+`DXVK_HDR=1`, which is what makes Cyberpunk's HDR toggle appear. Under the
+Wayland driver the game is a native `xdg_shell` window with a locked pointer;
+the log line `MESA-EGL: egl: failed to create dri2 screen` for the NVIDIA device
+is Wine trying Mesa's EGL first and falling through, not a failure.
 
-**`seat * hide_cursor when-typing enable` breaks every locked-pointer game and is gone from the config.** In sway 1.12 every key press calls `cursor_notify_key_press()`, which with that setting calls `cursor_hide()`, which does `wlr_seat_pointer_notify_clear_focus()`; from then on relative motion and the button release go to no surface. The idle hide (`hide_cursor 5000`) guards against a held button (`cursor_get_timeout()` returns 0 while `pressed_button_count > 0`), the typing hide has no such check, and while a button is held sway is in `seatop_down`, which has no rebase handler, so nothing re-enters the surface until the button is released, at which point the release itself has already been lost. Symptom: hold any button, move (works), press any key, motion stops until the button is released, and the game never sees the release. Identical in Minecraft (XWayland) and Cyberpunk (native Wayland), which is what placed it in the compositor. The fix upstream would be the same guard in `cursor_notify_key_press()`.
+**`seat * hide_cursor when-typing enable` breaks every locked-pointer game and
+is gone from the config.** In sway 1.12 every key press calls
+`cursor_notify_key_press()`, which with that setting calls `cursor_hide()`,
+which does `wlr_seat_pointer_notify_clear_focus()`; from then on relative motion
+and the button release go to no surface. The idle hide (`hide_cursor 5000`)
+guards against a held button (`cursor_get_timeout()` returns 0 while
+`pressed_button_count > 0`), the typing hide has no such check, and while a
+button is held sway is in `seatop_down`, which has no rebase handler, so nothing
+re-enters the surface until the button is released, at which point the release
+itself has already been lost. Symptom: hold any button, move (works), press any
+key, motion stops until the button is released, and the game never sees the
+release. Identical in Minecraft (XWayland) and Cyberpunk (native Wayland), which
+is what placed it in the compositor. The fix upstream would be the same guard in
+`cursor_notify_key_press()`.
 
-**Cyberpunk on this card at 5120x1440**, measured on the built-in benchmark, rendered rate with frame generation off: RT Ultra + DLSS Quality 56.8 avg / 47.3 1% low, which sits on the 48 Hz VRR floor; RT Lighting High + DLSS Balanced 71.0 / 55.4, which is the profile. Frame generation works under Proton (NVAPI initialises, the driver's `nvngx_dlssg.dll` loads, a `sl.dlssg` thread appears) and presents at 1.6x rather than 2x because generating costs GPU time on a GPU already at its cap: 108.3 avg / 85.5 1% low from that profile. MangoHud counts presented frames, so the only way to know whether FG is engaged is a run with it off. VKD3D-Proton's RT cost ran 25-30% above the Windows figures the estimates came from, which rules path tracing out here. "Throttling: power" on the overlay is the card at its 320 W limit with a steady clock and 67°C, the normal state of a GPU-bound profile and not a fault.
+**Cyberpunk on this card at 5120x1440**, measured on the built-in benchmark,
+rendered rate with frame generation off: RT Ultra + DLSS Quality 56.8 avg / 47.3
+1% low, which sits on the 48 Hz VRR floor; RT Lighting High + DLSS Balanced 71.0
+/ 55.4, which is the profile. Frame generation works under Proton (NVAPI
+initialises, the driver's `nvngx_dlssg.dll` loads, a `sl.dlssg` thread appears)
+and presents at 1.6x rather than 2x because generating costs GPU time on a GPU
+already at its cap: 108.3 avg / 85.5 1% low from that profile. MangoHud counts
+presented frames, so the only way to know whether FG is engaged is a run with it
+off. VKD3D-Proton's RT cost ran 25-30% above the Windows figures the estimates
+came from, which rules path tracing out here. "Throttling: power" on the overlay
+is the card at its 320 W limit with a steady clock and 67°C, the normal state of
+a GPU-bound profile and not a fault.
 
-**Adaptive sync** is on for every output. The G9 advertises 48-240 Hz in both its range-limits descriptor and an AMD FreeSync block; sway 1.12's `adaptive_sync` is unconditional (no fullscreen gate, unlike Hyprland's), and `drm_info` is the check that the NVIDIA driver committed it (`vrr_capable = 1` on the connector, `VRR_ENABLED = 1` on the CRTC), since `swaymsg` only reports what sway asked for. It is a connector property, not a modeset. Nothing is visible at the desktop when it works; the failure mode is brightness flicker on this VA panel in dark static content as the rate swings, and the fix for that is off, there is no tuning. A runtime `swaymsg output DP-2 adaptive_sync off|on` is the per-game escape for an engine whose frame limiter dislikes it. MangoHud cannot see VRR at all: it logs when frames are rendered, VRR changes when they are shown, so that one is judged by eye on the benchmark's slow pans.
-
+**Adaptive sync** is on for every output. The G9 advertises 48-240 Hz in both
+its range-limits descriptor and an AMD FreeSync block; sway 1.12's
+`adaptive_sync` is unconditional (no fullscreen gate, unlike Hyprland's), and
+`drm_info` is the check that the NVIDIA driver committed it (`vrr_capable = 1`
+on the connector, `VRR_ENABLED = 1` on the CRTC), since `swaymsg` only reports
+what sway asked for. It is a connector property, not a modeset. Nothing is
+visible at the desktop when it works; the failure mode is brightness flicker on
+this VA panel in dark static content as the rate swings, and the fix for that is
+off, there is no tuning. A runtime `swaymsg output DP-2 adaptive_sync off|on` is
+the per-game escape for an engine whose frame limiter dislikes it. MangoHud
+cannot see VRR at all: it logs when frames are rendered, VRR changes when they
+are shown, so that one is judged by eye on the benchmark's slow pans.

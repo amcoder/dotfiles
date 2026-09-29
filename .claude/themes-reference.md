@@ -1,39 +1,225 @@
 # Themes reference
 
-The full notes behind `rules/themes.md`: how each fact there was established, what was measured, and what was tried first. Moved verbatim from CLAUDE.md.
+The full notes behind `rules/themes.md`: how each fact there was established,
+what was measured, and what was tried first. Moved verbatim from CLAUDE.md.
 
-**Themes** (`themes/`, repo root — deliberately outside the four paths `install` mirrors): one palette per theme (`catppuccin-macchiato.json`, `nord.json`) plus `templates/`, from which `.local/bin/theme` renders every app-specific config. The selection lives in `$XDG_STATE_HOME/theme/current` and the rendered files land in `~/.config`, so switching themes never dirties the repo; `install` ends by running `theme apply`, defaulting to catppuccin-macchiato. Use `theme list`, `theme current`, `theme set <name>`, `theme apply`.
+**Themes** (`themes/`, repo root — deliberately outside the four paths `install`
+mirrors): one palette per theme (`catppuccin-macchiato.json`, `nord.json`) plus
+`templates/`, from which `.local/bin/theme` renders every app-specific config.
+The selection lives in `$XDG_STATE_HOME/theme/current` and the rendered files
+land in `~/.config`, so switching themes never dirties the repo; `install` ends
+by running `theme apply`, defaulting to catppuccin-macchiato. Use `theme list`,
+`theme current`, `theme set <name>`, `theme apply`.
 
-Templates are written against a role vocabulary that reuses Catppuccin's 26 colour names as generic roles (`crust`/`mantle`/`base`, `surface0-2`, `overlay0-2`, `subtext0-1`, `text`, and 14 accent names) because it is the superset; themes with fewer colours map several roles to one hex. Placeholders are `{{role}}` (`#rrggbb`), `{{role_raw}}` (bare hex, for swaylock and Qt ARGB) and `{{role_rgb}}` (`r,g,b`, for kdeglobals) — `{{ }}` rather than `$` so sway's own `$var` syntax survives. Adding a theme means one JSON file; adding an app means a template plus an entry in `TARGETS`.
+Templates are written against a role vocabulary that reuses Catppuccin's 26
+colour names as generic roles (`crust`/`mantle`/`base`, `surface0-2`,
+`overlay0-2`, `subtext0-1`, `text`, and 14 accent names) because it is the
+superset; themes with fewer colours map several roles to one hex. Placeholders
+are `{{role}}` (`#rrggbb`), `{{role_raw}}` (bare hex, for swaylock and Qt ARGB)
+and `{{role_rgb}}` (`r,g,b`, for kdeglobals) — `{{ }}` rather than `$` so sway's
+own `$var` syntax survives. Adding a theme means one JSON file; adding an app
+means a template plus an entry in `TARGETS`.
 
-Generated files go where each app already looks, never to a central directory, so nothing has to resolve a `~` or an absolute path — GTK's `@import` takes a URL with no `~`, and sway resolves a relative `include` against the config's own directory. Each theme also declares `"appearance": "dark" | "light"`, which `theme` applies as real desktop state, not just colours: `gsettings org.gnome.desktop.interface color-scheme` (which xdg-desktop-portal exposes as `org.freedesktop.appearance`, and which is what Electron apps such as Claude desktop follow), plus `gtk-application-prefer-dark-theme` in the generated `gtk-{3,4}.0/settings.ini`. Because it is state rather than a reload, `apply_appearance` runs even under `--no-reload`, so `install` leaves a fresh machine in the right mode. The `gtk-theme` bounce that forces GTK to re-read the palette must pass through a theme of the *same* appearance (`Adwaita-dark` for dark) — bouncing via light `Adwaita` leaves the whole desktop light if the run is interrupted between the two `gsettings` calls.
+Generated files go where each app already looks, never to a central directory,
+so nothing has to resolve a `~` or an absolute path — GTK's `@import` takes a
+URL with no `~`, and sway resolves a relative `include` against the config's own
+directory. Each theme also declares `"appearance": "dark" | "light"`, which
+`theme` applies as real desktop state, not just colours:
+`gsettings org.gnome.desktop.interface color-scheme` (which xdg-desktop-portal
+exposes as `org.freedesktop.appearance`, and which is what Electron apps such as
+Claude desktop follow), plus `gtk-application-prefer-dark-theme` in the
+generated `gtk-{3,4}.0/settings.ini`. Because it is state rather than a reload,
+`apply_appearance` runs even under `--no-reload`, so `install` leaves a fresh
+machine in the right mode. The `gtk-theme` bounce that forces GTK to re-read the
+palette must pass through a theme of the _same_ appearance (`Adwaita-dark` for
+dark) — bouncing via light `Adwaita` leaves the whole desktop light if the run
+is interrupted between the two `gsettings` calls.
 
-The GTK3 palette is not written to `~/.config/gtk-3.0/gtk.css`: GTK3 loads that file exactly once, when the app starts, and re-reads it neither on a file change nor on a theme change, so every running GTK3 app — Chrome above all — kept the palette it launched with until it was restarted. Instead `theme` generates a whole GTK theme at `$XDG_DATA_HOME/themes/dotfiles`, whose `gtk-3.0/gtk{,-dark}.css` is an `@import` of `gtkTheme`'s stylesheet followed by our `@define-color` lines (a later definition wins), and points `gtk-theme` at it. That one GTK re-reads from disk on every `gtk-theme` set, which is what the bounce in `apply_appearance` is for — the generated theme's name never changes, so without the detour through `Adwaita-dark` gsettings emits no change at all. Verified end to end: a running Chrome with the GTK theme selected repaints across macchiato → latte → nord with no restart.
+The GTK3 palette is not written to `~/.config/gtk-3.0/gtk.css`: GTK3 loads that
+file exactly once, when the app starts, and re-reads it neither on a file change
+nor on a theme change, so every running GTK3 app — Chrome above all — kept the
+palette it launched with until it was restarted. Instead `theme` generates a
+whole GTK theme at `$XDG_DATA_HOME/themes/dotfiles`, whose
+`gtk-3.0/gtk{,-dark}.css` is an `@import` of `gtkTheme`'s stylesheet followed by
+our `@define-color` lines (a later definition wins), and points `gtk-theme` at
+it. That one GTK re-reads from disk on every `gtk-theme` set, which is what the
+bounce in `apply_appearance` is for — the generated theme's name never changes,
+so without the detour through `Adwaita-dark` gsettings emits no change at all.
+Verified end to end: a running Chrome with the GTK theme selected repaints
+across macchiato → latte → nord with no restart.
 
-The theme provider sits *below* `~/.config/gtk-3.0/gtk.css` in GTK's cascade, so that file must not also carry the palette — a stale in-memory copy would mask the generated theme in every app started before the switch. `prune` deletes it from the manifest of an older `theme` run, but a process already holding it needs one restart. GTK4 is unaffected by all this and keeps its palette in `~/.config/gtk-4.0/gtk.css`, because libadwaita ignores GTK themes entirely and reads only that file — GTK4 apps still need a restart.
+The theme provider sits _below_ `~/.config/gtk-3.0/gtk.css` in GTK's cascade, so
+that file must not also carry the palette — a stale in-memory copy would mask
+the generated theme in every app started before the switch. `prune` deletes it
+from the manifest of an older `theme` run, but a process already holding it
+needs one restart. GTK4 is unaffected by all this and keeps its palette in
+`~/.config/gtk-4.0/gtk.css`, because libadwaita ignores GTK themes entirely and
+reads only that file — GTK4 apps still need a restart.
 
-`gtkTheme` names the base theme the generated one imports, and must be an existing directory under `~/.themes`, `$XDG_DATA_HOME/themes` or `/usr/share/themes`, exactly — the names are case-sensitive and the installed adw-gtk3 build is lowercase `adw-gtk3-dark`, not `Adw-gtk3-dark`. A name that does not resolve loses the **palette**, not the widget rules — the opposite of what it looks like. The generated theme is then our `@define-color` lines over GTK's built-in Adwaita, and the two vocabularies do not overlap at all: ours is libadwaita's (`window_bg_color`, `accent_bg_color`, `view_bg_color`), Adwaita's is GTK3's own (`theme_bg_color`, `theme_base_color`, `theme_selected_bg_color`). adw-gtk3 is the translation between them, so without it every colour we define is referenced by nothing and apps keep Adwaita's rules *and* Adwaita's grey. Measured on a fresh machine with adw-gtk3 missing: `window_bg_color` read `#1e1e2e` (our base, loaded fine) while `theme_bg_color` — what widgets, and Chrome, actually paint with — read `#353535`. `theme` warns on stderr rather than trusting the string, but that warning is the only symptom and it scrolls past during `install`.
+`gtkTheme` names the base theme the generated one imports, and must be an
+existing directory under `~/.themes`, `$XDG_DATA_HOME/themes` or
+`/usr/share/themes`, exactly — the names are case-sensitive and the installed
+adw-gtk3 build is lowercase `adw-gtk3-dark`, not `Adw-gtk3-dark`. A name that
+does not resolve loses the **palette**, not the widget rules — the opposite of
+what it looks like. The generated theme is then our `@define-color` lines over
+GTK's built-in Adwaita, and the two vocabularies do not overlap at all: ours is
+libadwaita's (`window_bg_color`, `accent_bg_color`, `view_bg_color`), Adwaita's
+is GTK3's own (`theme_bg_color`, `theme_base_color`, `theme_selected_bg_color`).
+adw-gtk3 is the translation between them, so without it every colour we define
+is referenced by nothing and apps keep Adwaita's rules _and_ Adwaita's grey.
+Measured on a fresh machine with adw-gtk3 missing: `window_bg_color` read
+`#1e1e2e` (our base, loaded fine) while `theme_bg_color` — what widgets, and
+Chrome, actually paint with — read `#353535`. `theme` warns on stderr rather
+than trusting the string, but that warning is the only symptom and it scrolls
+past during `install`.
 
-Debian does not package adw-gtk3, so it is **vendored** at `.local/share/themes/adw-gtk3{,-dark}` (upstream v6.5), the same call as the Phosphor icons and `emoji.txt`. That path needs no `install` support at all: `$XDG_DATA_HOME/themes` is `~/.local/share/themes`, already inside `.local`, so the ordinary symlink loop links it into place before `theme apply` runs on the same pass — which is what makes a fresh machine come up themed in one `./install`, with no `--deps` and no network. Only `index.theme` and `gtk-3.0/` are vendored; upstream's `gtk-4.0/` (864KB, mostly `libadwaita.css`) and the thumbnails are dropped, because nothing ever resolves adw-gtk3 *by name* — the generated theme `@import`s its GTK3 stylesheet by absolute path, and GTK4 reads `~/.config/gtk-4.0/gtk.css` instead. The stylesheets reference their assets relatively (`url("assets/…")`), so `assets/` has to sit beside each `gtk.css`; the two variants' asset sets are byte-identical, as are three of the four stylesheets, so git stores one blob of each. Updating means re-extracting those two parts of the release tarball over these directories and re-running `./install` for any file that is new.
+Debian does not package adw-gtk3, so it is **vendored** at
+`.local/share/themes/adw-gtk3{,-dark}` (upstream v6.5), the same call as the
+Phosphor icons and `emoji.txt`. That path needs no `install` support at all:
+`$XDG_DATA_HOME/themes` is `~/.local/share/themes`, already inside `.local`, so
+the ordinary symlink loop links it into place before `theme apply` runs on the
+same pass — which is what makes a fresh machine come up themed in one
+`./install`, with no `--deps` and no network. Only `index.theme` and `gtk-3.0/`
+are vendored; upstream's `gtk-4.0/` (864KB, mostly `libadwaita.css`) and the
+thumbnails are dropped, because nothing ever resolves adw-gtk3 _by name_ — the
+generated theme `@import`s its GTK3 stylesheet by absolute path, and GTK4 reads
+`~/.config/gtk-4.0/gtk.css` instead. The stylesheets reference their assets
+relatively (`url("assets/…")`), so `assets/` has to sit beside each `gtk.css`;
+the two variants' asset sets are byte-identical, as are three of the four
+stylesheets, so git stores one blob of each. Updating means re-extracting those
+two parts of the release tarball over these directories and re-running
+`./install` for any file that is new.
 
-Where an app has no include mechanism (`kdeglobals`, `gtk-4.0/gtk.css`, `gtk-{3,4}.0/settings.ini`, `swaylock/config`) the whole file is generated and is no longer tracked; the generator unlinks a leftover repo symlink before writing, since `install` never removes stale links. bat reads `BAT_THEME` from the generated `zsh/theme.zsh`, and nvim reads `lua/theme.lua`.
+Where an app has no include mechanism (`kdeglobals`, `gtk-4.0/gtk.css`,
+`gtk-{3,4}.0/settings.ini`, `swaylock/config`) the whole file is generated and
+is no longer tracked; the generator unlinks a leftover repo symlink before
+writing, since `install` never removes stale links. bat reads `BAT_THEME` from
+the generated `zsh/theme.zsh`, and nvim reads `lua/theme.lua`.
 
-nvim picks up a switch without restarting, the same way zsh and quickshell do: `init.lua` starts a `vim.uv` fs_event on `~/.config/nvim/lua` and, when `theme.lua` changes, switches to the colorscheme it names. Both colorscheme plugins are start plugins whose `config` runs regardless of which theme is selected (only the `vim.cmd.colorscheme` call is gated), so every colorscheme is already loaded in every instance and the switch needs no plugin load. lualine follows on its own — it registers a `ColorScheme` autocmd that re-runs its own `setup()`, and its `theme` is left at `auto`.
+nvim picks up a switch without restarting, the same way zsh and quickshell do:
+`init.lua` starts a `vim.uv` fs_event on `~/.config/nvim/lua` and, when
+`theme.lua` changes, switches to the colorscheme it names. Both colorscheme
+plugins are start plugins whose `config` runs regardless of which theme is
+selected (only the `vim.cmd.colorscheme` call is gated), so every colorscheme is
+already loaded in every instance and the switch needs no plugin load. lualine
+follows on its own — it registers a `ColorScheme` autocmd that re-runs its own
+`setup()`, and its `theme` is left at `auto`.
 
-Four things about that watcher. It watches the **directory**, not the file: `write()` truncates in place most of the time, but it unlinks and recreates when a repo symlink is in the way, and a file watcher dies on that. The callback must `vim.schedule()` — a libuv callback is not a safe place to touch the vim API. It uses `dofile` rather than `require`, so there is no `package.loaded` entry to invalidate. And it compares against `vim.g.colors_name`, so a re-`apply` of the same theme does not redraw — which also means a hand-set `:colorscheme` is overridden by the next `theme apply`. The `fs_event` handle is a file-scope local in a chunk that has finished running, and survives anyway because luv refs an active handle; verified by forcing a full GC over RPC and then switching themes.
+Four things about that watcher. It watches the **directory**, not the file:
+`write()` truncates in place most of the time, but it unlinks and recreates when
+a repo symlink is in the way, and a file watcher dies on that. The callback must
+`vim.schedule()` — a libuv callback is not a safe place to touch the vim API. It
+uses `dofile` rather than `require`, so there is no `package.loaded` entry to
+invalidate. And it compares against `vim.g.colors_name`, so a re-`apply` of the
+same theme does not redraw — which also means a hand-set `:colorscheme` is
+overridden by the next `theme apply`. The `fs_event` handle is a file-scope
+local in a chunk that has finished running, and survives anyway because luv refs
+an active handle; verified by forcing a full GC over RPC and then switching
+themes.
 
-zsh picks up a switch without restarting: `.zshrc` defines `theme-reload`, a precmd hook that watches `theme.zsh`'s mtime (via `zstat`, not a forked `stat`) and, when it changes, re-sources it along with everything derived from it — `FZF_DEFAULT_OPTS` and `$P10K_CONFIG`. Re-sourcing the p10k config is what applies the change, since powerlevel10k runs with `POWERLEVEL9K_DISABLE_HOT_RELOAD=true` and the config file ends by calling `p10k reload` itself. The p10k prompt's rounded caps are drawn in reverse video, so the colour *behind* them cannot be "the default background" — it has to be named, which is what `THEME_P10K_EDGE` (the theme's `base`) is for; it must equal the terminal background or every segment sits in a visible box of the wrong colour. `theme apply` also deletes `$XDG_CACHE_HOME/p10k-instant-prompt-*.zsh`, which bakes the old palette into a prompt snapshot that outlives the theme switch.
+zsh picks up a switch without restarting: `.zshrc` defines `theme-reload`, a
+precmd hook that watches `theme.zsh`'s mtime (via `zstat`, not a forked `stat`)
+and, when it changes, re-sources it along with everything derived from it —
+`FZF_DEFAULT_OPTS` and `$P10K_CONFIG`. Re-sourcing the p10k config is what
+applies the change, since powerlevel10k runs with
+`POWERLEVEL9K_DISABLE_HOT_RELOAD=true` and the config file ends by calling
+`p10k reload` itself. The p10k prompt's rounded caps are drawn in reverse video,
+so the colour _behind_ them cannot be "the default background" — it has to be
+named, which is what `THEME_P10K_EDGE` (the theme's `base`) is for; it must
+equal the terminal background or every segment sits in a visible box of the
+wrong colour. `theme apply` also deletes
+`$XDG_CACHE_HOME/p10k-instant-prompt-*.zsh`, which bakes the old palette into a
+prompt snapshot that outlives the theme switch.
 
-tmux is split so the template carries no layout: `templates/tmux.tmpl` generates `tmux/theme.tmux` as nothing but `set -g @thm_<role>` lines, and the tracked `.config/tmux/statusline.conf` holds the whole status line, referencing only `@thm_*`. `tmux.conf` sources the colours first, then the layout. Follow that split when theming another app — a template should be the palette, not the design.
+tmux is split so the template carries no layout: `templates/tmux.tmpl` generates
+`tmux/theme.tmux` as nothing but `set -g @thm_<role>` lines, and the tracked
+`.config/tmux/statusline.conf` holds the whole status line, referencing only
+`@thm_*`. `tmux.conf` sources the colours first, then the layout. Follow that
+split when theming another app — a template should be the palette, not the
+design.
 
-`statusline.conf` reproduces what the `catppuccin/tmux` tpm plugin used to render (rounded window style, window number on the right, icon flags, and the application + session status modules), with the plugin's option indirection flattened out. It sets options with `-gF`, so `#{@thm_*}` resolves when the file is sourced while a doubled `##{...}` survives to render time — which is why a theme switch has to re-source `tmux.conf`, not just rewrite `theme.tmux`. The session module's prefix-sensitive colour must stay a render-time `#{E:@thm_red}` reference: tmux cannot parse a raw `#rrggbb` inside a `#{?...}` conditional. `message-style` uses `bg=default` rather than overlay0 because that is what the plugin actually drew — its `%hidden CTP_MESSAGE_BACKGROUND` resolves empty on tmux 3.7 — and `status-{left,right}-length` are left at tmux's defaults for the same fidelity reason, so a long session name can still truncate at 40 columns.
+`statusline.conf` reproduces what the `catppuccin/tmux` tpm plugin used to
+render (rounded window style, window number on the right, icon flags, and the
+application + session status modules), with the plugin's option indirection
+flattened out. It sets options with `-gF`, so `#{@thm_*}` resolves when the file
+is sourced while a doubled `##{...}` survives to render time — which is why a
+theme switch has to re-source `tmux.conf`, not just rewrite `theme.tmux`. The
+session module's prefix-sensitive colour must stay a render-time `#{E:@thm_red}`
+reference: tmux cannot parse a raw `#rrggbb` inside a `#{?...}` conditional.
+`message-style` uses `bg=default` rather than overlay0 because that is what the
+plugin actually drew — its `%hidden CTP_MESSAGE_BACKGROUND` resolves empty on
+tmux 3.7 — and `status-{left,right}-length` are left at tmux's defaults for the
+same fidelity reason, so a long session name can still truncate at 40 columns.
 
-Equivalence with the plugin was checked by standing up two `tmux -L` servers — one running the real plugin with the old settings, one sourcing `theme.tmux` + `statusline.conf` — and diffing all 19 status/window/pane options. The comparison has to resolve `#{@thm_*}` on both sides first: the plugin defers those references while this layout bakes them at source time, and it keeps its status modules in `@catppuccin_status_{application,session}` rather than in `status-right`. Assert the comparison actually ran (non-empty values, expected option count) — a version that silently compared two empty files reported a false pass.
+Equivalence with the plugin was checked by standing up two `tmux -L` servers —
+one running the real plugin with the old settings, one sourcing `theme.tmux` +
+`statusline.conf` — and diffing all 19 status/window/pane options. The
+comparison has to resolve `#{@thm_*}` on both sides first: the plugin defers
+those references while this layout bakes them at source time, and it keeps its
+status modules in `@catppuccin_status_{application,session}` rather than in
+`status-right`. Assert the comparison actually ran (non-empty values, expected
+option count) — a version that silently compared two empty files reported a
+false pass.
 
-btop is the tmux split again, with the palette on the other side of the line: `templates/btop.tmpl` generates `btop/themes/dotfiles.theme` and the tracked `.config/btop/btop.conf` holds every setting, naming only `color_theme = "dotfiles"`. That bare name is what makes the config portable — btop resolves it against `$XDG_CONFIG_HOME/btop/themes` and, measured, writes it back **verbatim** rather than expanding it to the absolute path the theme menu would store, which is what the untracked config used to carry.
+btop is the tmux split again, with the palette on the other side of the line:
+`templates/btop.tmpl` generates `btop/themes/dotfiles.theme` and the tracked
+`.config/btop/btop.conf` holds every setting, naming only
+`color_theme = "dotfiles"`. That bare name is what makes the config portable —
+btop resolves it against `$XDG_CONFIG_HOME/btop/themes` and, measured, writes it
+back **verbatim** rather than expanding it to the absolute path the theme menu
+would store, which is what the untracked config used to carry.
 
-Three more things about btop, each established by spike against a scratch `XDG_CONFIG_HOME` driven through a sized pty (it exits with "Failed to get size of terminal!" under a pipe, and `script` alone does not size the pty). It writes `btop.conf` **through a symlink in place** — same inode across a settings change, so tracking the file is safe. It writes **only when something changed**, so an ordinary run-and-quit leaves it alone and there is less churn than `save_config_on_exit = true` suggests. And it does **not** re-read the theme file while running, so a `theme set` leaves an open btop on its old palette until it is restarted — GTK4's position, not zsh's or nvim's. Verification is by rendering rather than by reading the config back: run btop under a pty and grep the output for the palette's background as an SGR triplet (mocha's `#1e1e2e` is `48;2;30;30;46`), which is the only signal that separates "theme loaded" from "silently fell back to Default".
+Three more things about btop, each established by spike against a scratch
+`XDG_CONFIG_HOME` driven through a sized pty (it exits with "Failed to get size
+of terminal!" under a pipe, and `script` alone does not size the pty). It writes
+`btop.conf` **through a symlink in place** — same inode across a settings
+change, so tracking the file is safe. It writes **only when something changed**,
+so an ordinary run-and-quit leaves it alone and there is less churn than
+`save_config_on_exit = true` suggests. And it does **not** re-read the theme
+file while running, so a `theme set` leaves an open btop on its old palette
+until it is restarted — GTK4's position, not zsh's or nvim's. Verification is by
+rendering rather than by reading the config back: run btop under a pty and grep
+the output for the palette's background as an SGR triplet (mocha's `#1e1e2e` is
+`48;2;30;30;46`), which is the only signal that separates "theme loaded" from
+"silently fell back to Default".
 
-**Qt/KDE theming** (`.config/kdeglobals`): `.config/environment.d/20-qt.conf` sets `QT_QPA_PLATFORMTHEME=kde`, so Qt apps load plasma-integration's platform theme, which takes its palette, widget style, icon theme and fonts from the `[Colors:*]`, `[KDE]`, `[Icons]` and `[General]` groups of `kdeglobals`. Both toolkits use Cantarell 11 for UI text and DejaVu Sans Mono 11 for fixed-width, so Qt and GTK render identically. The GTK half lives in gsettings (`org.gnome.desktop.interface font-name`, untracked dconf) rather than in `gtk-3.0/settings.ini`, so changing one side means changing both. When comparing fonts across the two, measure cap height rather than point size — point sizes are not comparable between typefaces. KDE Frameworks apps (Dolphin, etc.) ignore a qt5ct/qt6ct palette entirely and render fully light under `QT_QPA_PLATFORMTHEME=qt5ct`, so the colour scheme has to live in `kdeglobals` (generated from `themes/templates/kdeglobals.tmpl`). The `.config/qt{5,6}ct` configs remain only for Qt5 apps (VLC), which plasma-integration 6 does not cover — launch those with `QT_QPA_PLATFORMTHEME=qt5ct` if they need theming. KDE apps are single-instance, so testing a `kdeglobals` change needs `killall dolphin` first or the old process' cached config is reused. That variable is the whole of whether any of this applies: without it plasma-integration is never loaded, `kdeglobals` is never read, and Dolphin renders in stock Breeze Light no matter what `theme` generated. It lives in `environment.d` and **not** in `.config/uwsm/env` because it is not Wayland-session setup — sway starts as a user unit (`wayland-wm@sway.desktop.service`, under uwsm), so both files reach it, and the split is by what the variable is for. `environment.d` is read by the user manager, and sway being one of its units is what carries the variable into everything sway `exec`s. It applies at manager start, so the change lands at the next login: a `daemon-reload` fixes new *units*, but the running sway's own environment cannot be changed, and apps it launches keep inheriting what it started with.
+**Qt/KDE theming** (`.config/kdeglobals`): `.config/environment.d/20-qt.conf`
+sets `QT_QPA_PLATFORMTHEME=kde`, so Qt apps load plasma-integration's platform
+theme, which takes its palette, widget style, icon theme and fonts from the
+`[Colors:*]`, `[KDE]`, `[Icons]` and `[General]` groups of `kdeglobals`. Both
+toolkits use Cantarell 11 for UI text and DejaVu Sans Mono 11 for fixed-width,
+so Qt and GTK render identically. The GTK half lives in gsettings
+(`org.gnome.desktop.interface font-name`, untracked dconf) rather than in
+`gtk-3.0/settings.ini`, so changing one side means changing both. When comparing
+fonts across the two, measure cap height rather than point size — point sizes
+are not comparable between typefaces. KDE Frameworks apps (Dolphin, etc.) ignore
+a qt5ct/qt6ct palette entirely and render fully light under
+`QT_QPA_PLATFORMTHEME=qt5ct`, so the colour scheme has to live in `kdeglobals`
+(generated from `themes/templates/kdeglobals.tmpl`). The `.config/qt{5,6}ct`
+configs remain only for Qt5 apps (VLC), which plasma-integration 6 does not
+cover — launch those with `QT_QPA_PLATFORMTHEME=qt5ct` if they need theming. KDE
+apps are single-instance, so testing a `kdeglobals` change needs
+`killall dolphin` first or the old process' cached config is reused. That
+variable is the whole of whether any of this applies: without it
+plasma-integration is never loaded, `kdeglobals` is never read, and Dolphin
+renders in stock Breeze Light no matter what `theme` generated. It lives in
+`environment.d` and **not** in `.config/uwsm/env` because it is not
+Wayland-session setup — sway starts as a user unit
+(`wayland-wm@sway.desktop.service`, under uwsm), so both files reach it, and the
+split is by what the variable is for. `environment.d` is read by the user
+manager, and sway being one of its units is what carries the variable into
+everything sway `exec`s. It applies at manager start, so the change lands at the
+next login: a `daemon-reload` fixes new _units_, but the running sway's own
+environment cannot be changed, and apps it launches keep inheriting what it
+started with.
 
-Running Qt apps repaint without a restart because `notify_kde` sends what `plasma-apply-colorscheme` sends: a `ConfigChanged` on `/kdeglobals` (`org.kde.kconfig.notify`) *and* a legacy `notifyChange` on `/KGlobalSettings` (`org.kde.KGlobalSettings`) carrying `PaletteChanged`, `StyleChanged` and `IconChanged` (0, 2, 4). The second one is what actually repaints — plasma-integration's `KHintsSettings` still listens on the KDE4-era interface, and rewriting `kdeglobals` with only the kconfig signal leaves every open window on the old palette. Captured by running `dbus-monitor` against a real `plasma-apply-colorscheme` run, and verified by screenshotting Dolphin across `theme set nord` / `theme set catppuccin-macchiato`.
+Running Qt apps repaint without a restart because `notify_kde` sends what
+`plasma-apply-colorscheme` sends: a `ConfigChanged` on `/kdeglobals`
+(`org.kde.kconfig.notify`) _and_ a legacy `notifyChange` on `/KGlobalSettings`
+(`org.kde.KGlobalSettings`) carrying `PaletteChanged`, `StyleChanged` and
+`IconChanged` (0, 2, 4). The second one is what actually repaints —
+plasma-integration's `KHintsSettings` still listens on the KDE4-era interface,
+and rewriting `kdeglobals` with only the kconfig signal leaves every open window
+on the old palette. Captured by running `dbus-monitor` against a real
+`plasma-apply-colorscheme` run, and verified by screenshotting Dolphin across
+`theme set nord` / `theme set catppuccin-macchiato`.
