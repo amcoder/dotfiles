@@ -1,8 +1,8 @@
 [Unit]
-Description=Check for a newer NVIDIA driver
+Description=Check held-back packages for newer versions
 
 [Timer]
-OnCalendar=daily
+OnCalendar=weekly
 Persistent=true
 RandomizedDelaySec=1h
 

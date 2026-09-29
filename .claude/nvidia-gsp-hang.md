@@ -113,12 +113,12 @@ to enable XMP, not lockups. Every DPMS-resume hang is on 615.
   file and not `/etc` -- in zsh an unquoted `$opts` string is one word, and apt
   then silently reads the installed pin, which is how a working file was
   misdiagnosed as broken.
-- `nvidia-driver-check` on a daily user timer notifies through the bar when the
-  repo carries a version newer than any seen before, and when the pin has
-  stopped holding (candidate ≠ installed — e.g. 610 removed from the repo). The
-  first run records the newest and stays silent, so arming it does not
-  announce 615. The bar's own apt indicator cannot do this: it parses `Inst`
-  lines, and a pinned package produces none.
+- `held-package-check` on a weekly user timer notifies through the bar when the
+  repo carries a driver newer than the installed one, once per version, and when
+  the pin has stopped holding (candidate ≠ installed, e.g. 610 removed from the
+  repo). Upstream versions in its `nvidia_skip` list (615.71.09) are never
+  reported, whatever their Debian revision. The bar's own apt indicator cannot
+  do this: it parses `Inst` lines, and a pinned package produces none.
 
 ## Verifying a new driver
 

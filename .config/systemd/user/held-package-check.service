@@ -1,0 +1,8 @@
+[Unit]
+Description=Check held-back packages for newer versions
+Documentation=file:/home/amcoder/.local/bin/held-package-check
+After=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/amcoder/.local/bin/held-package-check

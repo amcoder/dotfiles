@@ -55,9 +55,10 @@ what matters.
 - Debian's build has NVML stripped, so it is rebuilt locally as
   `0.8.4+dfsg-1+nvml1` and held
   (`mangohud mangohud:i386 mangohudctl mangoplot`), debs in
-  `~/.local/share/mangohud-nvml/`. The recipe, including the i386 build in a
-  container, is in the reference. Upstream's `include/nvml.h` from the matching
-  tag, never the CUDA 13 header.
+  `~/.local/share/mangohud-nvml/`. `held-package-check` (weekly) notifies when
+  Debian ships a newer MangoHud to rebuild from. The recipe, including the i386
+  build in a container, is in the reference. Upstream's `include/nvml.h` from
+  the matching tag, never the CUDA 13 header.
 - `MANGOHUD_CONFIG` replaces the config file; test with `MANGOHUD_CONFIGFILE`
   pointing at a copy.
 - `no_display` is set: `Right Shift+F12` shows it, `Left Shift+F2` logs 60s to

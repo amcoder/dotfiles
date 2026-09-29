@@ -1,0 +1,79 @@
+#!/bin/sh
+# Report, through the notification daemon, when a package held back on purpose
+# has a newer release worth looking at:
+#
+# - the NVIDIA driver, pinned by /etc/apt/preferences.d/nvidia-driver. Upstream
+#   versions listed in nvidia_skip are known bad and never reported, whatever
+#   their Debian revision.
+# - MangoHud, rebuilt locally with NVML (+nvmlN) and held with apt-mark. A new
+#   Debian release means rebuilding it from that source.
+#
+# Each new version is reported once. Also reports when the pin or the hold has
+# stopped holding. Silent for a package that is not installed.
+
+set -eu
+
+state="${XDG_STATE_HOME:-$HOME/.local/state}/held-package-check"
+nvidia_skip="615.71.09"
+
+notify() {
+	notify-send --app-name="Held packages" --urgency=normal "$1" "$2"
+}
+
+newest_in_repo() {
+	apt-cache madison "$1" | awk -F' \\| ' '{ print $2 }' | sort -V | tail -1
+}
+
+# Report $2 once for package $1, keyed on the version $3.
+report_once() {
+	if [ "$(cat "$state/$1" 2>/dev/null)" != "$3" ]; then
+		notify "$2" "$4"
+		echo "$3" > "$state/$1"
+	fi
+}
+
+mkdir -p "$state"
+
+check_nvidia() {
+	pkg=nvidia-open
+	installed=$(dpkg-query -W -f='${Version}' "$pkg:$(dpkg --print-architecture)" 2>/dev/null) || return 0
+	[ -n "$installed" ] || return 0
+
+	newest=$(apt-cache madison "$pkg" | awk -F' \\| ' '{ print $2 }' |
+		sed 's/-[^-]*$//' | grep -vxF "$(echo "$nvidia_skip" | tr ' ' '\n')" |
+		sort -V | tail -1)
+	if [ -n "$newest" ] && dpkg --compare-versions "$newest" gt "${installed%-*}"; then
+		report_once "$pkg" "New NVIDIA driver: $newest" "$newest" \
+			"Running $installed. Test a lock → power-off → wake cycle before trusting it."
+	fi
+
+	candidate=$(apt-cache policy "$pkg" | awk '/^  Candidate:/ { print $2 }')
+	if [ "$candidate" != "$installed" ]; then
+		notify "NVIDIA driver pin no longer holds" \
+			"apt would install $candidate over $installed. Check /etc/apt/preferences.d/nvidia-driver."
+	fi
+}
+
+check_mangohud() {
+	pkg=mangohud
+	installed=$(dpkg-query -W -f='${Version}' "$pkg:$(dpkg --print-architecture)" 2>/dev/null) || return 0
+	[ -n "$installed" ] || return 0
+
+	newest=$(newest_in_repo "$pkg")
+	if [ -n "$newest" ] && dpkg --compare-versions "$newest" gt "${installed%+nvml*}"; then
+		report_once "$pkg" "New MangoHud: $newest" "$newest" \
+			"Running $installed. Rebuild with NVML from the new source (see gaming-reference.md)."
+	fi
+
+	unheld=$(for p in mangohud mangohud:i386 mangohudctl mangoplot; do
+		dpkg-query -W "$p" > /dev/null 2>&1 || continue
+		apt-mark showhold | grep -qxF "$p" || printf ' %s' "$p"
+	done)
+	if [ -n "$unheld" ]; then
+		notify "MangoHud hold no longer holds" \
+			"Not held:$unheld. apt upgrade would replace the NVML build with Debian's."
+	fi
+}
+
+check_nvidia
+check_mangohud
