@@ -71,6 +71,11 @@ easy to get wrong:
   launcher shows frecency order and the switcher MRU order. It also means the
   _source_ order is the final fallback, so `Launcher` sorts its entries by name:
   unsorted, a fresh install lists apps in `DesktopEntries` scan order.
+- **`Fuzzy.score` scores the best alignment, not the leftmost one.** A greedy
+  match binds each query letter to its first occurrence, so "teams" took the t
+  ending "Microsoft" and scored Microsoft Teams (104) below every "Steam: S…"
+  action (146). It is a small dynamic programme over query × text, only run once
+  a cheap subsequence check passes.
 - **Home and End are only reachable through `TextField.keyHandlers`.** A
   `TextInput` accepts them for cursor movement, so a `Keys` handler further up
   the focus chain never sees them; `keyHandlers` binds `Keys.forwardTo` on the
@@ -503,11 +508,14 @@ reads fine and a `data.split("\n")` on the next one throws
 
 Frecency lives in `Quickshell.statePath("launcher.json")` as
 `{ id: { count, last } }`, weighted by recency bucket (<1d ×4, <7d ×2, <30d ×1,
-older ×0.5). Desktop actions (`entry.actions`) appear as indented sub-rows, but
-only once there is a query — with none they would pad the list with rows nobody
-asked for, which is why wofi hid them outright (`no_actions=true`). Run mode
-lists every executable on `PATH` and falls back to running the typed line
-verbatim, so a command with arguments still works.
+older ×0.5). The launcher adds `15 * ln(1 + frecency)`, not the raw value: raw,
+a heavily used app (Claude at 144) outranked a clean prefix hit on anything else
+from a stray letter in its categories, as "cal" did Calculator. Desktop actions
+(`entry.actions`) appear as indented sub-rows, but only once there is a query —
+with none they would pad the list with rows nobody asked for, which is why wofi
+hid them outright (`no_actions=true`). Run mode lists every executable on `PATH`
+and falls back to running the typed line verbatim, so a command with arguments
+still works.
 
 **Suspend and Hibernate are gated on what logind says it can do**, asked at
 startup with one `busctl` loop over `CanSuspend`, `CanHibernate` and

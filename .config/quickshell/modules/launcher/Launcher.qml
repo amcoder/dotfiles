@@ -121,7 +121,7 @@ Scope {
 
             source: root.items
             fields: item => root.fields(item)
-            weight: item => item.entry === null ? 0 : LauncherService.frecency(item.entry.id) - (item.action === null ? 0 : 1)
+            weight: item => item.entry === null ? 0 : 15 * Math.log(1 + LauncherService.frecency(item.entry.id)) - (item.action === null ? 0 : 1)
 
             onAccepted: item => root.activate(item)
             onCancelled: LauncherService.hide()

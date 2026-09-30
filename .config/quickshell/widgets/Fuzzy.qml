@@ -22,6 +22,15 @@ Singleton {
         return previous !== previous.toUpperCase() && current === current.toUpperCase();
     }
 
+    function charScore(text: string, index: int): int {
+        if (index === 0)
+            return 80;
+        return root.isBoundary(text, index) ? 40 : 5;
+    }
+
+    // Scores the best placement of the query in the text, not the leftmost
+    // one. best[j] is the top score with the current query character at j;
+    // gaps cost one per skipped character, capped at 10.
     function score(query: string, text: string): real {
         if (query === "")
             return 0;
@@ -30,31 +39,43 @@ Singleton {
 
         const needle = query.toLowerCase();
         const haystack = text.toLowerCase();
+        const length = haystack.length;
 
-        let total = 0;
-        let previous = -2;
         let cursor = 0;
-
         for (let i = 0; i < needle.length; i++) {
             const at = haystack.indexOf(needle.charAt(i), cursor);
             if (at < 0)
                 return -1;
-
-            if (at === 0)
-                total += 80;
-            else if (root.isBoundary(text, at))
-                total += 40;
-            else
-                total += 5;
-
-            if (at === previous + 1)
-                total += 30;
-            else
-                total -= Math.min(at - previous - 1, 10);
-
-            previous = at;
             cursor = at + 1;
         }
+
+        let best = new Array(length).fill(-Infinity);
+        for (let j = 0; j < length; j++) {
+            if (haystack.charAt(j) === needle.charAt(0))
+                best[j] = root.charScore(text, j) - Math.min(j + 1, 10);
+        }
+
+        for (let i = 1; i < needle.length; i++) {
+            const next = new Array(length).fill(-Infinity);
+            let far = -Infinity;
+
+            for (let j = i; j < length; j++) {
+                if (j >= 11)
+                    far = Math.max(far, best[j - 11]);
+                if (haystack.charAt(j) !== needle.charAt(i))
+                    continue;
+
+                let top = Math.max(best[j - 1] + 30, far - 10);
+                for (let k = Math.max(0, j - 10); k < j - 1; k++)
+                    top = Math.max(top, best[k] - (j - k - 1));
+
+                next[j] = top + root.charScore(text, j);
+            }
+
+            best = next;
+        }
+
+        let total = Math.max(...best);
 
         if (haystack === needle)
             total += 200;

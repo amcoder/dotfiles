@@ -125,7 +125,9 @@ part there before changing any mechanism described here.
 - **Launcher**: `DesktopEntry.command` is already the stripped argv; `NoDisplay`
   is already filtered; `OnlyShowIn`/`NotShowIn` are not, so `LauncherService`
   re-reads the desktop files. `FilterList`: `fields` fall off multiplicatively,
-  `weight` is added to the score, Home/End only via `TextField.keyHandlers`.
+  `weight` is added to the score (the launcher's is log-compressed frecency),
+  `Fuzzy` scores the best alignment rather than the leftmost, Home/End only via
+  `TextField.keyHandlers`.
 - **Window switcher**: the list is sway's tree from the service's own
   `swaymsg subscribe`, MRU from the `focus` arrays; row 1 is preselected.
 - **Window cycler** ($mod+Tab): sway cannot see the Super release, so the
