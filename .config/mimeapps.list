@@ -8,6 +8,7 @@ image/jpeg=swayimg.desktop;
 application/vnd.adobe.adept+xml=calibre-gui.desktop;
 application/epub+zip=calibre-ebook-viewer.desktop;
 application/vnd.openxmlformats-officedocument.wordprocessingml.document=org.gnome.Evince.desktop;libreoffice-writer.desktop;
+application/pdf=com.google.Chrome.desktop;
 
 [Default Applications]
 application/yaml=nvim.desktop;
@@ -31,3 +32,4 @@ application/vnd.openxmlformats-officedocument.wordprocessingml.document=libreoff
 x-scheme-handler/slack=slack.desktop
 x-scheme-handler/claude-cli=claude-code-url-handler.desktop
 x-scheme-handler/claude=com.anthropic.Claude.desktop
+application/pdf=com.google.Chrome.desktop
