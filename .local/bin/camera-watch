@@ -60,10 +60,17 @@ while :; do
 	state=
 	report
 
-	inotifywait -q -m -e open -e close -e delete_self "$@" | while read -r _; do
-		sleep "$settle"
-		report
-	done
+	# A deleted node ends this pass, so a replugged camera's new nodes are
+	# watched on the next one.
+	inotifywait -q -m -e open -e close -e delete_self --format '%e' "$@" |
+		while read -r event; do
+			if [ "$event" = DELETE_SELF ]; then
+				pkill -PIPE -P $$ -x inotifywait
+				break
+			fi
+			sleep "$settle"
+			report
+		done
 
 	sleep 2
 done

@@ -67,5 +67,15 @@ state from scratch, which is why a repeat of the current state is expected on
 the wire and ignored by the reader. Verified by killing it under the running
 shell — the indicator lit and cleared again afterwards.
 
+A **replug** is the case the loop alone did not cover. The camera comes back as
+new device nodes, and `inotifywait -m` survives losing every watch: it sits
+blocked with nothing to report and never writes, so it never takes a SIGPIPE
+either. The indicator then froze on the last state reported, which after a
+replug was (inferred, not caught) PipeWire probing the new node, and read
+`pipewire` indefinitely with nothing holding the camera. So `DELETE_SELF` ends
+the pass by killing its `inotifywait`, with SIGPIPE because dash reports a
+SIGTERM death on stderr. The same immortality is why a watcher killed by itself
+used to leave its `inotifywait` behind in quickshell's cgroup.
+
 Phosphor's `video-camera` is vendored for this; `video` is a screen with a play
 triangle and `eye` is already the Insomnia indicator.
