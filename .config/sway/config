@@ -110,8 +110,8 @@ bindsym $mod+Alt+Space exec quickshell ipc call windows toggle
 # instead of a binding here. The shell returns to the default mode when the
 # gesture ends.
 set $cycle Cycle
-bindsym $mod+Tab mode $cycle, exec quickshell ipc call windows next
-bindsym $mod+Shift+Tab mode $cycle, exec quickshell ipc call windows previous
+# bindsym $mod+Tab mode $cycle, exec quickshell ipc call windows next
+# bindsym $mod+Shift+Tab mode $cycle, exec quickshell ipc call windows previous
 
 # The MX Master's thumb button, which sends Ctrl+Alt+Tab -- established by
 # binding every keycode on that device alone and pressing it, since it emits no
@@ -127,7 +127,7 @@ bindsym $mod+Shift+Tab mode $cycle, exec quickshell ipc call windows previous
 # closed it again. Nothing is lost by staying in the default mode, since the
 # picker holds the keyboard itself: Tab and Escape are unbound here and reach it.
 set $thumb 1133:45081:Logitech_Wireless_Mouse_MX_Master_2S
-bindsym --input-device=$thumb Ctrl+Alt+Tab exec quickshell ipc call windows cycle
+# bindsym --input-device=$thumb Ctrl+Alt+Tab exec quickshell ipc call windows cycle
 
 mode $cycle {
     # The way out if the shell never takes the keyboard, which is the only way
