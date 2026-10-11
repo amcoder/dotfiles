@@ -8,7 +8,7 @@
 [gpg]
   format = ssh
 [gpg.ssh]
-  allowedSignersFile = ~/.ssh/allowed_signers
+  allowedSignersFile = ~/.dotfiles/.config/git/allowed_signers
 [core]
   autocrlf = false
   fsmonitor = true
