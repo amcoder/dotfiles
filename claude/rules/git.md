@@ -63,3 +63,24 @@ A commit from Andy's own log for calibration:
 PR descriptions follow the same shape: what was wrong, what this does, and a
 line on how it was verified if that is not obvious. No section headings, no
 bullet lists of every file touched.
+
+# Requesting a Copilot review
+
+To have Copilot review a PR, or review it again after a push, use the GraphQL
+`requestReviews` mutation with Copilot's bot ID:
+
+    BOT=$(gh api repos/OWNER/REPO/pulls/N/reviews \
+      --jq '[.[] | select(.user.login=="copilot-pull-request-reviewer[bot]")][0].user.node_id')
+    PR=$(gh api repos/OWNER/REPO/pulls/N --jq .node_id)
+    gh api graphql -f pr="$PR" -f bot="$BOT" -f query='mutation($pr:ID!,$bot:ID!){
+      requestReviews(input:{pullRequestId:$pr,botIds:[$bot],union:true}){pullRequest{number}}}'
+
+**Why:** the obvious routes fail silently. `gh pr edit --add-reviewer @copilot`
+needs a newer `gh` than Debian ships (2.46 accepts it and does nothing), and
+the REST `requested_reviewers` endpoint with the bot login returns an empty
+body without requesting anything.
+
+**How to apply:** the bot ID is `BOT_kgDOCnlnWA` on JBT-AGV repos; the lookup
+above only works on a PR Copilot has already reviewed. Confirm the request
+landed by looking for a new `review_requested` event in
+`repos/OWNER/REPO/issues/N/timeline`; `requested_reviewers` stays empty for bots.
